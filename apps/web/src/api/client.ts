@@ -1,0 +1,163 @@
+import type {
+  Grape,
+  StyleTargetWithAttributes,
+  Attribute,
+  DescriptorWithStyleTargets,
+  ExerciseTemplate,
+} from "@wine-app/shared";
+
+const getBaseUrl = () => {
+  if (import.meta.env.DEV) {
+    return import.meta.env.VITE_API_URL ?? ""; // use Vite proxy at /api
+  }
+  return window.location.origin;
+};
+
+const apiPrefix = () => (import.meta.env.DEV && !import.meta.env.VITE_API_URL ? "/api" : "");
+
+export const api = {
+  async getGrapes(): Promise<Grape[]> {
+    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/grapes`);
+    if (!res.ok) throw new Error(`Failed to fetch grapes: ${res.statusText}`);
+    return res.json();
+  },
+  async getStyleTargets(): Promise<StyleTargetWithAttributes[]> {
+    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/style-targets`);
+    if (!res.ok) throw new Error(`Failed to fetch style targets: ${res.statusText}`);
+    return res.json();
+  },
+  async getAttributes(): Promise<Attribute[]> {
+    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/attributes`);
+    if (!res.ok) throw new Error(`Failed to fetch attributes: ${res.statusText}`);
+    return res.json();
+  },
+  async getDescriptors(): Promise<DescriptorWithStyleTargets[]> {
+    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/descriptors`);
+    if (!res.ok) throw new Error(`Failed to fetch descriptors: ${res.statusText}`);
+    return res.json();
+  },
+  async getExerciseTemplates(): Promise<ExerciseTemplate[]> {
+    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/exercise-templates`);
+    if (!res.ok) throw new Error(`Failed to fetch exercise templates: ${res.statusText}`);
+    return res.json();
+  },
+};
+
+export type AuthUser = { userId: string; email: string; displayName?: string };
+
+export const authApi = {
+  async register(email: string, password: string, displayName?: string): Promise<{ accessToken: string; user: AuthUser }> {
+    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, displayName }),
+      credentials: "include",
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error((err as { error?: string }).error ?? res.statusText);
+    }
+    return res.json();
+  },
+  async login(email: string, password: string): Promise<{ accessToken: string; user: AuthUser }> {
+    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+      credentials: "include",
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error((err as { error?: string }).error ?? res.statusText);
+    }
+    return res.json();
+  },
+  async refresh(): Promise<{ accessToken: string; user?: AuthUser }> {
+    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error("Refresh failed");
+    return res.json();
+  },
+  async logout(): Promise<void> {
+    await fetch(`${getBaseUrl()}${apiPrefix()}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+  },
+};
+
+export type ExercisePayload = {
+  mapId: string;
+  xAttr: string;
+  yAttr: string;
+  correctStyleTargetId: string;
+  correctName: string;
+  correctPosition: { x: number; y: number };
+  seed: number;
+};
+
+export type ExerciseSubmitResult = {
+  isCorrect: boolean;
+  score: number;
+  correctPosition: { x: number; y: number };
+  feedback: { structureMatch: string };
+};
+
+export type ProgressRow = {
+  userId: string;
+  exerciseFormat: string;
+  wineColor: string;
+  totalAttempts: number;
+  correctAttempts: number;
+  accuracy: number;
+  masteryState: string;
+  lastAttemptedAt: string | null;
+  updatedAt: string;
+};
+
+export const progressApi = {
+  async getProgress(accessToken: string): Promise<ProgressRow[]> {
+    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/progress`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to fetch progress");
+    return res.json();
+  },
+};
+
+export const exerciseApi = {
+  async generate(accessToken: string, mapId: string): Promise<{ payload: ExercisePayload; templateId: string }> {
+    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/exercise/generate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      credentials: "include",
+      body: JSON.stringify({ mapId }),
+    });
+    if (!res.ok) throw new Error("Failed to generate exercise");
+    return res.json();
+  },
+  async submit(
+    accessToken: string,
+    templateId: string,
+    payload: ExercisePayload,
+    userAnswer: { x: number; y: number }
+  ): Promise<ExerciseSubmitResult> {
+    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/exercise/submit`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      credentials: "include",
+      body: JSON.stringify({ templateId, payload, userAnswer }),
+    });
+    if (!res.ok) throw new Error("Failed to submit");
+    return res.json();
+  },
+};
