@@ -9,7 +9,9 @@
     "db:generate": "pnpm --filter db run generate",
     "db:migrate": "pnpm --filter db run migrate",
     "db:seed": "pnpm --filter db run seed",
-    "db:studio": "pnpm --filter db run studio"
+    "db:studio": "pnpm --filter db run studio",
+    "db:up": "pnpm --filter db run up",
+    "db:down": "pnpm --filter db run down"
   },
   "engines": {
     "node": ">=20"
