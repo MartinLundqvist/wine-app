@@ -13,7 +13,8 @@ const getBaseUrl = () => {
   return window.location.origin;
 };
 
-const apiPrefix = () => (import.meta.env.DEV && !import.meta.env.VITE_API_URL ? "/api" : "");
+const apiPrefix = () =>
+  import.meta.env.DEV && !import.meta.env.VITE_API_URL ? "/api" : "";
 
 export const api = {
   async getGrapes(): Promise<Grape[]> {
@@ -23,22 +24,26 @@ export const api = {
   },
   async getStyleTargets(): Promise<StyleTargetWithAttributes[]> {
     const res = await fetch(`${getBaseUrl()}${apiPrefix()}/style-targets`);
-    if (!res.ok) throw new Error(`Failed to fetch style targets: ${res.statusText}`);
+    if (!res.ok)
+      throw new Error(`Failed to fetch style targets: ${res.statusText}`);
     return res.json();
   },
   async getAttributes(): Promise<Attribute[]> {
     const res = await fetch(`${getBaseUrl()}${apiPrefix()}/attributes`);
-    if (!res.ok) throw new Error(`Failed to fetch attributes: ${res.statusText}`);
+    if (!res.ok)
+      throw new Error(`Failed to fetch attributes: ${res.statusText}`);
     return res.json();
   },
   async getDescriptors(): Promise<DescriptorWithStyleTargets[]> {
     const res = await fetch(`${getBaseUrl()}${apiPrefix()}/descriptors`);
-    if (!res.ok) throw new Error(`Failed to fetch descriptors: ${res.statusText}`);
+    if (!res.ok)
+      throw new Error(`Failed to fetch descriptors: ${res.statusText}`);
     return res.json();
   },
   async getExerciseTemplates(): Promise<ExerciseTemplate[]> {
     const res = await fetch(`${getBaseUrl()}${apiPrefix()}/exercise-templates`);
-    if (!res.ok) throw new Error(`Failed to fetch exercise templates: ${res.statusText}`);
+    if (!res.ok)
+      throw new Error(`Failed to fetch exercise templates: ${res.statusText}`);
     return res.json();
   },
 };
@@ -46,7 +51,11 @@ export const api = {
 export type AuthUser = { userId: string; email: string; displayName?: string };
 
 export const authApi = {
-  async register(email: string, password: string, displayName?: string): Promise<{ accessToken: string; user: AuthUser }> {
+  async register(
+    email: string,
+    password: string,
+    displayName?: string,
+  ): Promise<{ accessToken: string; user: AuthUser }> {
     const res = await fetch(`${getBaseUrl()}${apiPrefix()}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -59,7 +68,10 @@ export const authApi = {
     }
     return res.json();
   },
-  async login(email: string, password: string): Promise<{ accessToken: string; user: AuthUser }> {
+  async login(
+    email: string,
+    password: string,
+  ): Promise<{ accessToken: string; user: AuthUser }> {
     const res = await fetch(`${getBaseUrl()}${apiPrefix()}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -129,7 +141,11 @@ export const progressApi = {
 };
 
 export const exerciseApi = {
-  async generate(accessToken: string, mapId: string): Promise<{ payload: ExercisePayload; templateId: string }> {
+  async generate(
+    accessToken: string,
+    mapId: string,
+    exclude?: string[],
+  ): Promise<{ payload: ExercisePayload; totalAvailable: number; templateId: string }> {
     const res = await fetch(`${getBaseUrl()}${apiPrefix()}/exercise/generate`, {
       method: "POST",
       headers: {
@@ -137,7 +153,7 @@ export const exerciseApi = {
         Authorization: `Bearer ${accessToken}`,
       },
       credentials: "include",
-      body: JSON.stringify({ mapId }),
+      body: JSON.stringify({ mapId, exclude }),
     });
     if (!res.ok) throw new Error("Failed to generate exercise");
     return res.json();
@@ -146,7 +162,7 @@ export const exerciseApi = {
     accessToken: string,
     templateId: string,
     payload: ExercisePayload,
-    userAnswer: { x: number; y: number }
+    userAnswer: { x: number; y: number },
   ): Promise<ExerciseSubmitResult> {
     const res = await fetch(`${getBaseUrl()}${apiPrefix()}/exercise/submit`, {
       method: "POST",

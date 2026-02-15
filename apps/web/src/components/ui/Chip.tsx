@@ -1,6 +1,6 @@
 import { type HTMLAttributes } from "react";
 
-type Variant = "base" | "selected" | "correct" | "incorrect";
+type Variant = "base" | "selected" | "correct" | "incorrect" | "ghost";
 
 const variants: Record<Variant, string> = {
   base: "rounded-chip border border-cork-500 px-2 py-1 text-small text-linen-100 bg-cellar-800",
@@ -10,6 +10,8 @@ const variants: Record<Variant, string> = {
     "rounded-chip border-2 border-moss-600 px-2 py-1 text-small text-linen-100 bg-moss-700/30",
   incorrect:
     "rounded-chip border-2 border-oxblood-700 px-2 py-1 text-small text-linen-100 bg-oxblood-700/20",
+  ghost:
+    "rounded-chip border border-cork-500/30 px-1.5 py-0.5 text-micro text-cork-400 bg-cellar-800/60 leading-tight",
 };
 
 export function Chip({

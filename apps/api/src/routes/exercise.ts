@@ -1,6 +1,12 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { db } from "@wine-app/db";
-import { styleTarget, styleTargetAttribute, exerciseTemplate, exerciseInstance, userProgress } from "@wine-app/db/schema";
+import {
+  styleTarget,
+  styleTargetAttribute,
+  exerciseTemplate,
+  exerciseInstance,
+  userProgress,
+} from "@wine-app/db/schema";
 import { eq, and } from "drizzle-orm";
 import { requireAuth } from "../auth/preHandler.js";
 
@@ -10,38 +16,59 @@ const MAP_CONFIGS: Record<
 > = {
   "red-structure": { xAttr: "tannin", yAttr: "acidity", wineColor: "red" },
   "body-alcohol": { xAttr: "alcohol", yAttr: "body", wineColor: "red" },
-  "flavor-direction": { xAttr: "fruit_profile", yAttr: "fruit_forward_index", wineColor: "red" },
+  "flavor-direction": {
+    xAttr: "fruit_profile",
+    yAttr: "fruit_forward_index",
+    wineColor: "red",
+  },
   "white-structure": { xAttr: "body", yAttr: "acidity", wineColor: "white" },
 };
 
 export async function registerExerciseRoutes(app: FastifyInstance) {
   app.post<{
-    Body: { mapId?: string; templateId?: string };
+    Body: { mapId?: string; templateId?: string; exclude?: string[] };
   }>(
     "/exercise/generate",
     { preHandler: [requireAuth] },
-    async (req: FastifyRequest<{ Body: { mapId?: string; templateId?: string } }>, reply: FastifyReply) => {
+    async (
+      req: FastifyRequest<{ Body: { mapId?: string; templateId?: string; exclude?: string[] } }>,
+      reply: FastifyReply,
+    ) => {
       const userId = req.user?.userId;
       if (!userId) return reply.status(401).send({ error: "Unauthorized" });
-      const { mapId, templateId } = req.body ?? {};
+      const { mapId, templateId, exclude } = req.body ?? {};
       const template = templateId
-        ? (await db.select().from(exerciseTemplate).where(eq(exerciseTemplate.exerciseTemplateId, templateId)).limit(1))[0]
+        ? (
+            await db
+              .select()
+              .from(exerciseTemplate)
+              .where(eq(exerciseTemplate.exerciseTemplateId, templateId))
+              .limit(1)
+          )[0]
         : null;
       const mapConfig = mapId ? MAP_CONFIGS[mapId] : null;
       if (!mapConfig && !template) {
-        return reply.status(400).send({ error: "mapId or templateId required" });
+        return reply
+          .status(400)
+          .send({ error: "mapId or templateId required" });
       }
       const config = mapConfig ?? {
         xAttr: "tannin",
         yAttr: "acidity",
         wineColor: "red" as const,
       };
-      const targets = await db
+      const allTargets = await db
         .select()
         .from(styleTarget)
         .where(eq(styleTarget.wineColor, config.wineColor));
-      if (targets.length === 0) return reply.status(500).send({ error: "No style targets" });
-      const chosen = targets[Math.floor(Math.random() * targets.length)];
+      if (allTargets.length === 0)
+        return reply.status(500).send({ error: "No style targets" });
+      const totalAvailable = allTargets.length;
+      // Filter out already-seen targets; fall back to full list if all excluded
+      const excludeSet = new Set(exclude ?? []);
+      const remaining = allTargets.filter((t) => !excludeSet.has(t.styleTargetId));
+      const pool = remaining.length > 0 ? remaining : allTargets;
+      const chosen = pool[Math.floor(Math.random() * pool.length)];
       const attrs = await db
         .select()
         .from(styleTargetAttribute)
@@ -65,32 +92,52 @@ export async function registerExerciseRoutes(app: FastifyInstance) {
         correctPosition: { x: correctX, y: correctY },
         seed,
       };
-      return reply.send({ payload, templateId: template?.exerciseTemplateId ?? "map_place_red_structure" });
-    }
+      return reply.send({
+        payload,
+        totalAvailable,
+        templateId: template?.exerciseTemplateId ?? "map_place_red_structure",
+      });
+    },
   );
 
   app.post<{
     Body: {
       templateId?: string;
-      payload?: { correctStyleTargetId: string; correctPosition: { x: number; y: number } };
+      payload?: {
+        correctStyleTargetId: string;
+        correctPosition: { x: number; y: number };
+      };
       userAnswer: { x: number; y: number };
     };
   }>(
     "/exercise/submit",
     { preHandler: [requireAuth] },
-    async (req: FastifyRequest<{ Body: { templateId?: string; payload?: { correctStyleTargetId: string; correctPosition: { x: number; y: number } }; userAnswer: { x: number; y: number } } }>, reply: FastifyReply) => {
+    async (
+      req: FastifyRequest<{
+        Body: {
+          templateId?: string;
+          payload?: {
+            correctStyleTargetId: string;
+            correctPosition: { x: number; y: number };
+          };
+          userAnswer: { x: number; y: number };
+        };
+      }>,
+      reply: FastifyReply,
+    ) => {
       const userId = req.user?.userId;
       if (!userId) return reply.status(401).send({ error: "Unauthorized" });
       const { payload, userAnswer } = req.body ?? {};
       if (!payload?.correctPosition || !userAnswer) {
-        return reply.status(400).send({ error: "payload and userAnswer required" });
+        return reply
+          .status(400)
+          .send({ error: "payload and userAnswer required" });
       }
       const { correctPosition } = payload;
       const dx = Math.abs((userAnswer.x ?? 0) - correctPosition.x);
       const dy = Math.abs((userAnswer.y ?? 0) - correctPosition.y);
       const distance = Math.sqrt(dx * dx + dy * dy);
-      const threshold = 1.0;
-      const isCorrect = distance <= threshold;
+      const isCorrect = dx === 0 && dy === 0;
       const score = Math.max(0, 1 - distance / 3);
       const templateId = req.body.templateId ?? "map_place_red_structure";
       await db.insert(exerciseInstance).values({
@@ -102,19 +149,27 @@ export async function registerExerciseRoutes(app: FastifyInstance) {
         isCorrect,
         score,
       });
-      const wineColor = ((payload as { wineColor?: string }).wineColor ?? "red") as "red" | "white" | "mixed";
+      const wineColor = ((payload as { wineColor?: string }).wineColor ??
+        "red") as "red" | "white" | "mixed";
       const format = "map_place";
       const existing = await db
         .select()
         .from(userProgress)
-        .where(and(eq(userProgress.userId, userId), eq(userProgress.exerciseFormat, format), eq(userProgress.wineColor, wineColor)))
+        .where(
+          and(
+            eq(userProgress.userId, userId),
+            eq(userProgress.exerciseFormat, format),
+            eq(userProgress.wineColor, wineColor),
+          ),
+        )
         .limit(1);
       const row = existing[0];
       if (row) {
         const totalAttempts = row.totalAttempts + 1;
         const correctAttempts = row.correctAttempts + (isCorrect ? 1 : 0);
         const accuracy = correctAttempts / totalAttempts;
-        const masteryState = accuracy >= 0.8 && totalAttempts >= 10 ? "mastered" : "in_progress";
+        const masteryState =
+          accuracy >= 0.8 && totalAttempts >= 10 ? "mastered" : "in_progress";
         await db
           .update(userProgress)
           .set({
@@ -125,7 +180,13 @@ export async function registerExerciseRoutes(app: FastifyInstance) {
             lastAttemptedAt: new Date(),
             updatedAt: new Date(),
           })
-          .where(and(eq(userProgress.userId, userId), eq(userProgress.exerciseFormat, format), eq(userProgress.wineColor, wineColor)));
+          .where(
+            and(
+              eq(userProgress.userId, userId),
+              eq(userProgress.exerciseFormat, format),
+              eq(userProgress.wineColor, wineColor),
+            ),
+          );
       } else {
         await db.insert(userProgress).values({
           userId,
@@ -143,9 +204,11 @@ export async function registerExerciseRoutes(app: FastifyInstance) {
         score,
         correctPosition,
         feedback: {
-          structureMatch: isCorrect ? "Correct placement." : `You placed at (${userAnswer.x}, ${userAnswer.y}). Correct was (${correctPosition.x}, ${correctPosition.y}).`,
+          structureMatch: isCorrect
+            ? "Correct placement."
+            : `You placed at (${userAnswer.x}, ${userAnswer.y}). Correct was (${correctPosition.x}, ${correctPosition.y}).`,
         },
       });
-    }
+    },
   );
 }
