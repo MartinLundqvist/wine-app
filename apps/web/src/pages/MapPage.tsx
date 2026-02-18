@@ -38,12 +38,32 @@ const attrLabels: Record<string, string> = {
   body: "Body",
   alcohol: "Alcohol",
   oak_intensity: "Oak",
+  fruit_profile: "Fruit profile",
+  fruit_forward_index: "Fruit forward",
 };
 
-function coordToPixel(x: number, y: number, halfW = 28, halfH = 14) {
+const FLAVOR_DIRECTION_X_LABELS: Record<number, string> = {
+  1: "Red",
+  2: "Black",
+};
+const FLAVOR_DIRECTION_Y_LABELS: Record<number, string> = {
+  1: "Earth-driven",
+  2: "Savory-leaning",
+  3: "Balanced",
+  4: "Fruit-leaning",
+  5: "Fruit-forward",
+};
+
+function coordToPixel(
+  x: number,
+  y: number,
+  gridRows = 5,
+  halfW = 28,
+  halfH = 14,
+) {
   return {
     left: (x - 1) * MAP_CELL_PX + MAP_CELL_PX / 2 - halfW,
-    top: (5 - y) * MAP_CELL_PX + MAP_CELL_PX / 2 - halfH,
+    top: (gridRows - y) * MAP_CELL_PX + MAP_CELL_PX / 2 - halfH,
   };
 }
 
@@ -63,6 +83,9 @@ export function MapPage() {
   const [sessionComplete, setSessionComplete] = useState(false);
   const [sessionTotal, setSessionTotal] = useState(10);
   const [seenIds, setSeenIds] = useState<string[]>([]);
+  const [templateId, setTemplateId] = useState<string>(
+    "map_place_red_structure",
+  );
   const [completedGrapes, setCompletedGrapes] = useState<
     { name: string; x: number; y: number }[]
   >([]);
@@ -81,9 +104,11 @@ export function MapPage() {
       setPlaced(null);
       return exerciseApi
         .generate(token, mapId, exclude.length > 0 ? exclude : undefined)
-        .then(({ payload: p, totalAvailable }) => {
+        .then(({ payload: p, totalAvailable, templateId: tid }) => {
           setPayload(p);
-          setSeenIds((prev) => [...prev, p.correctStyleTargetId]);
+          setTemplateId(tid);
+          const sid = p.correctStyleTargetId;
+          if (sid) setSeenIds((prev) => [...prev, sid]);
           if (exclude.length === 0) {
             setSessionTotal(totalAvailable);
           }
@@ -117,6 +142,9 @@ export function MapPage() {
   //   console.log(`[drag] pointer=(${Math.round(dropX)}, ${Math.round(dropY)})  grid=(${x}, ${y})  cell=${MAP_CELL_PX}px`);
   // };
 
+  const gridCols = mapId === "flavor-direction" ? 2 : 5;
+  const gridRows = 5;
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { over, delta, activatorEvent } = event;
     if (!payload || !state.accessToken || over?.id !== "map-drop") return;
@@ -125,15 +153,14 @@ export function MapPage() {
     );
     if (!droppableEl) return;
     const zoneRect = droppableEl.getBoundingClientRect();
-    // Use the actual pointer position (initial press + drag delta) for precision
     const startEvt = activatorEvent as PointerEvent;
     const dropX = startEvt.clientX + delta.x - zoneRect.left;
     const dropY = startEvt.clientY + delta.y - zoneRect.top;
-    const { x, y } = mapPositionToCoord(dropX, dropY);
+    const { x, y } = mapPositionToCoord(dropX, dropY, gridCols, gridRows);
     setPlaced({ x, y });
     setLoading(true);
     exerciseApi
-      .submit(state.accessToken, "map_place_red_structure", payload, { x, y })
+      .submit(state.accessToken, templateId, payload, { x, y })
       .then((res) => {
         setResult(res);
         if (res.isCorrect) setSessionCorrect((c) => c + 1);
@@ -148,20 +175,20 @@ export function MapPage() {
   const handleNext = () => {
     if (!state.accessToken || !payload) return;
     // Record the current grape at its correct position
-    setCompletedGrapes((prev) => [
-      ...prev,
-      {
-        name: payload.correctName,
-        x: payload.correctPosition.x,
-        y: payload.correctPosition.y,
-      },
-    ]);
+    const pos = payload.correctPosition;
+    const name = payload.correctName;
+    if (pos && name)
+      setCompletedGrapes((prev) => [...prev, { name, x: pos.x, y: pos.y }]);
     if (sessionRound >= sessionTotal) {
       setSessionComplete(true);
       return;
     }
     setSessionRound((r) => r + 1);
-    generateExercise(state.accessToken, seenIds);
+    // Pass current grape explicitly so we never get duplicates (avoids React state batching)
+    const excludeIds = payload.correctStyleTargetId
+      ? [...seenIds, payload.correctStyleTargetId]
+      : seenIds;
+    generateExercise(state.accessToken, excludeIds);
   };
 
   const handlePlayAgain = () => {
@@ -256,11 +283,17 @@ export function MapPage() {
 
   /* ---------- Derived values ---------- */
 
-  const correctPos = payload.correctPosition;
-  const xAttrName = attrLabels[payload.xAttr] ?? payload.xAttr;
-  const yAttrName = attrLabels[payload.yAttr] ?? payload.yAttr;
-  const correctXLabel = ORDINAL_FULL[correctPos.x] ?? String(correctPos.x);
-  const correctYLabel = ORDINAL_FULL[correctPos.y] ?? String(correctPos.y);
+  const correctPos = payload.correctPosition!;
+  const xAttrName = attrLabels[payload.xAttr ?? ""] ?? payload.xAttr ?? "";
+  const yAttrName = attrLabels[payload.yAttr ?? ""] ?? payload.yAttr ?? "";
+  const correctXLabel =
+    mapId === "flavor-direction"
+      ? (FLAVOR_DIRECTION_X_LABELS[correctPos.x] ?? String(correctPos.x))
+      : (ORDINAL_FULL[correctPos.x] ?? String(correctPos.x));
+  const correctYLabel =
+    mapId === "flavor-direction"
+      ? (FLAVOR_DIRECTION_Y_LABELS[correctPos.y] ?? String(correctPos.y))
+      : (ORDINAL_FULL[correctPos.y] ?? String(correctPos.y));
 
   const answeredSoFar = sessionRound - (result ? 0 : 1);
   const progressPct = (answeredSoFar / sessionTotal) * 100;
@@ -279,17 +312,28 @@ export function MapPage() {
         {/* -------- Left: Map -------- */}
         <div className="shrink-0">
           <MapCanvas
-            xAttr={payload.xAttr}
-            yAttr={payload.yAttr}
+            xAttr={payload.xAttr ?? "tannin"}
+            yAttr={payload.yAttr ?? "acidity"}
             dropId="map-drop"
+            gridCols={gridCols}
+            gridRows={gridRows}
+            xTickLabels={
+              mapId === "flavor-direction"
+                ? ["Red", "Black"]
+                : undefined
+            }
+            yTickLabels={
+              mapId === "flavor-direction"
+                ? ["Fruit-forward", "Fruit-leaning", "Balanced", "Savory-leaning", "Earth-driven"]
+                : undefined
+            }
           >
             {/* Previously completed grapes (ghost markers, stacked within shared cells) */}
             {completedGrapes.map((g, i) => {
-              // Count how many prior grapes share this cell to compute vertical offset
               const sameCell = completedGrapes
                 .slice(0, i)
                 .filter((p) => p.x === g.x && p.y === g.y).length;
-              const base = coordToPixel(g.x, g.y);
+              const base = coordToPixel(g.x, g.y, gridRows);
               return (
                 <div
                   key={`ghost-${i}`}
@@ -308,17 +352,21 @@ export function MapPage() {
                 {!result.isCorrect && placed && (
                   <div
                     className="absolute pointer-events-none z-10"
-                    style={coordToPixel(placed.x, placed.y)}
+                    style={coordToPixel(placed.x, placed.y, gridRows)}
                   >
-                    <Chip variant="incorrect">{payload.correctName}</Chip>
+                    <Chip variant="incorrect">
+                      {payload.correctName ?? "Grape"}
+                    </Chip>
                   </div>
                 )}
                 {/* Correct placement */}
                 <div
                   className="absolute pointer-events-none z-20"
-                  style={coordToPixel(correctPos.x, correctPos.y)}
+                  style={coordToPixel(correctPos.x, correctPos.y, gridRows)}
                 >
-                  <Chip variant="correct">{payload.correctName}</Chip>
+                  <Chip variant="correct">
+                    {payload.correctName ?? "Grape"}
+                  </Chip>
                 </div>
               </>
             )}
@@ -354,7 +402,7 @@ export function MapPage() {
             <p className="text-small text-cork-400">
               Drag{" "}
               <span className="text-linen-100 font-medium">
-                {payload.correctName}
+                {payload.correctName ?? "Grape"}
               </span>{" "}
               to its correct position on the map.
             </p>
@@ -363,7 +411,7 @@ export function MapPage() {
           {/* Draggable token (before answer) */}
           {!result && (
             <div className="py-4">
-              <GrapeToken id="grape-1" name={payload.correctName} />
+              <GrapeToken id="grape-1" name={payload.correctName ?? "Grape"} />
             </div>
           )}
 
@@ -382,8 +430,8 @@ export function MapPage() {
               </h3>
               <p className="text-body text-cellar-950 mb-4">
                 {result.isCorrect
-                  ? `${payload.correctName} has ${correctXLabel} ${xAttrName} and ${correctYLabel} ${yAttrName}.`
-                  : `${payload.correctName} has ${correctXLabel} ${xAttrName} and ${correctYLabel} ${yAttrName}. You placed it at ${ORDINAL_FULL[placed!.x] ?? placed!.x} ${xAttrName}, ${ORDINAL_FULL[placed!.y] ?? placed!.y} ${yAttrName}.`}
+                  ? `${payload.correctName ?? "Grape"} has ${correctXLabel} ${xAttrName} and ${correctYLabel} ${yAttrName}.`
+                  : `${payload.correctName ?? "Grape"} has ${correctXLabel} ${xAttrName} and ${correctYLabel} ${yAttrName}. You placed it at ${mapId === "flavor-direction" ? (FLAVOR_DIRECTION_X_LABELS[placed!.x] ?? placed!.x) : (ORDINAL_FULL[placed!.x] ?? placed!.x)} ${xAttrName}, ${mapId === "flavor-direction" ? (FLAVOR_DIRECTION_Y_LABELS[placed!.y] ?? placed!.y) : (ORDINAL_FULL[placed!.y] ?? placed!.y)} ${yAttrName}.`}
               </p>
               <Button variant="primary" onClick={handleNext}>
                 {sessionRound >= sessionTotal ? "See Results" : "Next"}

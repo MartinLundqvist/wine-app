@@ -5,15 +5,18 @@ import { Panel } from "../components/ui/Panel";
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 
+const DRILL_FORMATS = [
+  "descriptor_match",
+  "elimination",
+  "map_recall",
+  "skeleton_deduction",
+] as const;
+
 const FORMAT_LABELS: Record<string, string> = {
-  map_place: "Map Place",
-  map_recall: "Map Recall",
-  order_rank: "Order by Attribute",
   descriptor_match: "Descriptor Matching",
-  structure_deduction: "Structure Deduction",
   elimination: "Elimination",
+  map_recall: "Map Recall",
   skeleton_deduction: "Skeleton Deduction",
-  tasting_input: "Tasting Mode",
 };
 
 export function DrillsPage() {
@@ -24,23 +27,30 @@ export function DrillsPage() {
     queryFn: () => api.getExerciseTemplates(),
   });
 
-  const filtered = format && templates
-    ? templates.filter((t) => t.format === format)
-    : templates ?? [];
-  const formats = templates
-    ? [...new Set(templates.map((t) => t.format))]
-    : [];
+  const drillTemplates =
+    templates?.filter((t) =>
+      DRILL_FORMATS.includes(t.format as (typeof DRILL_FORMATS)[number]),
+    ) ?? [];
+  const filtered =
+    format && drillTemplates.length > 0
+      ? drillTemplates.filter((t) => t.format === format)
+      : drillTemplates;
+  const formats = DRILL_FORMATS;
 
   return (
     <div className="space-y-6">
       <h1 className="font-display text-h1 text-linen-100">Drills</h1>
       <p className="text-cork-400">
-        {format ? `Format: ${FORMAT_LABELS[format] ?? format}` : "Choose a format from the launcher or below."}
+        {format
+          ? `Format: ${FORMAT_LABELS[format] ?? format}`
+          : "Choose a format from the launcher or below."}
       </p>
       <div className="flex flex-wrap gap-2 mb-6">
         {formats.map((f) => (
           <Link key={f} to={`/drills?format=${f}`}>
-            <Button variant={format === f ? "primary" : "tertiary"}>{FORMAT_LABELS[f] ?? f}</Button>
+            <Button variant={format === f ? "primary" : "tertiary"}>
+              {FORMAT_LABELS[f] ?? f}
+            </Button>
           </Link>
         ))}
       </div>

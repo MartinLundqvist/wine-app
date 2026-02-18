@@ -101,20 +101,30 @@ export const authApi = {
 };
 
 export type ExercisePayload = {
-  mapId: string;
-  xAttr: string;
-  yAttr: string;
-  correctStyleTargetId: string;
-  correctName: string;
-  correctPosition: { x: number; y: number };
-  seed: number;
+  mapId?: string;
+  xAttr?: string;
+  yAttr?: string;
+  correctStyleTargetId?: string;
+  correctName?: string;
+  correctPosition?: { x: number; y: number };
+  seed?: number;
+  wineColor?: string;
+  format?: string;
+  descriptorClue?: { descriptorId: string; name: string };
+  options?: { styleTargetId: string; name: string }[];
+  structureClues?: Record<string, number>;
+  styleTargets?: {
+    styleTargetId: string;
+    name: string;
+    correctPosition: { x: number; y: number };
+  }[];
 };
 
 export type ExerciseSubmitResult = {
   isCorrect: boolean;
   score: number;
-  correctPosition: { x: number; y: number };
-  feedback: { structureMatch: string };
+  correctPosition: { x: number; y: number } | null;
+  feedback: { structureMatch: string; [k: string]: unknown };
 };
 
 export type ProgressRow = {
@@ -145,7 +155,11 @@ export const exerciseApi = {
     accessToken: string,
     mapId: string,
     exclude?: string[],
-  ): Promise<{ payload: ExercisePayload; totalAvailable: number; templateId: string }> {
+  ): Promise<{
+    payload: ExercisePayload;
+    totalAvailable: number;
+    templateId: string;
+  }> {
     const res = await fetch(`${getBaseUrl()}${apiPrefix()}/exercise/generate`, {
       method: "POST",
       headers: {
@@ -158,11 +172,32 @@ export const exerciseApi = {
     if (!res.ok) throw new Error("Failed to generate exercise");
     return res.json();
   },
+  async generateDrill(
+    accessToken: string,
+    templateId: string,
+    exclude?: string[],
+  ): Promise<{
+    payload: ExercisePayload;
+    totalAvailable: number;
+    templateId: string;
+  }> {
+    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/exercise/generate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      credentials: "include",
+      body: JSON.stringify({ templateId, exclude }),
+    });
+    if (!res.ok) throw new Error("Failed to generate drill");
+    return res.json();
+  },
   async submit(
     accessToken: string,
     templateId: string,
     payload: ExercisePayload,
-    userAnswer: { x: number; y: number },
+    userAnswer: Record<string, unknown>,
   ): Promise<ExerciseSubmitResult> {
     const res = await fetch(`${getBaseUrl()}${apiPrefix()}/exercise/submit`, {
       method: "POST",

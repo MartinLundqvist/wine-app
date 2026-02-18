@@ -1,12 +1,20 @@
 import { useDroppable } from "@dnd-kit/core";
 
-const GRID_SIZE = 5;
+const DEFAULT_GRID_SIZE = 5;
 const CELL_PX = 96;
 
 export type MapCanvasProps = {
   xAttr: string;
   yAttr: string;
   dropId?: string;
+  /** Number of columns (X positions). Default 5. Use 2 for binary categorical (e.g. Red/Black). */
+  gridCols?: number;
+  /** Number of rows (Y positions). Default 5. */
+  gridRows?: number;
+  /** Override X-axis tick labels (one per column). Used e.g. for categorical (Red/Black). */
+  xTickLabels?: string[];
+  /** Override Y-axis tick labels (positions top-to-bottom). Used e.g. for derived scale. */
+  yTickLabels?: string[];
   children?: React.ReactNode;
 };
 
@@ -16,6 +24,8 @@ const attrLabels: Record<string, string> = {
   body: "Body",
   alcohol: "Alcohol",
   oak_intensity: "Oak",
+  fruit_profile: "Fruit profile",
+  fruit_forward_index: "Fruit forward",
 };
 
 /** Short labels for grid tick marks */
@@ -40,16 +50,29 @@ export function MapCanvas({
   xAttr,
   yAttr,
   dropId = "map-drop",
+  gridCols = DEFAULT_GRID_SIZE,
+  gridRows = DEFAULT_GRID_SIZE,
+  xTickLabels,
+  yTickLabels,
   children,
 }: MapCanvasProps) {
   const { setNodeRef, isOver } = useDroppable({ id: dropId });
 
-  const gridW = GRID_SIZE * CELL_PX;
-  const gridH = GRID_SIZE * CELL_PX;
+  const gridW = gridCols * CELL_PX;
+  const gridH = gridRows * CELL_PX;
+
+  const xLabel = (pos: number) => xTickLabels?.[pos - 1] ?? ORDINAL_SHORT[pos];
+  const yLabel = (pos: number) => {
+    if (yTickLabels) {
+      const idx = gridRows - pos;
+      return yTickLabels[idx] ?? ORDINAL_SHORT[pos];
+    }
+    return ORDINAL_SHORT[pos];
+  };
 
   return (
     <div className="flex flex-col items-center gap-1 select-none">
-      <div className="flex items-stretch gap-0">
+      <div className="flex items-stretch gap-4">
         {/* Y-axis title (vertical, left side) */}
         <div
           className="text-small font-ui text-cork-400 flex items-center justify-center shrink-0"
@@ -57,16 +80,16 @@ export function MapCanvas({
             writingMode: "vertical-rl",
             textOrientation: "mixed",
             letterSpacing: "0.1em",
-            width: 20,
+            width: 24,
           }}
         >
           {attrLabels[yAttr] ?? yAttr}
         </div>
 
         {/* Y-axis tick labels */}
-        <div className="relative shrink-0" style={{ width: 44, height: gridH }}>
-          {Array.from({ length: GRID_SIZE }, (_, i) => {
-            const val = GRID_SIZE - i; // 5, 4, 3, 2, 1 top-to-bottom
+        <div className="relative shrink-0" style={{ width: 56, height: gridH }}>
+          {Array.from({ length: gridRows }, (_, i) => {
+            const val = gridRows - i; // top-to-bottom
             return (
               <span
                 key={`y-${i}`}
@@ -76,7 +99,7 @@ export function MapCanvas({
                   transform: "translateY(-50%)",
                 }}
               >
-                {ORDINAL_SHORT[val]}
+                {yLabel(val)}
               </span>
             );
           })}
@@ -95,7 +118,7 @@ export function MapCanvas({
           <div className="absolute inset-0 rounded-card bg-cellar-800 border border-cork-500/30" />
 
           {/* Vertical grid lines */}
-          {Array.from({ length: GRID_SIZE - 1 }, (_, i) => (
+          {Array.from({ length: gridCols - 1 }, (_, i) => (
             <div
               key={`v-${i}`}
               className="absolute top-2 bottom-2 border-l border-dashed border-cork-500/20"
@@ -103,7 +126,7 @@ export function MapCanvas({
             />
           ))}
           {/* Horizontal grid lines */}
-          {Array.from({ length: GRID_SIZE - 1 }, (_, i) => (
+          {Array.from({ length: gridRows - 1 }, (_, i) => (
             <div
               key={`h-${i}`}
               className="absolute left-2 right-2 border-t border-dashed border-cork-500/20"
@@ -117,8 +140,11 @@ export function MapCanvas({
       </div>
 
       {/* X-axis tick labels */}
-      <div className="relative" style={{ width: gridW, height: 20, marginLeft: 64 }}>
-        {Array.from({ length: GRID_SIZE }, (_, i) => (
+      <div
+        className="relative"
+        style={{ width: gridW, height: 20, marginLeft: 96 }}
+      >
+        {Array.from({ length: gridCols }, (_, i) => (
           <span
             key={`x-${i}`}
             className="absolute text-micro font-ui text-cork-400 text-center leading-none"
@@ -128,7 +154,7 @@ export function MapCanvas({
               top: 2,
             }}
           >
-            {ORDINAL_SHORT[i + 1]}
+            {xLabel(i + 1)}
           </span>
         ))}
       </div>
@@ -136,7 +162,7 @@ export function MapCanvas({
       {/* X-axis title */}
       <div
         className="text-small font-ui text-cork-400 text-center"
-        style={{ letterSpacing: "0.1em", marginLeft: 64 }}
+        style={{ letterSpacing: "0.1em", marginLeft: 96 }}
       >
         {attrLabels[xAttr] ?? xAttr}
       </div>
@@ -144,11 +170,16 @@ export function MapCanvas({
   );
 }
 
-export function mapPositionToCoord(px: number, py: number): { x: number; y: number } {
-  const x = Math.min(4, Math.max(0, Math.floor(px / CELL_PX)));
-  const y = Math.min(4, Math.max(0, Math.floor(py / CELL_PX)));
-  return { x: x + 1, y: 5 - y };
+export function mapPositionToCoord(
+  px: number,
+  py: number,
+  gridCols: number = DEFAULT_GRID_SIZE,
+  gridRows: number = DEFAULT_GRID_SIZE,
+): { x: number; y: number } {
+  const x = Math.min(gridCols - 1, Math.max(0, Math.floor(px / CELL_PX)));
+  const y = Math.min(gridRows - 1, Math.max(0, Math.floor(py / CELL_PX)));
+  return { x: x + 1, y: gridRows - y };
 }
 
 export const MAP_CELL_PX = CELL_PX;
-export const MAP_GRID_SIZE = GRID_SIZE;
+export const MAP_GRID_SIZE = DEFAULT_GRID_SIZE;

@@ -999,6 +999,18 @@ async function seed() {
       difficulty: "easy",
     },
     {
+      exerciseTemplateId: "map_place_white_structure",
+      name: "White Structure Map (Place)",
+      level: 1,
+      wineColor: "white",
+      format: "map_place",
+      promptStem: "Place {grape} on the map.",
+      testedAttributeIds: '["body","acidity"]',
+      selectionRules: "{}",
+      correctnessRules: "{}",
+      difficulty: "easy",
+    },
+    {
       exerciseTemplateId: "map_recall_red",
       name: "Red Map Recall",
       level: 1,
@@ -1071,6 +1083,54 @@ async function seed() {
       difficulty: "hard",
     },
     {
+      exerciseTemplateId: "descriptor_match_white",
+      name: "Descriptor Matching (White)",
+      level: 1,
+      wineColor: "white",
+      format: "descriptor_match",
+      promptStem: "Match descriptors to grapes.",
+      testedAttributeIds: "[]",
+      selectionRules: "{}",
+      correctnessRules: "{}",
+      difficulty: "medium",
+    },
+    {
+      exerciseTemplateId: "elimination_white",
+      name: "Elimination (White)",
+      level: 1,
+      wineColor: "white",
+      format: "elimination",
+      promptStem: "Remove the grape that doesn't match.",
+      testedAttributeIds: "[]",
+      selectionRules: "{}",
+      correctnessRules: "{}",
+      difficulty: "hard",
+    },
+    {
+      exerciseTemplateId: "map_recall_white",
+      name: "White Map Recall",
+      level: 1,
+      wineColor: "white",
+      format: "map_recall",
+      promptStem: "Place all white grapes on the map.",
+      testedAttributeIds: '["body","acidity"]',
+      selectionRules: "{}",
+      correctnessRules: "{}",
+      difficulty: "medium",
+    },
+    {
+      exerciseTemplateId: "skeleton_deduction_white",
+      name: "Skeleton Deduction (White)",
+      level: 1,
+      wineColor: "white",
+      format: "skeleton_deduction",
+      promptStem: "Structure only: identify the grape.",
+      testedAttributeIds: '["body","acidity"]',
+      selectionRules: "{}",
+      correctnessRules: "{}",
+      difficulty: "hard",
+    },
+    {
       exerciseTemplateId: "tasting_input_red",
       name: "Tasting Mode (Red)",
       level: 1,
@@ -1105,7 +1165,9 @@ async function seed() {
   console.log("Seed complete.");
 }
 
-seed().catch((err) => {
-  console.error("Seed failed:", err);
-  process.exit(1);
-});
+seed()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error("Seed failed:", err);
+    process.exit(1);
+  });
