@@ -1,25 +1,70 @@
-import { pgTable, varchar, integer, text, boolean } from "drizzle-orm/pg-core";
-import { wineColorEnum } from "./enums";
+import {
+  pgTable,
+  varchar,
+  integer,
+  text,
+  primaryKey,
+  foreignKey,
+} from "drizzle-orm/pg-core";
+import {
+  grapeColorEnum,
+  styleKindEnum,
+  confidenceEnum,
+  statusEnum,
+  grapeRoleEnum,
+} from "./enums";
+
+export const region = pgTable(
+  "region",
+  {
+    id: varchar("id", { length: 64 }).primaryKey(),
+    displayName: varchar("display_name", { length: 128 }).notNull(),
+    country: varchar("country", { length: 64 }).notNull(),
+    parentRegionId: varchar("parent_region_id", { length: 64 }),
+    notes: text("notes"),
+  },
+  (table) => ({
+    parentFk: foreignKey({
+      columns: [table.parentRegionId],
+      foreignColumns: [table.id],
+      name: "region_parent_region_id_fkey",
+    }),
+  })
+);
 
 export const grape = pgTable("grape", {
-  grapeId: varchar("grape_id", { length: 64 }).primaryKey(),
-  name: varchar("name", { length: 128 }).notNull(),
-  wineColor: wineColorEnum("wine_color").notNull(),
-  level: integer("level").notNull().default(1),
-  canonicalStyleTargetId: varchar("canonical_style_target_id", { length: 64 }).notNull(),
-  aliases: text("aliases"),
+  id: varchar("id", { length: 64 }).primaryKey(),
+  displayName: varchar("display_name", { length: 128 }).notNull(),
+  color: grapeColorEnum("color").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
   notes: text("notes"),
 });
 
 export const styleTarget = pgTable("style_target", {
-  styleTargetId: varchar("style_target_id", { length: 64 }).primaryKey(),
-  grapeId: varchar("grape_id", { length: 64 })
-    .notNull()
-    .references(() => grape.grapeId, { onDelete: "cascade" }),
-  name: varchar("name", { length: 128 }).notNull(),
-  wineColor: wineColorEnum("wine_color").notNull(),
-  level: integer("level").notNull().default(1),
-  isPrimaryForGrape: boolean("is_primary_for_grape").notNull(),
-  description: text("description"),
-  version: integer("version").notNull().default(1),
+  id: varchar("id", { length: 64 }).primaryKey(),
+  displayName: varchar("display_name", { length: 128 }).notNull(),
+  regionId: varchar("region_id", { length: 64 }).references(() => region.id, {
+    onDelete: "set null",
+  }),
+  styleKind: styleKindEnum("style_kind").notNull(),
+  ladderTier: integer("ladder_tier").notNull().default(1),
+  confidence: confidenceEnum("confidence").notNull(),
+  status: statusEnum("status").notNull().default("approved"),
+  authoringBasis: text("authoring_basis"),
+  notesInternal: text("notes_internal"),
 });
+
+export const styleTargetGrape = pgTable(
+  "style_target_grape",
+  {
+    styleTargetId: varchar("style_target_id", { length: 64 })
+      .notNull()
+      .references(() => styleTarget.id, { onDelete: "cascade" }),
+    grapeId: varchar("grape_id", { length: 64 })
+      .notNull()
+      .references(() => grape.id, { onDelete: "cascade" }),
+    percentage: integer("percentage"), // null when sole grape (implicit 100%)
+    role: grapeRoleEnum("role").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.styleTargetId, t.grapeId] })]
+);

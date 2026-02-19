@@ -1,23 +1,12 @@
 import { pgEnum } from "drizzle-orm/pg-core";
 
+// Kept for user/exercise layer
 export const wineColorEnum = pgEnum("wine_color", ["red", "white"]);
-export const wineColorScopeEnum = pgEnum("wine_color_scope", ["red", "white", "mixed", "both"]);
-export const masteryStateEnum = pgEnum("mastery_state", ["locked", "in_progress", "mastered"]);
-export const dataTypeEnum = pgEnum("data_type", ["ordinal", "categorical"]);
-export const scaleKeyEnum = pgEnum("scale_key", [
-  "ordinal_1_5",
-  "color_intensity_1_3",
-  "sweetness_1_5",
+export const masteryStateEnum = pgEnum("mastery_state", [
+  "locked",
+  "in_progress",
+  "mastered",
 ]);
-export const descriptorCategoryEnum = pgEnum("descriptor_category", [
-  "fruit",
-  "floral",
-  "herbal",
-  "spice",
-  "earth",
-  "oak",
-]);
-export const relevanceEnum = pgEnum("relevance", ["primary", "secondary", "occasional"]);
 export const exerciseFormatEnum = pgEnum("exercise_format", [
   "map_place",
   "map_recall",
@@ -28,10 +17,54 @@ export const exerciseFormatEnum = pgEnum("exercise_format", [
   "skeleton_deduction",
   "tasting_input",
 ]);
-export const difficultyEnum = pgEnum("difficulty", ["easy", "medium", "hard", "expert"]);
-export const confusionSetRoleEnum = pgEnum("confusion_set_role", ["core", "distractor"]);
-export const generationMethodEnum = pgEnum("generation_method", [
-  "manual",
-  "distance",
-  "telemetry",
+export const difficultyEnum = pgEnum("difficulty", [
+  "easy",
+  "medium",
+  "hard",
+  "expert",
+]);
+
+// Wine knowledge engine v4 enums
+export const grapeColorEnum = pgEnum("grape_color", ["red", "white"]);
+export const domainEnum = pgEnum("structure_domain", [
+  "appearance",
+  "structural",
+]);
+export const scaleTypeEnum = pgEnum("scale_type", [
+  "ordinal_5",
+  "ordinal_3",
+  "categorical",
+]);
+export const aromaSourceEnum = pgEnum("aroma_source", [
+  "primary",
+  "secondary",
+  "tertiary",
+]);
+export const styleKindEnum = pgEnum("style_kind", [
+  "grape_archetype",
+  "regional_benchmark",
+  "method_benchmark",
+  "commercial_modern",
+]);
+export const confidenceEnum = pgEnum("confidence", ["high", "medium", "low"]);
+export const statusEnum = pgEnum("style_status", [
+  "draft",
+  "approved",
+  "deprecated",
+]);
+export const grapeRoleEnum = pgEnum("grape_role", ["primary", "blending"]);
+export const prominenceEnum = pgEnum("prominence", [
+  "dominant",
+  "supporting",
+  "optional",
+]);
+export const continentalityEnum = pgEnum("continentality", [
+  "maritime",
+  "continental",
+  "mixed",
+]);
+export const malolacticEnum = pgEnum("malolactic_conversion", [
+  "none",
+  "partial",
+  "full",
 ]);

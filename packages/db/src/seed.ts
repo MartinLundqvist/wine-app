@@ -1,1165 +1,232 @@
 import { db } from "./client";
 import {
-  attribute,
   grape,
+  region,
   styleTarget,
-  styleTargetAttribute,
-  descriptor,
-  styleTargetDescriptor,
-  exerciseTemplate,
+  styleTargetGrape,
+  structureDimension,
+  styleTargetStructure,
+  aromaTerm,
+  styleTargetAromaProfile,
+  thermalBand,
+  styleTargetContext,
 } from "./schema";
 
-// Unique attributes: shared ones use scope "both", red-only and white-only use "red"/"white"
-const ALL_ATTRIBUTES = [
-  {
-    attributeId: "tannin",
-    name: "Tannin",
-    wineColorScope: "red",
-    dataType: "ordinal",
-    scaleKey: "ordinal_1_5",
-    minValue: 1,
-    maxValue: 5,
-    allowedValues: null,
-    description: "Perceived tannin intensity",
-    sortOrder: 1,
-  },
-  {
-    attributeId: "acidity",
-    name: "Acidity",
-    wineColorScope: "both",
-    dataType: "ordinal",
-    scaleKey: "ordinal_1_5",
-    minValue: 1,
-    maxValue: 5,
-    allowedValues: null,
-    description: "Perceived acidity",
-    sortOrder: 2,
-  },
-  {
-    attributeId: "body",
-    name: "Body",
-    wineColorScope: "both",
-    dataType: "ordinal",
-    scaleKey: "ordinal_1_5",
-    minValue: 1,
-    maxValue: 5,
-    allowedValues: null,
-    description: "Weight/viscosity",
-    sortOrder: 3,
-  },
-  {
-    attributeId: "alcohol",
-    name: "Alcohol",
-    wineColorScope: "both",
-    dataType: "ordinal",
-    scaleKey: "ordinal_1_5",
-    minValue: 1,
-    maxValue: 5,
-    allowedValues: null,
-    description: "Alcohol warmth",
-    sortOrder: 4,
-  },
-  {
-    attributeId: "oak_intensity",
-    name: "Oak intensity",
-    wineColorScope: "both",
-    dataType: "ordinal",
-    scaleKey: "ordinal_1_5",
-    minValue: 1,
-    maxValue: 5,
-    allowedValues: null,
-    description: "Oak impact",
-    sortOrder: 5,
-  },
-  {
-    attributeId: "color_intensity",
-    name: "Color intensity",
-    wineColorScope: "both",
-    dataType: "ordinal",
-    scaleKey: "color_intensity_1_3",
-    minValue: 1,
-    maxValue: 3,
-    allowedValues: null,
-    description: "Pale–Deep",
-    sortOrder: 6,
-  },
-  {
-    attributeId: "fruit_profile",
-    name: "Fruit profile",
-    wineColorScope: "both",
-    dataType: "categorical",
-    scaleKey: null,
-    minValue: null,
-    maxValue: null,
-    allowedValues: '["Red","Black","Citrus","Orchard","Tropical"]',
-    description: "Fruit direction",
-    sortOrder: 7,
-  },
-  {
-    attributeId: "fruit_intensity",
-    name: "Fruit intensity",
-    wineColorScope: "red",
-    dataType: "ordinal",
-    scaleKey: "ordinal_1_5",
-    minValue: 1,
-    maxValue: 5,
-    allowedValues: null,
-    description: "Raw fruit expression level",
-    sortOrder: 8,
-  },
-  {
-    attributeId: "herbal_character",
-    name: "Herbal character",
-    wineColorScope: "both",
-    dataType: "ordinal",
-    scaleKey: "ordinal_1_5",
-    minValue: 1,
-    maxValue: 5,
-    allowedValues: null,
-    description: "Green/herbal intensity",
-    sortOrder: 9,
-  },
-  {
-    attributeId: "earth_spice_character",
-    name: "Earth/spice character",
-    wineColorScope: "red",
-    dataType: "ordinal",
-    scaleKey: "ordinal_1_5",
-    minValue: 1,
-    maxValue: 5,
-    allowedValues: null,
-    description: "Earth/spice presence",
-    sortOrder: 10,
-  },
-  {
-    attributeId: "sweetness",
-    name: "Sweetness",
-    wineColorScope: "white",
-    dataType: "ordinal",
-    scaleKey: "sweetness_1_5",
-    minValue: 1,
-    maxValue: 5,
-    allowedValues: null,
-    description: "Residual sugar perception",
-    sortOrder: 11,
-  },
-  {
-    attributeId: "floral_character",
-    name: "Floral character",
-    wineColorScope: "white",
-    dataType: "ordinal",
-    scaleKey: "ordinal_1_5",
-    minValue: 1,
-    maxValue: 5,
-    allowedValues: null,
-    description: "Floral intensity",
-    sortOrder: 12,
-  },
-];
-
 async function seed() {
-  console.log("Seeding attributes...");
-  for (const a of ALL_ATTRIBUTES) {
-    await db
-      .insert(attribute)
-      .values({
-        attributeId: a.attributeId,
-        name: a.name,
-        wineColorScope: a.wineColorScope as "red" | "white" | "mixed" | "both",
-        dataType: a.dataType as "ordinal" | "categorical",
-        scaleKey: a.scaleKey as
-          | "ordinal_1_5"
-          | "color_intensity_1_3"
-          | "sweetness_1_5"
-          | null,
-        minValue: a.minValue,
-        maxValue: a.maxValue,
-        allowedValues: a.allowedValues,
-        description: a.description,
-        sortOrder: a.sortOrder,
-      })
-      .onConflictDoNothing();
+  console.log("Seeding wine knowledge engine (v4)...");
+
+  // Thermal bands
+  console.log("Seeding thermal_band...");
+  await db.insert(thermalBand).values([
+    { id: "cool", description: "Cool climate" },
+    { id: "moderate", description: "Moderate climate" },
+    { id: "warm", description: "Warm climate" },
+    { id: "hot", description: "Hot climate" },
+  ]).onConflictDoNothing();
+
+  // Regions (countries and sub-regions)
+  console.log("Seeding region...");
+  const regions = [
+    { id: "france", displayName: "France", country: "France", parentRegionId: null as string | null, notes: null },
+    { id: "bordeaux", displayName: "Bordeaux", country: "France", parentRegionId: "france", notes: null },
+    { id: "burgundy", displayName: "Burgundy", country: "France", parentRegionId: "france", notes: null },
+    { id: "rhone", displayName: "Rhône", country: "France", parentRegionId: "france", notes: null },
+    { id: "loire", displayName: "Loire", country: "France", parentRegionId: "france", notes: null },
+    { id: "italy", displayName: "Italy", country: "Italy", parentRegionId: null, notes: null },
+    { id: "tuscany", displayName: "Tuscany", country: "Italy", parentRegionId: "italy", notes: null },
+    { id: "piedmont", displayName: "Piedmont", country: "Italy", parentRegionId: "italy", notes: null },
+    { id: "spain", displayName: "Spain", country: "Spain", parentRegionId: null, notes: null },
+    { id: "rioja", displayName: "Rioja", country: "Spain", parentRegionId: "spain", notes: null },
+    { id: "usa", displayName: "USA", country: "USA", parentRegionId: null, notes: null },
+    { id: "california", displayName: "California", country: "USA", parentRegionId: "usa", notes: null },
+    { id: "australia", displayName: "Australia", country: "Australia", parentRegionId: null, notes: null },
+    { id: "generic", displayName: "Generic / International", country: "International", parentRegionId: null, notes: "Archetype without specific region" },
+  ];
+  for (const r of regions) {
+    await db.insert(region).values({
+      id: r.id,
+      displayName: r.displayName,
+      country: r.country,
+      parentRegionId: r.parentRegionId,
+      notes: r.notes,
+    }).onConflictDoNothing();
   }
 
-  // Red grapes and style targets (coordinate table from schema)
-  const RED_GRAPES: {
+  // Grapes (9 red, 3 white)
+  console.log("Seeding grape...");
+  const grapesData: { id: string; displayName: string; color: "red" | "white"; sortOrder: number; notes: string | null }[] = [
+    { id: "cabernet_sauvignon", displayName: "Cabernet Sauvignon", color: "red", sortOrder: 1, notes: null },
+    { id: "merlot", displayName: "Merlot", color: "red", sortOrder: 2, notes: null },
+    { id: "pinot_noir", displayName: "Pinot Noir", color: "red", sortOrder: 3, notes: null },
+    { id: "syrah", displayName: "Syrah", color: "red", sortOrder: 4, notes: null },
+    { id: "grenache", displayName: "Grenache", color: "red", sortOrder: 5, notes: null },
+    { id: "nebbiolo", displayName: "Nebbiolo", color: "red", sortOrder: 6, notes: null },
+    { id: "sangiovese", displayName: "Sangiovese", color: "red", sortOrder: 7, notes: null },
+    { id: "tempranillo", displayName: "Tempranillo", color: "red", sortOrder: 8, notes: null },
+    { id: "zinfandel", displayName: "Zinfandel", color: "red", sortOrder: 9, notes: null },
+    { id: "chardonnay", displayName: "Chardonnay", color: "white", sortOrder: 10, notes: null },
+    { id: "riesling", displayName: "Riesling", color: "white", sortOrder: 11, notes: null },
+    { id: "sauvignon_blanc", displayName: "Sauvignon Blanc", color: "white", sortOrder: 12, notes: null },
+  ];
+  for (const g of grapesData) {
+    await db.insert(grape).values(g).onConflictDoNothing();
+  }
+
+  // Structure dimensions
+  console.log("Seeding structure_dimension...");
+  type Domain = "appearance" | "structural";
+  type ScaleType = "ordinal_5" | "ordinal_3" | "categorical";
+  const dimensions: { id: string; displayName: string; domain: Domain; scaleType: ScaleType; scaleMin: number | null; scaleMax: number | null; description: string }[] = [
+    { id: "acidity", displayName: "Acidity", domain: "structural", scaleType: "ordinal_5", scaleMin: 1, scaleMax: 5, description: "Perceived acidity" },
+    { id: "tannin", displayName: "Tannin", domain: "structural", scaleType: "ordinal_5", scaleMin: 1, scaleMax: 5, description: "Tannin intensity" },
+    { id: "alcohol", displayName: "Alcohol", domain: "structural", scaleType: "ordinal_5", scaleMin: 1, scaleMax: 5, description: "Alcohol warmth" },
+    { id: "body", displayName: "Body", domain: "structural", scaleType: "ordinal_5", scaleMin: 1, scaleMax: 5, description: "Weight/viscosity" },
+    { id: "oak_intensity", displayName: "Oak intensity", domain: "structural", scaleType: "ordinal_5", scaleMin: 1, scaleMax: 5, description: "Oak impact" },
+    { id: "flavor_intensity", displayName: "Flavor intensity", domain: "structural", scaleType: "ordinal_5", scaleMin: 1, scaleMax: 5, description: "Intensity of flavors" },
+    { id: "color_intensity", displayName: "Color intensity", domain: "appearance", scaleType: "ordinal_3", scaleMin: 1, scaleMax: 3, description: "Pale to deep" },
+    { id: "herbal_character", displayName: "Herbal character", domain: "structural", scaleType: "ordinal_5", scaleMin: 1, scaleMax: 5, description: "Green/herbal intensity" },
+    { id: "earth_spice_character", displayName: "Earth/spice character", domain: "structural", scaleType: "ordinal_5", scaleMin: 1, scaleMax: 5, description: "Earth and spice presence" },
+    { id: "fruit_profile", displayName: "Fruit profile", domain: "structural", scaleType: "categorical", scaleMin: null, scaleMax: null, description: "Red/Black or Citrus/Orchard/Tropical" },
+    { id: "sweetness", displayName: "Sweetness", domain: "structural", scaleType: "ordinal_5", scaleMin: 1, scaleMax: 5, description: "Residual sugar perception" },
+  ];
+  for (const d of dimensions) {
+    await db.insert(structureDimension).values(d).onConflictDoNothing();
+  }
+
+  // Aroma terms: L1 sources (root), L2 clusters, L3 descriptors
+  console.log("Seeding aroma_term...");
+  type AromaSource = "primary" | "secondary" | "tertiary";
+  const aromaL1: { id: string; displayName: string; parentId: string | null; source: AromaSource; description: string | null }[] = [
+    { id: "source_primary", displayName: "Primary", parentId: null, source: "primary", description: "Grape and fermentation" },
+    { id: "source_secondary", displayName: "Secondary", parentId: null, source: "secondary", description: "Post-fermentation winemaking" },
+    { id: "source_tertiary", displayName: "Tertiary", parentId: null, source: "tertiary", description: "Maturation" },
+  ];
+  for (const a of aromaL1) {
+    await db.insert(aromaTerm).values(a).onConflictDoNothing();
+  }
+  const aromaL2: { id: string; displayName: string; parentId: string; source: AromaSource; description: string | null }[] = [
+    { id: "cluster_floral", displayName: "Floral", parentId: "source_primary", source: "primary", description: null },
+    { id: "cluster_green_fruit", displayName: "Green Fruit", parentId: "source_primary", source: "primary", description: null },
+    { id: "cluster_citrus", displayName: "Citrus Fruit", parentId: "source_primary", source: "primary", description: null },
+    { id: "cluster_stone_fruit", displayName: "Stone Fruit", parentId: "source_primary", source: "primary", description: null },
+    { id: "cluster_tropical", displayName: "Tropical Fruit", parentId: "source_primary", source: "primary", description: null },
+    { id: "cluster_red_fruit", displayName: "Red Fruit", parentId: "source_primary", source: "primary", description: null },
+    { id: "cluster_black_fruit", displayName: "Black Fruit", parentId: "source_primary", source: "primary", description: null },
+    { id: "cluster_herbaceous", displayName: "Herbaceous", parentId: "source_primary", source: "primary", description: null },
+    { id: "cluster_herbal", displayName: "Herbal", parentId: "source_primary", source: "primary", description: null },
+    { id: "cluster_oak", displayName: "Oak", parentId: "source_secondary", source: "secondary", description: null },
+    { id: "cluster_malolactic", displayName: "Malolactic", parentId: "source_secondary", source: "secondary", description: null },
+    { id: "cluster_yeast", displayName: "Yeast / Autolysis", parentId: "source_secondary", source: "secondary", description: null },
+    { id: "cluster_fruit_dev", displayName: "Fruit Development", parentId: "source_tertiary", source: "tertiary", description: null },
+    { id: "cluster_bottle_age", displayName: "Bottle Age", parentId: "source_tertiary", source: "tertiary", description: null },
+  ];
+  for (const a of aromaL2) {
+    await db.insert(aromaTerm).values(a).onConflictDoNothing();
+  }
+  const aromaL3: { id: string; displayName: string; parentId: string; source: AromaSource; description: string | null }[] = [
+    { id: "desc_blackberry", displayName: "Blackberry", parentId: "cluster_black_fruit", source: "primary", description: null },
+    { id: "desc_blackcurrant", displayName: "Blackcurrant", parentId: "cluster_black_fruit", source: "primary", description: null },
+    { id: "desc_cherry", displayName: "Cherry", parentId: "cluster_red_fruit", source: "primary", description: null },
+    { id: "desc_strawberry", displayName: "Strawberry", parentId: "cluster_red_fruit", source: "primary", description: null },
+    { id: "desc_raspberry", displayName: "Raspberry", parentId: "cluster_red_fruit", source: "primary", description: null },
+    { id: "desc_plum", displayName: "Plum", parentId: "cluster_red_fruit", source: "primary", description: null },
+    { id: "desc_vanilla", displayName: "Vanilla", parentId: "cluster_oak", source: "secondary", description: null },
+    { id: "desc_clove", displayName: "Clove", parentId: "cluster_oak", source: "secondary", description: null },
+    { id: "desc_coconut", displayName: "Coconut", parentId: "cluster_oak", source: "secondary", description: null },
+    { id: "desc_butter", displayName: "Butter", parentId: "cluster_malolactic", source: "secondary", description: null },
+    { id: "desc_cream", displayName: "Cream", parentId: "cluster_malolactic", source: "secondary", description: null },
+    { id: "desc_leather", displayName: "Leather", parentId: "cluster_bottle_age", source: "tertiary", description: null },
+    { id: "desc_earth", displayName: "Earth", parentId: "cluster_bottle_age", source: "tertiary", description: null },
+    { id: "desc_citrus", displayName: "Citrus", parentId: "cluster_citrus", source: "primary", description: null },
+    { id: "desc_apple", displayName: "Apple", parentId: "cluster_stone_fruit", source: "primary", description: null },
+    { id: "desc_peach", displayName: "Peach", parentId: "cluster_stone_fruit", source: "primary", description: null },
+    { id: "desc_grass", displayName: "Grass", parentId: "cluster_herbaceous", source: "primary", description: null },
+    { id: "desc_bell_pepper", displayName: "Bell pepper", parentId: "cluster_herbaceous", source: "primary", description: null },
+    { id: "desc_black_pepper", displayName: "Black pepper", parentId: "cluster_herbal", source: "primary", description: null },
+    { id: "desc_floral", displayName: "Floral", parentId: "cluster_floral", source: "primary", description: null },
+    { id: "desc_honeysuckle", displayName: "Honeysuckle", parentId: "cluster_floral", source: "primary", description: null },
+  ];
+  for (const a of aromaL3) {
+    await db.insert(aromaTerm).values(a).onConflictDoNothing();
+  }
+
+  // Style targets (one grape_archetype per grape), grapes link, structure, aromas, context
+  console.log("Seeding style_target, style_target_grape, style_target_structure, style_target_aroma_profile, style_target_context...");
+
+  type StyleTargetSeed = {
+    id: string;
+    displayName: string;
+    regionId: string | null;
     grapeId: string;
-    name: string;
-    styleTargetId: string;
-    styleTargetName: string;
-    tannin: number;
-    acidity: number;
-    body: number;
-    alcohol: number;
-    oak: number;
-    color: number;
-    fruit: string;
-    fruitIntensity: number;
-    herbal: number;
-    earthSpice: number;
-  }[] = [
-    {
-      grapeId: "cabernet_sauvignon",
-      name: "Cabernet Sauvignon",
-      styleTargetId: "lvl1_cabernet_sauvignon",
-      styleTargetName: "Cabernet Sauvignon",
-      tannin: 5,
-      acidity: 3,
-      body: 5,
-      alcohol: 4,
-      oak: 4,
-      color: 4,
-      fruit: "Black",
-      fruitIntensity: 4,
-      herbal: 2,
-      earthSpice: 2,
-    },
-    {
-      grapeId: "merlot",
-      name: "Merlot",
-      styleTargetId: "lvl1_merlot",
-      styleTargetName: "Merlot",
-      tannin: 3,
-      acidity: 3,
-      body: 3,
-      alcohol: 3,
-      oak: 3,
-      color: 3,
-      fruit: "Black",
-      fruitIntensity: 4,
-      herbal: 1,
-      earthSpice: 2,
-    },
-    {
-      grapeId: "pinot_noir",
-      name: "Pinot Noir",
-      styleTargetId: "lvl1_pinot_noir",
-      styleTargetName: "Pinot Noir",
-      tannin: 2,
-      acidity: 4,
-      body: 2,
-      alcohol: 3,
-      oak: 2,
-      color: 1,
-      fruit: "Red",
-      fruitIntensity: 3,
-      herbal: 1,
-      earthSpice: 3,
-    },
-    {
-      grapeId: "syrah",
-      name: "Syrah",
-      styleTargetId: "lvl1_syrah",
-      styleTargetName: "Syrah",
-      tannin: 4,
-      acidity: 3,
-      body: 4,
-      alcohol: 4,
-      oak: 3,
-      color: 3,
-      fruit: "Black",
-      fruitIntensity: 4,
-      herbal: 2,
-      earthSpice: 4,
-    },
-    {
-      grapeId: "grenache",
-      name: "Grenache",
-      styleTargetId: "lvl1_grenache",
-      styleTargetName: "Grenache",
-      tannin: 3,
-      acidity: 2,
-      body: 3,
-      alcohol: 5,
-      oak: 2,
-      color: 2,
-      fruit: "Red",
-      fruitIntensity: 4,
-      herbal: 1,
-      earthSpice: 2,
-    },
-    {
-      grapeId: "nebbiolo",
-      name: "Nebbiolo",
-      styleTargetId: "lvl1_nebbiolo",
-      styleTargetName: "Nebbiolo",
-      tannin: 5,
-      acidity: 5,
-      body: 3,
-      alcohol: 4,
-      oak: 2,
-      color: 1,
-      fruit: "Red",
-      fruitIntensity: 3,
-      herbal: 2,
-      earthSpice: 5,
-    },
-    {
-      grapeId: "sangiovese",
-      name: "Sangiovese",
-      styleTargetId: "lvl1_sangiovese",
-      styleTargetName: "Sangiovese",
-      tannin: 3,
-      acidity: 4,
-      body: 3,
-      alcohol: 3,
-      oak: 2,
-      color: 2,
-      fruit: "Red",
-      fruitIntensity: 3,
-      herbal: 4,
-      earthSpice: 3,
-    },
-    {
-      grapeId: "tempranillo",
-      name: "Tempranillo",
-      styleTargetId: "lvl1_tempranillo",
-      styleTargetName: "Tempranillo",
-      tannin: 3,
-      acidity: 3,
-      body: 3,
-      alcohol: 3,
-      oak: 4,
-      color: 2,
-      fruit: "Red",
-      fruitIntensity: 3,
-      herbal: 2,
-      earthSpice: 3,
-    },
-    {
-      grapeId: "zinfandel",
-      name: "Zinfandel",
-      styleTargetId: "lvl1_zinfandel",
-      styleTargetName: "Zinfandel",
-      tannin: 3,
-      acidity: 3,
-      body: 4,
-      alcohol: 5,
-      oak: 3,
-      color: 3,
-      fruit: "Black",
-      fruitIntensity: 5,
-      herbal: 1,
-      earthSpice: 3,
-    },
+    structure: Record<string, { min: number; max: number; cat?: string }>;
+    aromas: string[]; // L3 aroma term ids
+    thermalBandId: string | null;
+  };
+
+  const styleTargetsData: StyleTargetSeed[] = [
+    { id: "st_cabernet_sauvignon", displayName: "Cabernet Sauvignon", regionId: "bordeaux", grapeId: "cabernet_sauvignon", thermalBandId: "moderate", structure: { acidity: { min: 3, max: 3 }, tannin: { min: 5, max: 5 }, alcohol: { min: 4, max: 4 }, body: { min: 5, max: 5 }, oak_intensity: { min: 4, max: 4 }, flavor_intensity: { min: 4, max: 4 }, color_intensity: { min: 3, max: 3 }, herbal_character: { min: 2, max: 2 }, earth_spice_character: { min: 2, max: 2 }, fruit_profile: { min: 0, max: 0, cat: "Black" } }, aromas: ["desc_blackcurrant", "desc_blackberry", "desc_vanilla", "desc_clove"] },
+    { id: "st_merlot", displayName: "Merlot", regionId: "bordeaux", grapeId: "merlot", thermalBandId: "moderate", structure: { acidity: { min: 3, max: 3 }, tannin: { min: 3, max: 3 }, alcohol: { min: 3, max: 3 }, body: { min: 3, max: 3 }, oak_intensity: { min: 3, max: 3 }, flavor_intensity: { min: 4, max: 4 }, color_intensity: { min: 2, max: 2 }, herbal_character: { min: 1, max: 1 }, earth_spice_character: { min: 2, max: 2 }, fruit_profile: { min: 0, max: 0, cat: "Black" } }, aromas: ["desc_plum", "desc_cherry", "desc_vanilla"] },
+    { id: "st_pinot_noir", displayName: "Pinot Noir", regionId: "burgundy", grapeId: "pinot_noir", thermalBandId: "cool", structure: { acidity: { min: 4, max: 4 }, tannin: { min: 2, max: 2 }, alcohol: { min: 3, max: 3 }, body: { min: 2, max: 2 }, oak_intensity: { min: 2, max: 2 }, flavor_intensity: { min: 3, max: 3 }, color_intensity: { min: 1, max: 1 }, herbal_character: { min: 1, max: 1 }, earth_spice_character: { min: 3, max: 3 }, fruit_profile: { min: 0, max: 0, cat: "Red" } }, aromas: ["desc_cherry", "desc_raspberry", "desc_earth", "desc_leather"] },
+    { id: "st_syrah", displayName: "Syrah", regionId: "rhone", grapeId: "syrah", thermalBandId: "warm", structure: { acidity: { min: 3, max: 3 }, tannin: { min: 4, max: 4 }, alcohol: { min: 4, max: 4 }, body: { min: 4, max: 4 }, oak_intensity: { min: 3, max: 3 }, flavor_intensity: { min: 4, max: 4 }, color_intensity: { min: 3, max: 3 }, herbal_character: { min: 2, max: 2 }, earth_spice_character: { min: 4, max: 4 }, fruit_profile: { min: 0, max: 0, cat: "Black" } }, aromas: ["desc_blackberry", "desc_black_pepper", "desc_leather"] },
+    { id: "st_grenache", displayName: "Grenache", regionId: "rhone", grapeId: "grenache", thermalBandId: "warm", structure: { acidity: { min: 2, max: 2 }, tannin: { min: 3, max: 3 }, alcohol: { min: 5, max: 5 }, body: { min: 3, max: 3 }, oak_intensity: { min: 2, max: 2 }, flavor_intensity: { min: 4, max: 4 }, color_intensity: { min: 2, max: 2 }, herbal_character: { min: 1, max: 1 }, earth_spice_character: { min: 2, max: 2 }, fruit_profile: { min: 0, max: 0, cat: "Red" } }, aromas: ["desc_raspberry", "desc_strawberry"] },
+    { id: "st_nebbiolo", displayName: "Nebbiolo", regionId: "piedmont", grapeId: "nebbiolo", thermalBandId: "cool", structure: { acidity: { min: 4, max: 4 }, tannin: { min: 5, max: 5 }, alcohol: { min: 4, max: 4 }, body: { min: 4, max: 4 }, oak_intensity: { min: 3, max: 3 }, flavor_intensity: { min: 4, max: 4 }, color_intensity: { min: 2, max: 2 }, herbal_character: { min: 2, max: 2 }, earth_spice_character: { min: 3, max: 3 }, fruit_profile: { min: 0, max: 0, cat: "Red" } }, aromas: ["desc_cherry", "desc_leather", "desc_earth", "desc_black_pepper"] },
+    { id: "st_sangiovese", displayName: "Sangiovese", regionId: "tuscany", grapeId: "sangiovese", thermalBandId: "moderate", structure: { acidity: { min: 4, max: 4 }, tannin: { min: 4, max: 4 }, alcohol: { min: 3, max: 3 }, body: { min: 3, max: 3 }, oak_intensity: { min: 3, max: 3 }, flavor_intensity: { min: 4, max: 4 }, color_intensity: { min: 2, max: 2 }, herbal_character: { min: 2, max: 2 }, earth_spice_character: { min: 3, max: 3 }, fruit_profile: { min: 0, max: 0, cat: "Red" } }, aromas: ["desc_cherry", "desc_earth", "desc_plum"] },
+    { id: "st_tempranillo", displayName: "Tempranillo", regionId: "rioja", grapeId: "tempranillo", thermalBandId: "moderate", structure: { acidity: { min: 3, max: 3 }, tannin: { min: 4, max: 4 }, alcohol: { min: 3, max: 3 }, body: { min: 4, max: 4 }, oak_intensity: { min: 4, max: 4 }, flavor_intensity: { min: 4, max: 4 }, color_intensity: { min: 3, max: 3 }, herbal_character: { min: 1, max: 1 }, earth_spice_character: { min: 3, max: 3 }, fruit_profile: { min: 0, max: 0, cat: "Red" } }, aromas: ["desc_strawberry", "desc_plum", "desc_leather", "desc_vanilla"] },
+    { id: "st_zinfandel", displayName: "Zinfandel", regionId: "california", grapeId: "zinfandel", thermalBandId: "warm", structure: { acidity: { min: 3, max: 3 }, tannin: { min: 3, max: 3 }, alcohol: { min: 5, max: 5 }, body: { min: 4, max: 4 }, oak_intensity: { min: 3, max: 3 }, flavor_intensity: { min: 5, max: 5 }, color_intensity: { min: 3, max: 3 }, herbal_character: { min: 1, max: 1 }, earth_spice_character: { min: 2, max: 2 }, fruit_profile: { min: 0, max: 0, cat: "Black" } }, aromas: ["desc_blackberry", "desc_raspberry", "desc_vanilla"] },
+    { id: "st_chardonnay", displayName: "Chardonnay", regionId: "burgundy", grapeId: "chardonnay", thermalBandId: "cool", structure: { acidity: { min: 4, max: 4 }, tannin: { min: 1, max: 1 }, alcohol: { min: 3, max: 3 }, body: { min: 4, max: 4 }, oak_intensity: { min: 3, max: 3 }, flavor_intensity: { min: 4, max: 4 }, color_intensity: { min: 2, max: 2 }, herbal_character: { min: 1, max: 1 }, earth_spice_character: { min: 1, max: 1 }, fruit_profile: { min: 0, max: 0, cat: "Orchard" }, sweetness: { min: 1, max: 1 } }, aromas: ["desc_apple", "desc_butter", "desc_vanilla", "desc_cream"] },
+    { id: "st_riesling", displayName: "Riesling", regionId: "generic", grapeId: "riesling", thermalBandId: "cool", structure: { acidity: { min: 5, max: 5 }, tannin: { min: 1, max: 1 }, alcohol: { min: 2, max: 2 }, body: { min: 2, max: 2 }, oak_intensity: { min: 1, max: 1 }, flavor_intensity: { min: 4, max: 4 }, color_intensity: { min: 1, max: 1 }, herbal_character: { min: 1, max: 1 }, earth_spice_character: { min: 1, max: 1 }, fruit_profile: { min: 0, max: 0, cat: "Citrus" }, sweetness: { min: 2, max: 4 } }, aromas: ["desc_citrus", "desc_apple", "desc_honeysuckle"] },
+    { id: "st_sauvignon_blanc", displayName: "Sauvignon Blanc", regionId: "loire", grapeId: "sauvignon_blanc", thermalBandId: "cool", structure: { acidity: { min: 5, max: 5 }, tannin: { min: 1, max: 1 }, alcohol: { min: 2, max: 2 }, body: { min: 2, max: 2 }, oak_intensity: { min: 1, max: 1 }, flavor_intensity: { min: 4, max: 4 }, color_intensity: { min: 1, max: 1 }, herbal_character: { min: 4, max: 4 }, earth_spice_character: { min: 1, max: 1 }, fruit_profile: { min: 0, max: 0, cat: "Citrus" }, sweetness: { min: 1, max: 1 } }, aromas: ["desc_citrus", "desc_grass", "desc_bell_pepper"] },
   ];
 
-  const WHITE_GRAPES: {
-    grapeId: string;
-    name: string;
-    styleTargetId: string;
-    styleTargetName: string;
-    acidity: number;
-    body: number;
-    alcohol: number;
-    oak: number;
-    sweetness: number;
-    color: number;
-    fruit: string;
-    herbal: number;
-    floral: number;
-  }[] = [
-    {
-      grapeId: "chardonnay",
-      name: "Chardonnay",
-      styleTargetId: "lvl1_chardonnay_oaked_ca",
-      styleTargetName: "Chardonnay (Oaked CA)",
-      acidity: 3,
-      body: 4,
-      alcohol: 4,
-      oak: 4,
-      sweetness: 1,
-      color: 2,
-      fruit: "Tropical",
-      herbal: 1,
-      floral: 1,
-    },
-    {
-      grapeId: "riesling",
-      name: "Riesling",
-      styleTargetId: "lvl1_riesling_mosel",
-      styleTargetName: "Riesling (Mosel)",
-      acidity: 5,
-      body: 2,
-      alcohol: 2,
-      oak: 1,
-      sweetness: 2,
-      color: 1,
-      fruit: "Citrus",
-      herbal: 1,
-      floral: 4,
-    },
-    {
-      grapeId: "sauvignon_blanc",
-      name: "Sauvignon Blanc",
-      styleTargetId: "lvl1_sauvignon_blanc_nz",
-      styleTargetName: "Sauvignon Blanc (NZ)",
-      acidity: 5,
-      body: 2,
-      alcohol: 3,
-      oak: 1,
-      sweetness: 1,
-      color: 1,
-      fruit: "Citrus",
-      herbal: 5,
-      floral: 2,
-    },
-  ];
+  const dimIds = ["acidity", "tannin", "alcohol", "body", "oak_intensity", "flavor_intensity", "color_intensity", "herbal_character", "earth_spice_character", "fruit_profile", "sweetness"];
 
-  console.log("Seeding grapes and style targets...");
-  for (const g of RED_GRAPES) {
-    await db
-      .insert(grape)
-      .values({
-        grapeId: g.grapeId,
-        name: g.name,
-        wineColor: "red",
-        level: 1,
-        canonicalStyleTargetId: g.styleTargetId,
-      })
-      .onConflictDoNothing();
-    await db
-      .insert(styleTarget)
-      .values({
-        styleTargetId: g.styleTargetId,
-        grapeId: g.grapeId,
-        name: g.styleTargetName,
-        wineColor: "red",
-        level: 1,
-        isPrimaryForGrape: true,
-        version: 1,
-      })
-      .onConflictDoNothing();
-  }
-  for (const g of WHITE_GRAPES) {
-    await db
-      .insert(grape)
-      .values({
-        grapeId: g.grapeId,
-        name: g.name,
-        wineColor: "white",
-        level: 1,
-        canonicalStyleTargetId: g.styleTargetId,
-      })
-      .onConflictDoNothing();
-    await db
-      .insert(styleTarget)
-      .values({
-        styleTargetId: g.styleTargetId,
-        grapeId: g.grapeId,
-        name: g.styleTargetName,
-        wineColor: "white",
-        level: 1,
-        isPrimaryForGrape: true,
-        version: 1,
-      })
-      .onConflictDoNothing();
-  }
+  for (const st of styleTargetsData) {
+    await db.insert(styleTarget).values({
+      id: st.id,
+      displayName: st.displayName,
+      regionId: st.regionId,
+      styleKind: "grape_archetype",
+      ladderTier: 1,
+      confidence: "high",
+      status: "approved",
+      authoringBasis: "WSET-style benchmark",
+      notesInternal: null,
+    }).onConflictDoNothing();
 
-  console.log("Seeding style_target_attribute (red)...");
-  const RED_ATTR_IDS = [
-    "tannin",
-    "acidity",
-    "body",
-    "alcohol",
-    "oak_intensity",
-    "color_intensity",
-    "fruit_profile",
-    "fruit_intensity",
-    "herbal_character",
-    "earth_spice_character",
-  ];
-  for (const g of RED_GRAPES) {
-    const vals = [
-      g.tannin,
-      g.acidity,
-      g.body,
-      g.alcohol,
-      g.oak,
-      g.color,
-      g.fruit,
-      g.fruitIntensity,
-      g.herbal,
-      g.earthSpice,
-    ];
-    for (let i = 0; i < RED_ATTR_IDS.length; i++) {
-      const attrId = RED_ATTR_IDS[i];
-      const v = vals[i];
-      await db
-        .insert(styleTargetAttribute)
-        .values({
-          styleTargetId: g.styleTargetId,
-          attributeId: attrId,
-          valueOrdinal: typeof v === "number" ? v : null,
-          valueCategorical: typeof v === "string" ? v : null,
-          source: "Level 1 canonical table v1",
-        })
-        .onConflictDoNothing();
+    await db.insert(styleTargetGrape).values({
+      styleTargetId: st.id,
+      grapeId: st.grapeId,
+      percentage: null,
+      role: "primary",
+    }).onConflictDoNothing();
+
+    for (const dimId of dimIds) {
+      const val = st.structure[dimId as keyof typeof st.structure];
+      if (!val) continue;
+      const isCat = dimId === "fruit_profile";
+      await db.insert(styleTargetStructure).values({
+        styleTargetId: st.id,
+        structureDimensionId: dimId,
+        minValue: isCat ? null : val.min,
+        maxValue: isCat ? null : val.max,
+        categoricalValue: isCat ? (val as { cat?: string }).cat ?? null : null,
+        confidence: "high",
+      }).onConflictDoNothing();
     }
-  }
 
-  console.log("Seeding style_target_attribute (white)...");
-  const WHITE_ATTR_IDS = [
-    "acidity",
-    "body",
-    "alcohol",
-    "oak_intensity",
-    "sweetness",
-    "color_intensity",
-    "fruit_profile",
-    "herbal_character",
-    "floral_character",
-  ];
-  for (const g of WHITE_GRAPES) {
-    const vals = [
-      g.acidity,
-      g.body,
-      g.alcohol,
-      g.oak,
-      g.sweetness,
-      g.color,
-      g.fruit,
-      g.herbal,
-      g.floral,
-    ];
-    for (let i = 0; i < WHITE_ATTR_IDS.length; i++) {
-      const attrId = WHITE_ATTR_IDS[i];
-      const v = vals[i];
-      await db
-        .insert(styleTargetAttribute)
-        .values({
-          styleTargetId: g.styleTargetId,
-          attributeId: attrId,
-          valueOrdinal: typeof v === "number" ? v : null,
-          valueCategorical: typeof v === "string" ? v : null,
-          source: "Level 1 canonical table v1",
-        })
-        .onConflictDoNothing();
+    for (const aromaId of st.aromas) {
+      await db.insert(styleTargetAromaProfile).values({
+        styleTargetId: st.id,
+        aromaTermId: aromaId,
+        prominence: "dominant",
+      }).onConflictDoNothing();
     }
-  }
 
-  console.log("Seeding descriptors...");
-  const DESCRIPTORS: {
-    descriptorId: string;
-    name: string;
-    category: string;
-    wineColorScope: string;
-  }[] = [
-    {
-      descriptorId: "strawberry",
-      name: "Strawberry",
-      category: "fruit",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "cherry",
-      name: "Cherry",
-      category: "fruit",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "raspberry",
-      name: "Raspberry",
-      category: "fruit",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "red_plum",
-      name: "Red Plum",
-      category: "fruit",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "blackcurrant",
-      name: "Blackcurrant",
-      category: "fruit",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "blackberry",
-      name: "Blackberry",
-      category: "fruit",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "black_plum",
-      name: "Black Plum",
-      category: "fruit",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "blueberry",
-      name: "Blueberry",
-      category: "fruit",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "lemon",
-      name: "Lemon",
-      category: "fruit",
-      wineColorScope: "white",
-    },
-    {
-      descriptorId: "lime",
-      name: "Lime",
-      category: "fruit",
-      wineColorScope: "white",
-    },
-    {
-      descriptorId: "grapefruit",
-      name: "Grapefruit",
-      category: "fruit",
-      wineColorScope: "white",
-    },
-    {
-      descriptorId: "green_apple",
-      name: "Green Apple",
-      category: "fruit",
-      wineColorScope: "white",
-    },
-    {
-      descriptorId: "pear",
-      name: "Pear",
-      category: "fruit",
-      wineColorScope: "white",
-    },
-    {
-      descriptorId: "peach",
-      name: "Peach",
-      category: "fruit",
-      wineColorScope: "white",
-    },
-    {
-      descriptorId: "pineapple",
-      name: "Pineapple",
-      category: "fruit",
-      wineColorScope: "white",
-    },
-    {
-      descriptorId: "mango",
-      name: "Mango",
-      category: "fruit",
-      wineColorScope: "white",
-    },
-    {
-      descriptorId: "passionfruit",
-      name: "Passionfruit",
-      category: "fruit",
-      wineColorScope: "white",
-    },
-    {
-      descriptorId: "violet",
-      name: "Violet",
-      category: "floral",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "rose",
-      name: "Rose",
-      category: "floral",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "white_blossom",
-      name: "White Blossom",
-      category: "floral",
-      wineColorScope: "white",
-    },
-    {
-      descriptorId: "honeysuckle",
-      name: "Honeysuckle",
-      category: "floral",
-      wineColorScope: "white",
-    },
-    {
-      descriptorId: "green_pepper",
-      name: "Green Pepper",
-      category: "herbal",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "tomato_leaf",
-      name: "Tomato Leaf",
-      category: "herbal",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "fresh_herbs",
-      name: "Fresh Herbs",
-      category: "herbal",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "grass",
-      name: "Grass",
-      category: "herbal",
-      wineColorScope: "white",
-    },
-    {
-      descriptorId: "black_pepper",
-      name: "Black Pepper",
-      category: "spice",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "clove",
-      name: "Clove",
-      category: "spice",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "cinnamon",
-      name: "Cinnamon",
-      category: "spice",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "anise",
-      name: "Anise",
-      category: "spice",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "mushroom",
-      name: "Mushroom",
-      category: "earth",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "leather",
-      name: "Leather",
-      category: "earth",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "dried_leaves",
-      name: "Dried Leaves",
-      category: "earth",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "smoke",
-      name: "Smoke",
-      category: "earth",
-      wineColorScope: "red",
-    },
-    {
-      descriptorId: "vanilla",
-      name: "Vanilla",
-      category: "oak",
-      wineColorScope: "both",
-    },
-    {
-      descriptorId: "toast",
-      name: "Toast",
-      category: "oak",
-      wineColorScope: "both",
-    },
-    {
-      descriptorId: "caramel",
-      name: "Caramel",
-      category: "oak",
-      wineColorScope: "white",
-    },
-    {
-      descriptorId: "cedar",
-      name: "Cedar",
-      category: "oak",
-      wineColorScope: "red",
-    },
-  ];
-  for (const d of DESCRIPTORS) {
-    await db
-      .insert(descriptor)
-      .values({
-        descriptorId: d.descriptorId,
-        name: d.name,
-        category: d.category as
-          | "fruit"
-          | "floral"
-          | "herbal"
-          | "spice"
-          | "earth"
-          | "oak",
-        wineColorScope: d.wineColorScope as "red" | "white" | "both",
-      })
-      .onConflictDoNothing();
-  }
-
-  // style_target_descriptor: map descriptor to style targets (archetype anchors from doc)
-  const STD: {
-    styleTargetId: string;
-    descriptorId: string;
-    relevance: "primary" | "secondary" | "occasional";
-  }[] = [
-    {
-      styleTargetId: "lvl1_pinot_noir",
-      descriptorId: "strawberry",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_sangiovese",
-      descriptorId: "cherry",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_pinot_noir",
-      descriptorId: "cherry",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_grenache",
-      descriptorId: "raspberry",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_sangiovese",
-      descriptorId: "red_plum",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_cabernet_sauvignon",
-      descriptorId: "blackcurrant",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_syrah",
-      descriptorId: "blackberry",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_merlot",
-      descriptorId: "black_plum",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_zinfandel",
-      descriptorId: "blueberry",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_riesling_mosel",
-      descriptorId: "lemon",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_sauvignon_blanc_nz",
-      descriptorId: "lime",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_sauvignon_blanc_nz",
-      descriptorId: "grapefruit",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_riesling_mosel",
-      descriptorId: "green_apple",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_chardonnay_oaked_ca",
-      descriptorId: "pear",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_riesling_mosel",
-      descriptorId: "peach",
-      relevance: "secondary",
-    },
-    {
-      styleTargetId: "lvl1_chardonnay_oaked_ca",
-      descriptorId: "pineapple",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_chardonnay_oaked_ca",
-      descriptorId: "mango",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_sauvignon_blanc_nz",
-      descriptorId: "passionfruit",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_nebbiolo",
-      descriptorId: "violet",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_nebbiolo",
-      descriptorId: "rose",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_riesling_mosel",
-      descriptorId: "white_blossom",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_riesling_mosel",
-      descriptorId: "honeysuckle",
-      relevance: "secondary",
-    },
-    {
-      styleTargetId: "lvl1_cabernet_sauvignon",
-      descriptorId: "green_pepper",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_cabernet_sauvignon",
-      descriptorId: "tomato_leaf",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_sangiovese",
-      descriptorId: "fresh_herbs",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_sauvignon_blanc_nz",
-      descriptorId: "grass",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_syrah",
-      descriptorId: "black_pepper",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_tempranillo",
-      descriptorId: "cinnamon",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_nebbiolo",
-      descriptorId: "anise",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_pinot_noir",
-      descriptorId: "mushroom",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_tempranillo",
-      descriptorId: "leather",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_nebbiolo",
-      descriptorId: "dried_leaves",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_syrah",
-      descriptorId: "smoke",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_chardonnay_oaked_ca",
-      descriptorId: "vanilla",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_chardonnay_oaked_ca",
-      descriptorId: "caramel",
-      relevance: "primary",
-    },
-    {
-      styleTargetId: "lvl1_cabernet_sauvignon",
-      descriptorId: "cedar",
-      relevance: "primary",
-    },
-  ];
-  for (const row of STD) {
-    await db
-      .insert(styleTargetDescriptor)
-      .values({
-        styleTargetId: row.styleTargetId,
-        descriptorId: row.descriptorId,
-        relevance: row.relevance,
-      })
-      .onConflictDoNothing();
-  }
-
-  console.log("Seeding exercise templates...");
-  const TEMPLATES = [
-    {
-      exerciseTemplateId: "map_place_red_structure",
-      name: "Red Structure Map (Place)",
-      level: 1,
-      wineColor: "red",
-      format: "map_place",
-      promptStem: "Place {grape} on the map.",
-      testedAttributeIds: '["tannin","acidity"]',
-      selectionRules: "{}",
-      correctnessRules: "{}",
-      difficulty: "easy",
-    },
-    {
-      exerciseTemplateId: "map_place_white_structure",
-      name: "White Structure Map (Place)",
-      level: 1,
-      wineColor: "white",
-      format: "map_place",
-      promptStem: "Place {grape} on the map.",
-      testedAttributeIds: '["body","acidity"]',
-      selectionRules: "{}",
-      correctnessRules: "{}",
-      difficulty: "easy",
-    },
-    {
-      exerciseTemplateId: "map_recall_red",
-      name: "Red Map Recall",
-      level: 1,
-      wineColor: "red",
-      format: "map_recall",
-      promptStem: "Place all red grapes on the map.",
-      testedAttributeIds: '["tannin","acidity"]',
-      selectionRules: "{}",
-      correctnessRules: "{}",
-      difficulty: "medium",
-    },
-    {
-      exerciseTemplateId: "order_rank_tannin_red",
-      name: "Order by Tannin (Red)",
-      level: 1,
-      wineColor: "red",
-      format: "order_rank",
-      promptStem: "Rank these grapes by tannin (low to high).",
-      testedAttributeIds: '["tannin"]',
-      selectionRules: "{}",
-      correctnessRules: "{}",
-      difficulty: "easy",
-    },
-    {
-      exerciseTemplateId: "descriptor_match_red",
-      name: "Descriptor Matching (Red)",
-      level: 1,
-      wineColor: "red",
-      format: "descriptor_match",
-      promptStem: "Match descriptors to grapes.",
-      testedAttributeIds: "[]",
-      selectionRules: "{}",
-      correctnessRules: "{}",
-      difficulty: "medium",
-    },
-    {
-      exerciseTemplateId: "structure_deduction_red",
-      name: "Structure Deduction (Red)",
-      level: 1,
-      wineColor: "red",
-      format: "structure_deduction",
-      promptStem: "Given the structure, identify the grape.",
-      testedAttributeIds: '["tannin","acidity","body"]',
-      selectionRules: "{}",
-      correctnessRules: "{}",
-      difficulty: "medium",
-    },
-    {
-      exerciseTemplateId: "elimination_red",
-      name: "Elimination (Red)",
-      level: 1,
-      wineColor: "red",
-      format: "elimination",
-      promptStem: "Remove the grape that doesn't match.",
-      testedAttributeIds: "[]",
-      selectionRules: "{}",
-      correctnessRules: "{}",
-      difficulty: "hard",
-    },
-    {
-      exerciseTemplateId: "skeleton_deduction_red",
-      name: "Skeleton Deduction (Red)",
-      level: 1,
-      wineColor: "red",
-      format: "skeleton_deduction",
-      promptStem: "Structure only: identify the grape.",
-      testedAttributeIds: '["tannin","acidity","body"]',
-      selectionRules: "{}",
-      correctnessRules: "{}",
-      difficulty: "hard",
-    },
-    {
-      exerciseTemplateId: "descriptor_match_white",
-      name: "Descriptor Matching (White)",
-      level: 1,
-      wineColor: "white",
-      format: "descriptor_match",
-      promptStem: "Match descriptors to grapes.",
-      testedAttributeIds: "[]",
-      selectionRules: "{}",
-      correctnessRules: "{}",
-      difficulty: "medium",
-    },
-    {
-      exerciseTemplateId: "elimination_white",
-      name: "Elimination (White)",
-      level: 1,
-      wineColor: "white",
-      format: "elimination",
-      promptStem: "Remove the grape that doesn't match.",
-      testedAttributeIds: "[]",
-      selectionRules: "{}",
-      correctnessRules: "{}",
-      difficulty: "hard",
-    },
-    {
-      exerciseTemplateId: "map_recall_white",
-      name: "White Map Recall",
-      level: 1,
-      wineColor: "white",
-      format: "map_recall",
-      promptStem: "Place all white grapes on the map.",
-      testedAttributeIds: '["body","acidity"]',
-      selectionRules: "{}",
-      correctnessRules: "{}",
-      difficulty: "medium",
-    },
-    {
-      exerciseTemplateId: "skeleton_deduction_white",
-      name: "Skeleton Deduction (White)",
-      level: 1,
-      wineColor: "white",
-      format: "skeleton_deduction",
-      promptStem: "Structure only: identify the grape.",
-      testedAttributeIds: '["body","acidity"]',
-      selectionRules: "{}",
-      correctnessRules: "{}",
-      difficulty: "hard",
-    },
-    {
-      exerciseTemplateId: "tasting_input_red",
-      name: "Tasting Mode (Red)",
-      level: 1,
-      wineColor: "red",
-      format: "tasting_input",
-      promptStem: "Enter your tasting notes.",
-      testedAttributeIds:
-        '["tannin","acidity","body","alcohol","oak_intensity"]',
-      selectionRules: "{}",
-      correctnessRules: "{}",
-      difficulty: "medium",
-    },
-  ];
-  for (const t of TEMPLATES) {
-    await db
-      .insert(exerciseTemplate)
-      .values({
-        exerciseTemplateId: t.exerciseTemplateId,
-        name: t.name,
-        level: t.level,
-        wineColor: t.wineColor,
-        format: t.format as any,
-        promptStem: t.promptStem,
-        testedAttributeIds: t.testedAttributeIds,
-        selectionRules: t.selectionRules,
-        correctnessRules: t.correctnessRules,
-        difficulty: t.difficulty as any,
-      })
-      .onConflictDoNothing();
+    await db.insert(styleTargetContext).values({
+      styleTargetId: st.id,
+      thermalBandId: st.thermalBandId,
+      notes: null,
+    }).onConflictDoNothing();
   }
 
   console.log("Seed complete.");
@@ -1167,7 +234,7 @@ async function seed() {
 
 seed()
   .then(() => process.exit(0))
-  .catch((err) => {
-    console.error("Seed failed:", err);
+  .catch((e) => {
+    console.error(e);
     process.exit(1);
   });

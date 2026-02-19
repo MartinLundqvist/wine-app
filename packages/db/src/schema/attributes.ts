@@ -4,38 +4,33 @@ import {
   integer,
   text,
   primaryKey,
-  real,
 } from "drizzle-orm/pg-core";
-import { wineColorScopeEnum, dataTypeEnum, scaleKeyEnum } from "./enums";
+import { domainEnum, scaleTypeEnum, confidenceEnum } from "./enums";
 import { styleTarget } from "./grapes";
 
-export const attribute = pgTable("attribute", {
-  attributeId: varchar("attribute_id", { length: 64 }).primaryKey(),
-  name: varchar("name", { length: 128 }).notNull(),
-  wineColorScope: wineColorScopeEnum("wine_color_scope").notNull(),
-  dataType: dataTypeEnum("data_type").notNull(),
-  scaleKey: scaleKeyEnum("scale_key"),
-  minValue: integer("min_value"),
-  maxValue: integer("max_value"),
-  allowedValues: text("allowed_values"),
-  description: text("description").notNull(),
-  sortOrder: integer("sort_order").notNull(),
+export const structureDimension = pgTable("structure_dimension", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  displayName: varchar("display_name", { length: 128 }).notNull(),
+  domain: domainEnum("domain").notNull(),
+  scaleType: scaleTypeEnum("scale_type").notNull(),
+  scaleMin: integer("scale_min"),
+  scaleMax: integer("scale_max"),
+  description: text("description"),
 });
 
-export const styleTargetAttribute = pgTable(
-  "style_target_attribute",
+export const styleTargetStructure = pgTable(
+  "style_target_structure",
   {
     styleTargetId: varchar("style_target_id", { length: 64 })
       .notNull()
-      .references(() => styleTarget.styleTargetId, { onDelete: "cascade" }),
-    attributeId: varchar("attribute_id", { length: 64 })
+      .references(() => styleTarget.id, { onDelete: "cascade" }),
+    structureDimensionId: varchar("structure_dimension_id", { length: 64 })
       .notNull()
-      .references(() => attribute.attributeId, { onDelete: "cascade" }),
-    valueOrdinal: integer("value_ordinal"),
-    valueCategorical: varchar("value_categorical", { length: 64 }),
-    source: varchar("source", { length: 255 }),
-    confidence: real("confidence"),
-    notes: text("notes"),
+      .references(() => structureDimension.id, { onDelete: "cascade" }),
+    minValue: integer("min_value"),
+    maxValue: integer("max_value"),
+    categoricalValue: varchar("categorical_value", { length: 64 }),
+    confidence: confidenceEnum("confidence").notNull(),
   },
-  (t) => [primaryKey({ columns: [t.styleTargetId, t.attributeId] })]
+  (t) => [primaryKey({ columns: [t.styleTargetId, t.structureDimensionId] })]
 );

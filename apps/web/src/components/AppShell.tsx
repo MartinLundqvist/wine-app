@@ -8,6 +8,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const nav = [
     { to: "/", label: "Home" },
+    { to: "/explore", label: "Explore" },
     { to: "/maps", label: "Maps" },
     { to: "/drills", label: "Drills" },
     { to: "/progress", label: "Progress" },

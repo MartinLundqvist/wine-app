@@ -1,1 +1,0 @@
-ALTER TYPE "public"."wine_color_scope" ADD VALUE 'both';

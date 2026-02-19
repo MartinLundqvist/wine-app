@@ -1,27 +1,41 @@
-import { pgTable, varchar, text, primaryKey } from "drizzle-orm/pg-core";
-import { wineColorScopeEnum, descriptorCategoryEnum, relevanceEnum } from "./enums";
+import {
+  pgTable,
+  varchar,
+  text,
+  primaryKey,
+  foreignKey,
+} from "drizzle-orm/pg-core";
+import { aromaSourceEnum, prominenceEnum } from "./enums";
 import { styleTarget } from "./grapes";
 
-export const descriptor = pgTable("descriptor", {
-  descriptorId: varchar("descriptor_id", { length: 64 }).primaryKey(),
-  name: varchar("name", { length: 128 }).notNull(),
-  category: descriptorCategoryEnum("category").notNull(),
-  wineColorScope: wineColorScopeEnum("wine_color_scope").notNull(),
-  description: text("description"),
-  intensityScaleKey: varchar("intensity_scale_key", { length: 32 }),
-});
+export const aromaTerm = pgTable(
+  "aroma_term",
+  {
+    id: varchar("id", { length: 64 }).primaryKey(),
+    displayName: varchar("display_name", { length: 128 }).notNull(),
+    parentId: varchar("parent_id", { length: 64 }),
+    source: aromaSourceEnum("source").notNull(),
+    description: text("description"),
+  },
+  (table) => ({
+    parentFk: foreignKey({
+      columns: [table.parentId],
+      foreignColumns: [table.id],
+      name: "aroma_term_parent_id_fkey",
+    }),
+  })
+);
 
-export const styleTargetDescriptor = pgTable(
-  "style_target_descriptor",
+export const styleTargetAromaProfile = pgTable(
+  "style_target_aroma_profile",
   {
     styleTargetId: varchar("style_target_id", { length: 64 })
       .notNull()
-      .references(() => styleTarget.styleTargetId, { onDelete: "cascade" }),
-    descriptorId: varchar("descriptor_id", { length: 64 })
+      .references(() => styleTarget.id, { onDelete: "cascade" }),
+    aromaTermId: varchar("aroma_term_id", { length: 64 })
       .notNull()
-      .references(() => descriptor.descriptorId, { onDelete: "cascade" }),
-    relevance: relevanceEnum("relevance").notNull(),
-    notes: text("notes"),
+      .references(() => aromaTerm.id, { onDelete: "cascade" }),
+    prominence: prominenceEnum("prominence").notNull(),
   },
-  (t) => [primaryKey({ columns: [t.styleTargetId, t.descriptorId] })]
+  (t) => [primaryKey({ columns: [t.styleTargetId, t.aromaTermId] })]
 );

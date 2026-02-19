@@ -1,8 +1,10 @@
 import type {
-  Grape,
-  StyleTargetWithAttributes,
-  Attribute,
-  DescriptorWithStyleTargets,
+  GrapeWithStyleTargets,
+  Region,
+  StructureDimension,
+  AromaTerm,
+  ThermalBand,
+  StyleTargetFull,
   ExerciseTemplate,
 } from "@wine-app/shared";
 
@@ -17,27 +19,46 @@ const apiPrefix = () =>
   import.meta.env.DEV && !import.meta.env.VITE_API_URL ? "/api" : "";
 
 export const api = {
-  async getGrapes(): Promise<Grape[]> {
+  async getGrapes(): Promise<GrapeWithStyleTargets[]> {
     const res = await fetch(`${getBaseUrl()}${apiPrefix()}/grapes`);
     if (!res.ok) throw new Error(`Failed to fetch grapes: ${res.statusText}`);
     return res.json();
   },
-  async getStyleTargets(): Promise<StyleTargetWithAttributes[]> {
+  async getRegions(): Promise<Region[]> {
+    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/regions`);
+    if (!res.ok) throw new Error(`Failed to fetch regions: ${res.statusText}`);
+    return res.json();
+  },
+  async getStructureDimensions(): Promise<StructureDimension[]> {
+    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/structure-dimensions`);
+    if (!res.ok)
+      throw new Error(`Failed to fetch structure dimensions: ${res.statusText}`);
+    return res.json();
+  },
+  async getAromaTerms(): Promise<AromaTerm[]> {
+    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/aroma-terms`);
+    if (!res.ok)
+      throw new Error(`Failed to fetch aroma terms: ${res.statusText}`);
+    return res.json();
+  },
+  async getThermalBands(): Promise<ThermalBand[]> {
+    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/thermal-bands`);
+    if (!res.ok)
+      throw new Error(`Failed to fetch thermal bands: ${res.statusText}`);
+    return res.json();
+  },
+  async getStyleTargets(): Promise<StyleTargetFull[]> {
     const res = await fetch(`${getBaseUrl()}${apiPrefix()}/style-targets`);
     if (!res.ok)
       throw new Error(`Failed to fetch style targets: ${res.statusText}`);
     return res.json();
   },
-  async getAttributes(): Promise<Attribute[]> {
-    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/attributes`);
-    if (!res.ok)
-      throw new Error(`Failed to fetch attributes: ${res.statusText}`);
-    return res.json();
-  },
-  async getDescriptors(): Promise<DescriptorWithStyleTargets[]> {
-    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/descriptors`);
-    if (!res.ok)
-      throw new Error(`Failed to fetch descriptors: ${res.statusText}`);
+  async getStyleTarget(id: string): Promise<StyleTargetFull> {
+    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/style-targets/${encodeURIComponent(id)}`);
+    if (!res.ok) {
+      if (res.status === 404) throw new Error("Style target not found");
+      throw new Error(`Failed to fetch style target: ${res.statusText}`);
+    }
     return res.json();
   },
   async getExerciseTemplates(): Promise<ExerciseTemplate[]> {

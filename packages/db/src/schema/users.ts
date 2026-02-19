@@ -7,7 +7,7 @@ import {
   real,
   primaryKey,
 } from "drizzle-orm/pg-core";
-import { masteryStateEnum, wineColorScopeEnum } from "./enums";
+import { masteryStateEnum } from "./enums";
 
 export const user = pgTable("user", {
   userId: uuid("user_id").primaryKey().defaultRandom(),
@@ -25,7 +25,7 @@ export const userProgress = pgTable(
       .notNull()
       .references(() => user.userId, { onDelete: "cascade" }),
     exerciseFormat: varchar("exercise_format", { length: 64 }).notNull(),
-    wineColor: wineColorScopeEnum("wine_color").notNull(),
+    wineColor: varchar("wine_color", { length: 16 }).notNull(), // red | white | mixed | both
     totalAttempts: integer("total_attempts").notNull().default(0),
     correctAttempts: integer("correct_attempts").notNull().default(0),
     accuracy: real("accuracy").notNull().default(0),

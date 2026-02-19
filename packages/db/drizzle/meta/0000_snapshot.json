@@ -1,5 +1,5 @@
 {
-  "id": "1d8bdc66-4dbe-4d24-8792-ecd275feb0e6",
+  "id": "147a15a1-b386-4b55-b4da-0a0bc7168624",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -81,8 +81,7 @@
         },
         "wine_color": {
           "name": "wine_color",
-          "type": "wine_color_scope",
-          "typeSchema": "public",
+          "type": "varchar(16)",
           "primaryKey": false,
           "notNull": true
         },
@@ -170,43 +169,31 @@
       "name": "grape",
       "schema": "",
       "columns": {
-        "grape_id": {
-          "name": "grape_id",
+        "id": {
+          "name": "id",
           "type": "varchar(64)",
           "primaryKey": true,
           "notNull": true
         },
-        "name": {
-          "name": "name",
+        "display_name": {
+          "name": "display_name",
           "type": "varchar(128)",
           "primaryKey": false,
           "notNull": true
         },
-        "wine_color": {
-          "name": "wine_color",
-          "type": "wine_color",
+        "color": {
+          "name": "color",
+          "type": "grape_color",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
-        "level": {
-          "name": "level",
+        "sort_order": {
+          "name": "sort_order",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "default": 1
-        },
-        "canonical_style_target_id": {
-          "name": "canonical_style_target_id",
-          "type": "varchar(64)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "aliases": {
-          "name": "aliases",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "default": 0
         },
         "notes": {
           "name": "notes",
@@ -223,75 +210,54 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.style_target": {
-      "name": "style_target",
+    "public.region": {
+      "name": "region",
       "schema": "",
       "columns": {
-        "style_target_id": {
-          "name": "style_target_id",
+        "id": {
+          "name": "id",
           "type": "varchar(64)",
           "primaryKey": true,
           "notNull": true
         },
-        "grape_id": {
-          "name": "grape_id",
-          "type": "varchar(64)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
+        "display_name": {
+          "name": "display_name",
           "type": "varchar(128)",
           "primaryKey": false,
           "notNull": true
         },
-        "wine_color": {
-          "name": "wine_color",
-          "type": "wine_color",
-          "typeSchema": "public",
+        "country": {
+          "name": "country",
+          "type": "varchar(64)",
           "primaryKey": false,
           "notNull": true
         },
-        "level": {
-          "name": "level",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 1
-        },
-        "is_primary_for_grape": {
-          "name": "is_primary_for_grape",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "description": {
-          "name": "description",
-          "type": "text",
+        "parent_region_id": {
+          "name": "parent_region_id",
+          "type": "varchar(64)",
           "primaryKey": false,
           "notNull": false
         },
-        "version": {
-          "name": "version",
-          "type": "integer",
+        "notes": {
+          "name": "notes",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": 1
+          "notNull": false
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "style_target_grape_id_grape_grape_id_fk": {
-          "name": "style_target_grape_id_grape_grape_id_fk",
-          "tableFrom": "style_target",
-          "tableTo": "grape",
+        "region_parent_region_id_fkey": {
+          "name": "region_parent_region_id_fkey",
+          "tableFrom": "region",
+          "tableTo": "region",
           "columnsFrom": [
-            "grape_id"
+            "parent_region_id"
           ],
           "columnsTo": [
-            "grape_id"
+            "id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
@@ -301,42 +267,237 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.attribute": {
-      "name": "attribute",
+    "public.style_target": {
+      "name": "style_target",
       "schema": "",
       "columns": {
-        "attribute_id": {
-          "name": "attribute_id",
+        "id": {
+          "name": "id",
           "type": "varchar(64)",
           "primaryKey": true,
           "notNull": true
         },
-        "name": {
-          "name": "name",
+        "display_name": {
+          "name": "display_name",
           "type": "varchar(128)",
           "primaryKey": false,
           "notNull": true
         },
-        "wine_color_scope": {
-          "name": "wine_color_scope",
-          "type": "wine_color_scope",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "data_type": {
-          "name": "data_type",
-          "type": "data_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "scale_key": {
-          "name": "scale_key",
-          "type": "scale_key",
-          "typeSchema": "public",
+        "region_id": {
+          "name": "region_id",
+          "type": "varchar(64)",
           "primaryKey": false,
           "notNull": false
+        },
+        "style_kind": {
+          "name": "style_kind",
+          "type": "style_kind",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ladder_tier": {
+          "name": "ladder_tier",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "confidence": {
+          "name": "confidence",
+          "type": "confidence",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "style_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'approved'"
+        },
+        "authoring_basis": {
+          "name": "authoring_basis",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes_internal": {
+          "name": "notes_internal",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "style_target_region_id_region_id_fk": {
+          "name": "style_target_region_id_region_id_fk",
+          "tableFrom": "style_target",
+          "tableTo": "region",
+          "columnsFrom": [
+            "region_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.style_target_grape": {
+      "name": "style_target_grape",
+      "schema": "",
+      "columns": {
+        "style_target_id": {
+          "name": "style_target_id",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "grape_id": {
+          "name": "grape_id",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "percentage": {
+          "name": "percentage",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "role": {
+          "name": "role",
+          "type": "grape_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "style_target_grape_style_target_id_style_target_id_fk": {
+          "name": "style_target_grape_style_target_id_style_target_id_fk",
+          "tableFrom": "style_target_grape",
+          "tableTo": "style_target",
+          "columnsFrom": [
+            "style_target_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "style_target_grape_grape_id_grape_id_fk": {
+          "name": "style_target_grape_grape_id_grape_id_fk",
+          "tableFrom": "style_target_grape",
+          "tableTo": "grape",
+          "columnsFrom": [
+            "grape_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "style_target_grape_style_target_id_grape_id_pk": {
+          "name": "style_target_grape_style_target_id_grape_id_pk",
+          "columns": [
+            "style_target_id",
+            "grape_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.structure_dimension": {
+      "name": "structure_dimension",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(64)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "varchar(128)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "domain": {
+          "name": "domain",
+          "type": "structure_domain",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scale_type": {
+          "name": "scale_type",
+          "type": "scale_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scale_min": {
+          "name": "scale_min",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "scale_max": {
+          "name": "scale_max",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.style_target_structure": {
+      "name": "style_target_structure",
+      "schema": "",
+      "columns": {
+        "style_target_id": {
+          "name": "style_target_id",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "structure_dimension_id": {
+          "name": "structure_dimension_id",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true
         },
         "min_value": {
           "name": "min_value",
@@ -350,149 +511,88 @@
           "primaryKey": false,
           "notNull": false
         },
-        "allowed_values": {
-          "name": "allowed_values",
-          "type": "text",
+        "categorical_value": {
+          "name": "categorical_value",
+          "type": "varchar(64)",
           "primaryKey": false,
           "notNull": false
         },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "sort_order": {
-          "name": "sort_order",
-          "type": "integer",
+        "confidence": {
+          "name": "confidence",
+          "type": "confidence",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         }
       },
       "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
+      "foreignKeys": {
+        "style_target_structure_style_target_id_style_target_id_fk": {
+          "name": "style_target_structure_style_target_id_style_target_id_fk",
+          "tableFrom": "style_target_structure",
+          "tableTo": "style_target",
+          "columnsFrom": [
+            "style_target_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "style_target_structure_structure_dimension_id_structure_dimension_id_fk": {
+          "name": "style_target_structure_structure_dimension_id_structure_dimension_id_fk",
+          "tableFrom": "style_target_structure",
+          "tableTo": "structure_dimension",
+          "columnsFrom": [
+            "structure_dimension_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "style_target_structure_style_target_id_structure_dimension_id_pk": {
+          "name": "style_target_structure_style_target_id_structure_dimension_id_pk",
+          "columns": [
+            "style_target_id",
+            "structure_dimension_id"
+          ]
+        }
+      },
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.style_target_attribute": {
-      "name": "style_target_attribute",
+    "public.aroma_term": {
+      "name": "aroma_term",
       "schema": "",
       "columns": {
-        "style_target_id": {
-          "name": "style_target_id",
+        "id": {
+          "name": "id",
           "type": "varchar(64)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "varchar(128)",
           "primaryKey": false,
           "notNull": true
         },
-        "attribute_id": {
-          "name": "attribute_id",
-          "type": "varchar(64)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "value_ordinal": {
-          "name": "value_ordinal",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "value_categorical": {
-          "name": "value_categorical",
+        "parent_id": {
+          "name": "parent_id",
           "type": "varchar(64)",
           "primaryKey": false,
           "notNull": false
         },
         "source": {
           "name": "source",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "confidence": {
-          "name": "confidence",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "notes": {
-          "name": "notes",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "style_target_attribute_style_target_id_style_target_style_target_id_fk": {
-          "name": "style_target_attribute_style_target_id_style_target_style_target_id_fk",
-          "tableFrom": "style_target_attribute",
-          "tableTo": "style_target",
-          "columnsFrom": [
-            "style_target_id"
-          ],
-          "columnsTo": [
-            "style_target_id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "style_target_attribute_attribute_id_attribute_attribute_id_fk": {
-          "name": "style_target_attribute_attribute_id_attribute_attribute_id_fk",
-          "tableFrom": "style_target_attribute",
-          "tableTo": "attribute",
-          "columnsFrom": [
-            "attribute_id"
-          ],
-          "columnsTo": [
-            "attribute_id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "style_target_attribute_style_target_id_attribute_id_pk": {
-          "name": "style_target_attribute_style_target_id_attribute_id_pk",
-          "columns": [
-            "style_target_id",
-            "attribute_id"
-          ]
-        }
-      },
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.descriptor": {
-      "name": "descriptor",
-      "schema": "",
-      "columns": {
-        "descriptor_id": {
-          "name": "descriptor_id",
-          "type": "varchar(64)",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "category": {
-          "name": "category",
-          "type": "descriptor_category",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "wine_color_scope": {
-          "name": "wine_color_scope",
-          "type": "wine_color_scope",
+          "type": "aroma_source",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
@@ -502,24 +602,32 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
-        },
-        "intensity_scale_key": {
-          "name": "intensity_scale_key",
-          "type": "varchar(32)",
-          "primaryKey": false,
-          "notNull": false
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "aroma_term_parent_id_fkey": {
+          "name": "aroma_term_parent_id_fkey",
+          "tableFrom": "aroma_term",
+          "tableTo": "aroma_term",
+          "columnsFrom": [
+            "parent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.style_target_descriptor": {
-      "name": "style_target_descriptor",
+    "public.style_target_aroma_profile": {
+      "name": "style_target_aroma_profile",
       "schema": "",
       "columns": {
         "style_target_id": {
@@ -528,18 +636,164 @@
           "primaryKey": false,
           "notNull": true
         },
-        "descriptor_id": {
-          "name": "descriptor_id",
+        "aroma_term_id": {
+          "name": "aroma_term_id",
           "type": "varchar(64)",
           "primaryKey": false,
           "notNull": true
         },
-        "relevance": {
-          "name": "relevance",
-          "type": "relevance",
+        "prominence": {
+          "name": "prominence",
+          "type": "prominence",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "style_target_aroma_profile_style_target_id_style_target_id_fk": {
+          "name": "style_target_aroma_profile_style_target_id_style_target_id_fk",
+          "tableFrom": "style_target_aroma_profile",
+          "tableTo": "style_target",
+          "columnsFrom": [
+            "style_target_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "style_target_aroma_profile_aroma_term_id_aroma_term_id_fk": {
+          "name": "style_target_aroma_profile_aroma_term_id_aroma_term_id_fk",
+          "tableFrom": "style_target_aroma_profile",
+          "tableTo": "aroma_term",
+          "columnsFrom": [
+            "aroma_term_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "style_target_aroma_profile_style_target_id_aroma_term_id_pk": {
+          "name": "style_target_aroma_profile_style_target_id_aroma_term_id_pk",
+          "columns": [
+            "style_target_id",
+            "aroma_term_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.style_target_context": {
+      "name": "style_target_context",
+      "schema": "",
+      "columns": {
+        "style_target_id": {
+          "name": "style_target_id",
+          "type": "varchar(64)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "thermal_band_id": {
+          "name": "thermal_band_id",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "elevation_meters": {
+          "name": "elevation_meters",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "continentality": {
+          "name": "continentality",
+          "type": "continentality",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oak_new_percentage_range": {
+          "name": "oak_new_percentage_range",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oak_type": {
+          "name": "oak_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "malolactic_conversion": {
+          "name": "malolactic_conversion",
+          "type": "malolactic_conversion",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lees_aging": {
+          "name": "lees_aging",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "whole_cluster": {
+          "name": "whole_cluster",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "carbonic_maceration": {
+          "name": "carbonic_maceration",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "skin_contact_white": {
+          "name": "skin_contact_white",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "aging_vessel": {
+          "name": "aging_vessel",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "aging_potential_years_min": {
+          "name": "aging_potential_years_min",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "aging_potential_years_max": {
+          "name": "aging_potential_years_max",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "common_tertiary_aromas": {
+          "name": "common_tertiary_aromas",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "structure_evolution_notes": {
+          "name": "structure_evolution_notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "notes": {
           "name": "notes",
@@ -550,42 +804,59 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "style_target_descriptor_style_target_id_style_target_style_target_id_fk": {
-          "name": "style_target_descriptor_style_target_id_style_target_style_target_id_fk",
-          "tableFrom": "style_target_descriptor",
+        "style_target_context_style_target_id_style_target_id_fk": {
+          "name": "style_target_context_style_target_id_style_target_id_fk",
+          "tableFrom": "style_target_context",
           "tableTo": "style_target",
           "columnsFrom": [
             "style_target_id"
           ],
           "columnsTo": [
-            "style_target_id"
+            "id"
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "style_target_descriptor_descriptor_id_descriptor_descriptor_id_fk": {
-          "name": "style_target_descriptor_descriptor_id_descriptor_descriptor_id_fk",
-          "tableFrom": "style_target_descriptor",
-          "tableTo": "descriptor",
+        "style_target_context_thermal_band_id_thermal_band_id_fk": {
+          "name": "style_target_context_thermal_band_id_thermal_band_id_fk",
+          "tableFrom": "style_target_context",
+          "tableTo": "thermal_band",
           "columnsFrom": [
-            "descriptor_id"
+            "thermal_band_id"
           ],
           "columnsTo": [
-            "descriptor_id"
+            "id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {
-        "style_target_descriptor_style_target_id_descriptor_id_pk": {
-          "name": "style_target_descriptor_style_target_id_descriptor_id_pk",
-          "columns": [
-            "style_target_id",
-            "descriptor_id"
-          ]
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.thermal_band": {
+      "name": "thermal_band",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(64)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         }
       },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
@@ -792,306 +1063,34 @@
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
-    },
-    "public.confusion_set": {
-      "name": "confusion_set",
-      "schema": "",
-      "columns": {
-        "confusion_set_id": {
-          "name": "confusion_set_id",
-          "type": "varchar(64)",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "wine_color": {
-          "name": "wine_color",
-          "type": "wine_color",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "level": {
-          "name": "level",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 1
-        },
-        "rationale": {
-          "name": "rationale",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "generation_method": {
-          "name": "generation_method",
-          "type": "generation_method",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.confusion_set_member": {
-      "name": "confusion_set_member",
-      "schema": "",
-      "columns": {
-        "confusion_set_id": {
-          "name": "confusion_set_id",
-          "type": "varchar(64)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "style_target_id": {
-          "name": "style_target_id",
-          "type": "varchar(64)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "role": {
-          "name": "role",
-          "type": "confusion_set_role",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "weight": {
-          "name": "weight",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "confusion_set_member_confusion_set_id_confusion_set_confusion_set_id_fk": {
-          "name": "confusion_set_member_confusion_set_id_confusion_set_confusion_set_id_fk",
-          "tableFrom": "confusion_set_member",
-          "tableTo": "confusion_set",
-          "columnsFrom": [
-            "confusion_set_id"
-          ],
-          "columnsTo": [
-            "confusion_set_id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "confusion_set_member_style_target_id_style_target_style_target_id_fk": {
-          "name": "confusion_set_member_style_target_id_style_target_style_target_id_fk",
-          "tableFrom": "confusion_set_member",
-          "tableTo": "style_target",
-          "columnsFrom": [
-            "style_target_id"
-          ],
-          "columnsTo": [
-            "style_target_id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "confusion_set_member_confusion_set_id_style_target_id_pk": {
-          "name": "confusion_set_member_confusion_set_id_style_target_id_pk",
-          "columns": [
-            "confusion_set_id",
-            "style_target_id"
-          ]
-        }
-      },
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.bottle_style_match": {
-      "name": "bottle_style_match",
-      "schema": "",
-      "columns": {
-        "bottle_id": {
-          "name": "bottle_id",
-          "type": "varchar(64)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "style_target_id": {
-          "name": "style_target_id",
-          "type": "varchar(64)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "match_score": {
-          "name": "match_score",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "is_primary_match": {
-          "name": "is_primary_match",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "deviation_notes": {
-          "name": "deviation_notes",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "curator": {
-          "name": "curator",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "bottle_style_match_bottle_id_wine_bottle_bottle_id_fk": {
-          "name": "bottle_style_match_bottle_id_wine_bottle_bottle_id_fk",
-          "tableFrom": "bottle_style_match",
-          "tableTo": "wine_bottle",
-          "columnsFrom": [
-            "bottle_id"
-          ],
-          "columnsTo": [
-            "bottle_id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "bottle_style_match_style_target_id_style_target_style_target_id_fk": {
-          "name": "bottle_style_match_style_target_id_style_target_style_target_id_fk",
-          "tableFrom": "bottle_style_match",
-          "tableTo": "style_target",
-          "columnsFrom": [
-            "style_target_id"
-          ],
-          "columnsTo": [
-            "style_target_id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "bottle_style_match_bottle_id_style_target_id_pk": {
-          "name": "bottle_style_match_bottle_id_style_target_id_pk",
-          "columns": [
-            "bottle_id",
-            "style_target_id"
-          ]
-        }
-      },
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.wine_bottle": {
-      "name": "wine_bottle",
-      "schema": "",
-      "columns": {
-        "bottle_id": {
-          "name": "bottle_id",
-          "type": "varchar(64)",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "display_name": {
-          "name": "display_name",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "wine_color": {
-          "name": "wine_color",
-          "type": "wine_color",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "region": {
-          "name": "region",
-          "type": "varchar(128)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "vintage": {
-          "name": "vintage",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "grapes_label": {
-          "name": "grapes_label",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "notes": {
-          "name": "notes",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "teaching_notes": {
-          "name": "teaching_notes",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
     }
   },
   "enums": {
-    "public.confusion_set_role": {
-      "name": "confusion_set_role",
+    "public.aroma_source": {
+      "name": "aroma_source",
       "schema": "public",
       "values": [
-        "core",
-        "distractor"
+        "primary",
+        "secondary",
+        "tertiary"
       ]
     },
-    "public.data_type": {
-      "name": "data_type",
+    "public.confidence": {
+      "name": "confidence",
       "schema": "public",
       "values": [
-        "ordinal",
-        "categorical"
+        "high",
+        "medium",
+        "low"
       ]
     },
-    "public.descriptor_category": {
-      "name": "descriptor_category",
+    "public.continentality": {
+      "name": "continentality",
       "schema": "public",
       "values": [
-        "fruit",
-        "floral",
-        "herbal",
-        "spice",
-        "earth",
-        "oak"
+        "maritime",
+        "continental",
+        "mixed"
       ]
     },
     "public.difficulty": {
@@ -1102,6 +1101,14 @@
         "medium",
         "hard",
         "expert"
+      ]
+    },
+    "public.structure_domain": {
+      "name": "structure_domain",
+      "schema": "public",
+      "values": [
+        "appearance",
+        "structural"
       ]
     },
     "public.exercise_format": {
@@ -1118,13 +1125,29 @@
         "tasting_input"
       ]
     },
-    "public.generation_method": {
-      "name": "generation_method",
+    "public.grape_color": {
+      "name": "grape_color",
       "schema": "public",
       "values": [
-        "manual",
-        "distance",
-        "telemetry"
+        "red",
+        "white"
+      ]
+    },
+    "public.grape_role": {
+      "name": "grape_role",
+      "schema": "public",
+      "values": [
+        "primary",
+        "blending"
+      ]
+    },
+    "public.malolactic_conversion": {
+      "name": "malolactic_conversion",
+      "schema": "public",
+      "values": [
+        "none",
+        "partial",
+        "full"
       ]
     },
     "public.mastery_state": {
@@ -1136,22 +1159,41 @@
         "mastered"
       ]
     },
-    "public.relevance": {
-      "name": "relevance",
+    "public.prominence": {
+      "name": "prominence",
       "schema": "public",
       "values": [
-        "primary",
-        "secondary",
-        "occasional"
+        "dominant",
+        "supporting",
+        "optional"
       ]
     },
-    "public.scale_key": {
-      "name": "scale_key",
+    "public.scale_type": {
+      "name": "scale_type",
       "schema": "public",
       "values": [
-        "ordinal_1_5",
-        "color_intensity_1_3",
-        "sweetness_1_5"
+        "ordinal_5",
+        "ordinal_3",
+        "categorical"
+      ]
+    },
+    "public.style_status": {
+      "name": "style_status",
+      "schema": "public",
+      "values": [
+        "draft",
+        "approved",
+        "deprecated"
+      ]
+    },
+    "public.style_kind": {
+      "name": "style_kind",
+      "schema": "public",
+      "values": [
+        "grape_archetype",
+        "regional_benchmark",
+        "method_benchmark",
+        "commercial_modern"
       ]
     },
     "public.wine_color": {
@@ -1160,15 +1202,6 @@
       "values": [
         "red",
         "white"
-      ]
-    },
-    "public.wine_color_scope": {
-      "name": "wine_color_scope",
-      "schema": "public",
-      "values": [
-        "red",
-        "white",
-        "mixed"
       ]
     }
   },

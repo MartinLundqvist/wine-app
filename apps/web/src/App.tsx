@@ -7,6 +7,13 @@ import { ProgressPage } from "./pages/ProgressPage";
 import { MapPage } from "./pages/MapPage";
 import { DrillsPage } from "./pages/DrillsPage";
 import { DrillDetailPage } from "./pages/DrillDetailPage";
+import { ExploreLandingPage } from "./pages/explore/ExploreLandingPage";
+import { ExploreStylesPage } from "./pages/explore/ExploreStylesPage";
+import { StyleTargetDetailPage } from "./pages/explore/StyleTargetDetailPage";
+import { ExploreGrapesPage } from "./pages/explore/ExploreGrapesPage";
+import { GrapeDetailPage } from "./pages/explore/GrapeDetailPage";
+import { ExploreRegionsPage } from "./pages/explore/ExploreRegionsPage";
+import { ExploreAromasPage } from "./pages/explore/ExploreAromasPage";
 
 function MapListPlaceholder() {
   return (
@@ -36,6 +43,62 @@ export default function App() {
         element={
           <AppShell>
             <LauncherPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/explore"
+        element={
+          <AppShell>
+            <ExploreLandingPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/explore/styles"
+        element={
+          <AppShell>
+            <ExploreStylesPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/explore/styles/:id"
+        element={
+          <AppShell>
+            <StyleTargetDetailPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/explore/grapes"
+        element={
+          <AppShell>
+            <ExploreGrapesPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/explore/grapes/:id"
+        element={
+          <AppShell>
+            <GrapeDetailPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/explore/regions"
+        element={
+          <AppShell>
+            <ExploreRegionsPage />
+          </AppShell>
+        }
+      />
+      <Route
+        path="/explore/aromas"
+        element={
+          <AppShell>
+            <ExploreAromasPage />
           </AppShell>
         }
       />
