@@ -28,12 +28,20 @@ export const difficultyEnum = pgEnum("difficulty", [
 export const grapeColorEnum = pgEnum("grape_color", ["red", "white"]);
 export const domainEnum = pgEnum("structure_domain", [
   "appearance",
-  "structural",
+  "nose",
+  "palate",
+  "conclusion",
 ]);
-export const scaleTypeEnum = pgEnum("scale_type", [
-  "ordinal_5",
-  "ordinal_3",
-  "categorical",
+export const scaleTypeEnum = pgEnum("scale_type", ["ordinal", "categorical"]);
+export const wineCategoryEnum = pgEnum("wine_category", [
+  "still",
+  "sparkling",
+  "fortified",
+]);
+export const producedColorEnum = pgEnum("produced_color", [
+  "red",
+  "white",
+  "rose",
 ]);
 export const aromaSourceEnum = pgEnum("aroma_source", [
   "primary",

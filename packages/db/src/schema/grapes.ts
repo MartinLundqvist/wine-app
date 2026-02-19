@@ -12,6 +12,8 @@ import {
   confidenceEnum,
   statusEnum,
   grapeRoleEnum,
+  wineCategoryEnum,
+  producedColorEnum,
 } from "./enums";
 
 export const region = pgTable(
@@ -47,6 +49,8 @@ export const styleTarget = pgTable("style_target", {
     onDelete: "set null",
   }),
   styleKind: styleKindEnum("style_kind").notNull(),
+  wineCategory: wineCategoryEnum("wine_category").notNull().default("still"),
+  producedColor: producedColorEnum("produced_color").notNull(),
   ladderTier: integer("ladder_tier").notNull().default(1),
   confidence: confidenceEnum("confidence").notNull(),
   status: statusEnum("status").notNull().default("approved"),

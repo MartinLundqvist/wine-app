@@ -2,16 +2,18 @@ CREATE TYPE "public"."aroma_source" AS ENUM('primary', 'secondary', 'tertiary');
 CREATE TYPE "public"."confidence" AS ENUM('high', 'medium', 'low');--> statement-breakpoint
 CREATE TYPE "public"."continentality" AS ENUM('maritime', 'continental', 'mixed');--> statement-breakpoint
 CREATE TYPE "public"."difficulty" AS ENUM('easy', 'medium', 'hard', 'expert');--> statement-breakpoint
-CREATE TYPE "public"."structure_domain" AS ENUM('appearance', 'structural');--> statement-breakpoint
+CREATE TYPE "public"."structure_domain" AS ENUM('appearance', 'nose', 'palate', 'conclusion');--> statement-breakpoint
 CREATE TYPE "public"."exercise_format" AS ENUM('map_place', 'map_recall', 'order_rank', 'descriptor_match', 'structure_deduction', 'elimination', 'skeleton_deduction', 'tasting_input');--> statement-breakpoint
 CREATE TYPE "public"."grape_color" AS ENUM('red', 'white');--> statement-breakpoint
 CREATE TYPE "public"."grape_role" AS ENUM('primary', 'blending');--> statement-breakpoint
 CREATE TYPE "public"."malolactic_conversion" AS ENUM('none', 'partial', 'full');--> statement-breakpoint
 CREATE TYPE "public"."mastery_state" AS ENUM('locked', 'in_progress', 'mastered');--> statement-breakpoint
+CREATE TYPE "public"."produced_color" AS ENUM('red', 'white', 'rose');--> statement-breakpoint
 CREATE TYPE "public"."prominence" AS ENUM('dominant', 'supporting', 'optional');--> statement-breakpoint
-CREATE TYPE "public"."scale_type" AS ENUM('ordinal_5', 'ordinal_3', 'categorical');--> statement-breakpoint
+CREATE TYPE "public"."scale_type" AS ENUM('ordinal', 'categorical');--> statement-breakpoint
 CREATE TYPE "public"."style_status" AS ENUM('draft', 'approved', 'deprecated');--> statement-breakpoint
 CREATE TYPE "public"."style_kind" AS ENUM('grape_archetype', 'regional_benchmark', 'method_benchmark', 'commercial_modern');--> statement-breakpoint
+CREATE TYPE "public"."wine_category" AS ENUM('still', 'sparkling', 'fortified');--> statement-breakpoint
 CREATE TYPE "public"."wine_color" AS ENUM('red', 'white');--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "user" (
 	"user_id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -58,6 +60,8 @@ CREATE TABLE IF NOT EXISTS "style_target" (
 	"display_name" varchar(128) NOT NULL,
 	"region_id" varchar(64),
 	"style_kind" "style_kind" NOT NULL,
+	"wine_category" "wine_category" DEFAULT 'still' NOT NULL,
+	"produced_color" "produced_color" NOT NULL,
 	"ladder_tier" integer DEFAULT 1 NOT NULL,
 	"confidence" "confidence" NOT NULL,
 	"status" "style_status" DEFAULT 'approved' NOT NULL,
@@ -80,6 +84,7 @@ CREATE TABLE IF NOT EXISTS "structure_dimension" (
 	"scale_type" "scale_type" NOT NULL,
 	"scale_min" integer,
 	"scale_max" integer,
+	"scale_labels" jsonb,
 	"description" text
 );
 --> statement-breakpoint
@@ -123,6 +128,10 @@ CREATE TABLE IF NOT EXISTS "style_target_context" (
 	"aging_vessel" text,
 	"aging_potential_years_min" integer,
 	"aging_potential_years_max" integer,
+	"expected_quality_min" integer,
+	"expected_quality_max" integer,
+	"expect_deposit" boolean,
+	"expect_petillance" boolean,
 	"common_tertiary_aromas" text,
 	"structure_evolution_notes" text,
 	"notes" text

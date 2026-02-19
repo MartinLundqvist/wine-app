@@ -3,6 +3,7 @@ import {
   varchar,
   integer,
   text,
+  jsonb,
   primaryKey,
 } from "drizzle-orm/pg-core";
 import { domainEnum, scaleTypeEnum, confidenceEnum } from "./enums";
@@ -15,6 +16,7 @@ export const structureDimension = pgTable("structure_dimension", {
   scaleType: scaleTypeEnum("scale_type").notNull(),
   scaleMin: integer("scale_min"),
   scaleMax: integer("scale_max"),
+  scaleLabels: jsonb("scale_labels"),
   description: text("description"),
 });
 

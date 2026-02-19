@@ -19,7 +19,7 @@ export function StyleTargetDetailPage() {
 
   const st = style as StyleTargetFull;
   const ordinalDims = st.structure?.filter(
-    (s) => s.dimension?.scaleType === "ordinal_5" || s.dimension?.scaleType === "ordinal_3"
+    (s) => s.dimension?.scaleType === "ordinal"
   ) ?? [];
   const catDims = st.structure?.filter(
     (s) => s.dimension?.scaleType === "categorical"
@@ -65,7 +65,7 @@ export function StyleTargetDetailPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           {ordinalDims.map((row) => {
             const dim = row.dimension;
-            const maxVal = dim?.scaleType === "ordinal_3" ? 3 : 5;
+            const maxVal = dim?.scaleMax ?? 5;
             const val = row.maxValue ?? row.minValue ?? 0;
             const pct = maxVal > 0 ? (val / maxVal) * 100 : 0;
             return (

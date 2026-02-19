@@ -2,8 +2,15 @@ import { z } from "zod";
 
 // Enums (for API validation / types)
 export const grapeColorSchema = z.enum(["red", "white"]);
-export const domainSchema = z.enum(["appearance", "structural"]);
-export const scaleTypeSchema = z.enum(["ordinal_5", "ordinal_3", "categorical"]);
+export const domainSchema = z.enum([
+  "appearance",
+  "nose",
+  "palate",
+  "conclusion",
+]);
+export const scaleTypeSchema = z.enum(["ordinal", "categorical"]);
+export const wineCategorySchema = z.enum(["still", "sparkling", "fortified"]);
+export const producedColorSchema = z.enum(["red", "white", "rose"]);
 export const aromaSourceSchema = z.enum(["primary", "secondary", "tertiary"]);
 export const styleKindSchema = z.enum([
   "grape_archetype",
@@ -62,6 +69,7 @@ export const structureDimensionSchema = z.object({
   scaleType: scaleTypeSchema,
   scaleMin: z.number().nullable().optional(),
   scaleMax: z.number().nullable().optional(),
+  scaleLabels: z.unknown().nullable().optional(),
   description: z.string().nullable().optional(),
 });
 export type StructureDimension = z.infer<typeof structureDimensionSchema>;
@@ -80,6 +88,8 @@ export const styleTargetSchema = z.object({
   displayName: z.string(),
   regionId: z.string().nullable().optional(),
   styleKind: styleKindSchema,
+  wineCategory: wineCategorySchema,
+  producedColor: producedColorSchema,
   ladderTier: z.number(),
   confidence: confidenceSchema,
   status: statusSchema,
@@ -137,6 +147,10 @@ export const styleTargetContextSchema = z.object({
   agingVessel: z.string().nullable().optional(),
   agingPotentialYearsMin: z.number().nullable().optional(),
   agingPotentialYearsMax: z.number().nullable().optional(),
+  expectedQualityMin: z.number().nullable().optional(),
+  expectedQualityMax: z.number().nullable().optional(),
+  expectDeposit: z.boolean().nullable().optional(),
+  expectPetillance: z.boolean().nullable().optional(),
   commonTertiaryAromas: z.string().nullable().optional(),
   structureEvolutionNotes: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),

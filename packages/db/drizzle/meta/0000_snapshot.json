@@ -1,5 +1,5 @@
 {
-  "id": "147a15a1-b386-4b55-b4da-0a0bc7168624",
+  "id": "4887cf7b-805e-4524-8a09-ab45ceea51e7",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -296,6 +296,21 @@
           "primaryKey": false,
           "notNull": true
         },
+        "wine_category": {
+          "name": "wine_category",
+          "type": "wine_category",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'still'"
+        },
+        "produced_color": {
+          "name": "produced_color",
+          "type": "produced_color",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
         "ladder_tier": {
           "name": "ladder_tier",
           "type": "integer",
@@ -465,6 +480,12 @@
         "scale_max": {
           "name": "scale_max",
           "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "scale_labels": {
+          "name": "scale_labels",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
@@ -780,6 +801,30 @@
         "aging_potential_years_max": {
           "name": "aging_potential_years_max",
           "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expected_quality_min": {
+          "name": "expected_quality_min",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expected_quality_max": {
+          "name": "expected_quality_max",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expect_deposit": {
+          "name": "expect_deposit",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expect_petillance": {
+          "name": "expect_petillance",
+          "type": "boolean",
           "primaryKey": false,
           "notNull": false
         },
@@ -1108,7 +1153,9 @@
       "schema": "public",
       "values": [
         "appearance",
-        "structural"
+        "nose",
+        "palate",
+        "conclusion"
       ]
     },
     "public.exercise_format": {
@@ -1159,6 +1206,15 @@
         "mastered"
       ]
     },
+    "public.produced_color": {
+      "name": "produced_color",
+      "schema": "public",
+      "values": [
+        "red",
+        "white",
+        "rose"
+      ]
+    },
     "public.prominence": {
       "name": "prominence",
       "schema": "public",
@@ -1172,8 +1228,7 @@
       "name": "scale_type",
       "schema": "public",
       "values": [
-        "ordinal_5",
-        "ordinal_3",
+        "ordinal",
         "categorical"
       ]
     },
@@ -1194,6 +1249,15 @@
         "regional_benchmark",
         "method_benchmark",
         "commercial_modern"
+      ]
+    },
+    "public.wine_category": {
+      "name": "wine_category",
+      "schema": "public",
+      "values": [
+        "still",
+        "sparkling",
+        "fortified"
       ]
     },
     "public.wine_color": {
