@@ -16,15 +16,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="min-h-screen bg-cellar-950 text-linen-100 font-ui flex flex-col">
-      <header className="h-14 flex-shrink-0 bg-cellar-900 border-b border-cork-500/30 flex items-center justify-between px-6">
+    <div className="w-full min-h-screen bg-cellar-950 text-linen-100 font-ui flex flex-col overflow-x-hidden">
+      <header className="w-full h-14 flex-shrink-0 bg-cellar-900 border-b border-cork-500/30 flex items-center justify-between px-6 min-w-0">
         <Link to="/" className="font-display text-h2 font-semibold text-linen-100 no-underline">
           Wine App
         </Link>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 min-w-0">
           {state.user ? (
             <>
-              <span className="text-small text-cork-400">{state.user.email}</span>
+              <span className="text-small text-cork-400 truncate max-w-56">{state.user.email}</span>
               <Button variant="tertiary" onClick={() => logout()}>
                 Log out
               </Button>
@@ -36,7 +36,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )}
         </div>
       </header>
-      <div className="flex flex-1 min-h-0">
+      <div className="w-full flex flex-1 min-h-0 min-w-0">
         <aside className="w-52 flex-shrink-0 bg-cellar-900 border-r border-cork-500/30 py-4">
           <nav className="flex flex-col gap-0.5 px-3">
             {nav.map(({ to, label }) => {
@@ -57,8 +57,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             })}
           </nav>
         </aside>
-        <main className="flex-1 overflow-auto p-6 max-w-6xl">
-          {children}
+        <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-6">
+          <div className="w-full max-w-6xl">
+            {children}
+          </div>
         </main>
       </div>
     </div>
