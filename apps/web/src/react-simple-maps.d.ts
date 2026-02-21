@@ -1,5 +1,5 @@
 declare module "react-simple-maps" {
-  import type { ReactNode } from "react";
+  import type { ReactNode, Ref } from "react";
 
   export interface ComposableMapProps {
     projection?: string;
@@ -35,7 +35,19 @@ declare module "react-simple-maps" {
     children?: ReactNode;
   }
 
+  export interface ZoomableGroupProps {
+    center?: [number, number];
+    zoom?: number;
+    minZoom?: number;
+    maxZoom?: number;
+    filterZoomEvent?: (event: unknown) => boolean;
+    children?: ReactNode;
+  }
+
   export function ComposableMap(props: ComposableMapProps): JSX.Element;
   export function Geographies(props: GeographiesProps): JSX.Element;
   export function Geography(props: GeographyProps): JSX.Element;
+  export function ZoomableGroup(
+    props: ZoomableGroupProps & { ref?: Ref<unknown> },
+  ): JSX.Element;
 }

@@ -10,6 +10,7 @@ type RegionDetailPanelProps = {
   regions: Region[];
   styleTargets: StyleTargetFull[];
   onClose: () => void;
+  onHoverSubRegion?: (regionId: string | null) => void;
 };
 
 const slideRight = {
@@ -44,6 +45,7 @@ export function RegionDetailPanel({
   regions,
   styleTargets,
   onClose,
+  onHoverSubRegion,
 }: RegionDetailPanelProps) {
   const reducedMotion = useReducedMotion();
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -125,7 +127,12 @@ export function RegionDetailPanel({
           subRegions.map((sub) => {
             const styles = stylesByRegionId.get(sub.id) ?? [];
             return (
-              <div key={sub.id} className="space-y-2">
+              <div
+                key={sub.id}
+                className="space-y-2"
+                onMouseEnter={() => onHoverSubRegion?.(sub.id)}
+                onMouseLeave={() => onHoverSubRegion?.(null)}
+              >
                 <h3 className="font-sans text-base text-foreground font-medium">
                   {sub.displayName}
                 </h3>
@@ -156,10 +163,16 @@ export function RegionDetailPanel({
   );
 
   return (
-    <>
+    <motion.div
+      className="absolute inset-0 z-10"
+      initial={{}}
+      animate={{}}
+      exit={{}}
+      aria-hidden
+    >
       {/* Backdrop — keeps map visible, blocks map interaction while open */}
       <motion.div
-        className="absolute inset-0 bg-black/20 z-10 pointer-events-auto"
+        className="absolute inset-0 bg-black/20 pointer-events-auto"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -183,6 +196,6 @@ export function RegionDetailPanel({
       >
         {panelContent}
       </motion.div>
-    </>
+    </motion.div>
   );
 }

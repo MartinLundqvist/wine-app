@@ -23,6 +23,8 @@ function MapSkeleton() {
 
 export function ExploreRegionsPage() {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [hoveredSubRegionId, setHoveredSubRegionId] =
+    useState<string | null>(null);
 
   const { data: regions, isLoading, isError, refetch } = useQuery({
     queryKey: ["regions"],
@@ -33,7 +35,10 @@ export function ExploreRegionsPage() {
     queryFn: () => api.getStyleTargets(),
   });
 
-  const handleClose = useCallback(() => setSelectedCountry(null), []);
+  const handleClose = useCallback(() => {
+    setSelectedCountry(null);
+    setHoveredSubRegionId(null);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -133,16 +138,19 @@ export function ExploreRegionsPage() {
                   regions={regions ?? []}
                   selectedCountry={selectedCountry}
                   onSelectCountry={setSelectedCountry}
+                  hoveredSubRegionId={hoveredSubRegionId}
                 />
               </div>
 
-              <AnimatePresence mode="wait">
+              <AnimatePresence>
                 {selectedCountry && (
                   <RegionDetailPanel
+                    key={selectedCountry}
                     country={selectedCountry}
                     regions={regions ?? []}
                     styleTargets={styleTargets ?? []}
                     onClose={handleClose}
+                    onHoverSubRegion={setHoveredSubRegionId}
                   />
                 )}
               </AnimatePresence>
