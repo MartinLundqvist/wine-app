@@ -273,8 +273,13 @@ export function StyleTargetDetailPage() {
                     <dt className="text-sm font-sans text-muted-foreground">
                       Thermal band
                     </dt>
-                    <dd className="font-sans font-medium text-foreground">
-                      {st.context.thermalBandId}
+                    <dd>
+                      <Chip
+                        variant="ghost"
+                        className="bg-oak/10 border border-oak/20 text-oak-light font-sans text-sm px-3 py-1 capitalize"
+                      >
+                        {st.context.thermalBandId}
+                      </Chip>
                     </dd>
                   </>
                 )}

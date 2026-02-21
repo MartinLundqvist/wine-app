@@ -2,9 +2,6 @@
 
 ## Small tweaks
 
-- explore/styles/:id -> Make the thermal band (e.g., "moderate") render as a nicely styled badge (like the descriptors)
-- / -> Add a CTA button that brings the user to the Explore page. Perhaps leverage the existing [CTA section](apps/web/src/components/landing/CTASection.tsx) for styling etc?
-
 ## Medium fixes
 
 - The region explorer does not render well on a mobile. When clicking on a country, the details hide the map.

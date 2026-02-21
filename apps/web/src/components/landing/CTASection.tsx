@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 
@@ -24,8 +25,8 @@ const CTASection = () => {
             Join thousands of wine lovers who have deepened their appreciation
             and knowledge through our expertly crafted courses.
           </p>
-          <Button variant="hero" size="lg" className="px-12 py-6">
-            Begin Your Journey
+          <Button variant="hero" size="lg" className="px-12 py-6" asChild>
+            <Link to="/explore">Begin Your Journey</Link>
           </Button>
         </motion.div>
       </div>
