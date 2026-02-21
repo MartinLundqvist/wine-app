@@ -47,14 +47,14 @@ export function RegionDetailPanel({
   return (
     <Panel
       variant="oak"
-      className="w-full lg:w-80 flex-shrink-0 flex flex-col max-h-[70vh] lg:max-h-none overflow-hidden transition-all duration-base"
+      className="w-full lg:w-80 flex-shrink-0 flex flex-col max-h-[70vh] lg:max-h-none overflow-hidden transition-all duration-200"
     >
       <div className="flex items-center justify-between gap-2 mb-4">
-        <h2 className="font-display text-h2 text-linen-100">{country}</h2>
+        <h2 className="font-serif text-2xl text-foreground">{country}</h2>
         <button
           type="button"
           onClick={onClose}
-          className="text-cork-400 hover:text-linen-100 font-ui text-body transition-colors duration-fast"
+          className="text-muted-foreground hover:text-foreground font-sans text-base transition-colors duration-150"
           aria-label="Close"
         >
           Close
@@ -62,7 +62,7 @@ export function RegionDetailPanel({
       </div>
       <div className="flex flex-col gap-4 overflow-y-auto pr-1">
         {subRegions.length === 0 ? (
-          <p className="text-small text-cork-400 font-ui">
+          <p className="text-sm text-muted-foreground font-sans">
             No sub-regions in this country.
           </p>
         ) : (
@@ -70,7 +70,7 @@ export function RegionDetailPanel({
             const styles = stylesByRegionId.get(sub.id) ?? [];
             return (
               <div key={sub.id} className="space-y-2">
-                <h3 className="font-ui text-body text-linen-100 font-medium">
+                <h3 className="font-sans text-base text-foreground font-medium">
                   {sub.displayName}
                 </h3>
                 {styles.length > 0 ? (
@@ -79,7 +79,7 @@ export function RegionDetailPanel({
                       <li key={st.id}>
                         <Link
                           to={`/explore/styles/${st.id}`}
-                          className="text-small text-cork-300 hover:text-brass-200 no-underline font-ui"
+                          className="text-sm text-muted-foreground hover:text-oak-light no-underline font-ui"
                         >
                           {st.displayName}
                         </Link>
@@ -87,7 +87,7 @@ export function RegionDetailPanel({
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-small text-cork-500 font-ui">
+                  <p className="text-sm text-muted-foreground font-sans">
                     No styles linked
                   </p>
                 )}

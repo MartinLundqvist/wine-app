@@ -3,15 +3,15 @@ import { type HTMLAttributes } from "react";
 type Variant = "base" | "selected" | "correct" | "incorrect" | "ghost";
 
 const variants: Record<Variant, string> = {
-  base: "rounded-chip border border-cork-500 px-2 py-1 text-small text-linen-100 bg-cellar-800",
+  base: "rounded-full border border-muted-foreground px-2 py-1 text-sm text-foreground bg-card",
   selected:
-    "rounded-chip border-2 border-burgundy-700 px-2 py-1 text-small text-linen-100 bg-burgundy-800/50",
+    "rounded-full border-2 border-primary px-2 py-1 text-sm text-foreground bg-primary/50",
   correct:
-    "rounded-chip border-2 border-moss-600 px-2 py-1 text-small text-linen-100 bg-moss-700/30",
+    "rounded-full border-2 border-moss-600 px-2 py-1 text-sm text-foreground bg-moss-700/30",
   incorrect:
-    "rounded-chip border-2 border-oxblood-700 px-2 py-1 text-small text-linen-100 bg-oxblood-700/20",
+    "rounded-full border-2 border-destructive px-2 py-1 text-sm text-foreground bg-destructive/20",
   ghost:
-    "rounded-chip border border-cork-500/30 px-1.5 py-0.5 text-micro text-cork-400 bg-cellar-800/60 leading-tight",
+    "rounded-full border border-muted-foreground/30 px-1.5 py-0.5 text-xs text-muted-foreground bg-card/60 leading-tight",
 };
 
 export function Chip({
@@ -22,7 +22,7 @@ export function Chip({
 }: HTMLAttributes<HTMLSpanElement> & { variant?: Variant }) {
   return (
     <span
-      className={`inline-flex items-center font-ui ${variants[variant]} ${className}`}
+      className={`inline-flex items-center font-sans ${variants[variant]} ${className}`}
       {...props}
     >
       {children}

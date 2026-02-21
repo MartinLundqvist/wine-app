@@ -187,7 +187,7 @@ export function DrillDetailPage() {
   if (!template) {
     return (
       <div className="space-y-4">
-        <p className="text-cork-400">Template not found.</p>
+        <p className="text-muted-foreground">Template not found.</p>
       </div>
     );
   }
@@ -199,9 +199,9 @@ export function DrillDetailPage() {
   if (!state.user) {
     return (
       <div className="space-y-6">
-        <h1 className="font-display text-h1 text-linen-100">{template.name}</h1>
+        <h1 className="font-serif text-3xl text-foreground">{template.name}</h1>
         <Panel variant="oak">
-          <p className="text-body text-cork-400">Log in to play drills.</p>
+          <p className="text-base text-muted-foreground">Log in to play drills.</p>
         </Panel>
       </div>
     );
@@ -210,9 +210,9 @@ export function DrillDetailPage() {
   if (!isDrill) {
     return (
       <div className="space-y-6">
-        <h1 className="font-display text-h1 text-linen-100">{template.name}</h1>
+        <h1 className="font-serif text-3xl text-foreground">{template.name}</h1>
         <Panel variant="oak">
-          <p className="text-body text-cork-400">
+          <p className="text-base text-muted-foreground">
             This format is not implemented. Use Maps or one of the four drill
             types.
           </p>
@@ -224,7 +224,7 @@ export function DrillDetailPage() {
   if (error && !payload) {
     return (
       <div className="space-y-4">
-        <p className="text-oxblood-700">{error}</p>
+        <p className="text-destructive">{error}</p>
         <Button variant="secondary" onClick={generate}>
           Retry
         </Button>
@@ -233,7 +233,7 @@ export function DrillDetailPage() {
   }
 
   if (!payload) {
-    return <p className="text-cork-400">Loading exercise...</p>;
+    return <p className="text-muted-foreground">Loading exercise...</p>;
   }
 
   const format = payload.format ?? template.format;
@@ -241,12 +241,12 @@ export function DrillDetailPage() {
   if (result) {
     return (
       <div className="space-y-6 max-w-lg mx-auto">
-        <h1 className="font-display text-h1 text-linen-100">{template.name}</h1>
+        <h1 className="font-serif text-3xl text-foreground">{template.name}</h1>
         <Panel variant="linenSheet" className="space-y-4">
-          <h3 className="font-display text-h3 text-cellar-950">
+          <h3 className="font-serif text-xl text-foreground">
             {result.isCorrect ? "Correct!" : "Not quite"}
           </h3>
-          <p className="text-body text-cellar-950">
+          <p className="text-base text-foreground">
             {result.feedback.structureMatch}
           </p>
           <div className="flex gap-3">
@@ -267,9 +267,9 @@ export function DrillDetailPage() {
     const clue = payload.descriptorClue?.name ?? "this descriptor";
     return (
       <div className="space-y-6 max-w-lg mx-auto">
-        <h1 className="font-display text-h1 text-linen-100">{template.name}</h1>
+        <h1 className="font-serif text-3xl text-foreground">{template.name}</h1>
         <Panel variant="oak" className="space-y-4">
-          <p className="text-body text-linen-100">
+          <p className="text-base text-foreground">
             Which grape best matches the descriptor &quot;{clue}&quot;?
           </p>
           <div className="flex flex-wrap gap-2">
@@ -279,14 +279,14 @@ export function DrillDetailPage() {
                 type="button"
                 onClick={() => submitDescriptorMatch(opt.styleTargetId)}
                 disabled={loading}
-                className="focus:outline-none focus:ring-2 focus:ring-brass-500 rounded-chip"
+                className="focus:outline-none focus:ring-2 focus:ring-accent rounded-full"
               >
                 <Chip variant="base">{opt.name}</Chip>
               </button>
             ))}
           </div>
           {loading && (
-            <p className="text-small text-cork-400 animate-pulse">
+            <p className="text-sm text-muted-foreground animate-pulse">
               Checking...
             </p>
           )}
@@ -304,9 +304,9 @@ export function DrillDetailPage() {
 
     return (
       <div className="space-y-6 max-w-lg mx-auto">
-        <h1 className="font-display text-h1 text-linen-100">{template.name}</h1>
+        <h1 className="font-serif text-3xl text-foreground">{template.name}</h1>
         <Panel variant="oak" className="space-y-4">
-          <p className="text-body text-linen-100">
+          <p className="text-base text-foreground">
             Tap grapes to eliminate the one that doesn&apos;t match. Submit the
             remaining grape.
           </p>
@@ -324,7 +324,7 @@ export function DrillDetailPage() {
                       new Set(prev).add(opt.styleTargetId),
                     );
                   }}
-                  className="focus:outline-none focus:ring-2 focus:ring-brass-500 rounded-chip"
+                  className="focus:outline-none focus:ring-2 focus:ring-accent rounded-full"
                 >
                   <Chip variant={eliminated ? "incorrect" : "base"}>
                     {eliminated ? "✕ " : ""}
@@ -344,7 +344,7 @@ export function DrillDetailPage() {
             </Button>
           )}
           {loading && (
-            <p className="text-small text-cork-400 animate-pulse">
+            <p className="text-sm text-muted-foreground animate-pulse">
               Checking...
             </p>
           )}
@@ -362,11 +362,11 @@ export function DrillDetailPage() {
 
     return (
       <div className="space-y-6 max-w-lg mx-auto">
-        <h1 className="font-display text-h1 text-linen-100">{template.name}</h1>
+        <h1 className="font-serif text-3xl text-foreground">{template.name}</h1>
         <Panel variant="oak" className="space-y-4">
-          <p className="text-body text-linen-100">Structure only (no fruit):</p>
-          <p className="text-body text-cellar-950 font-medium">{clueText}</p>
-          <p className="text-small text-cork-400">
+          <p className="text-base text-foreground">Structure only (no fruit):</p>
+          <p className="text-base text-foreground font-medium">{clueText}</p>
+          <p className="text-sm text-muted-foreground">
             Which grape matches this structure?
           </p>
           <div className="flex flex-wrap gap-2">
@@ -376,14 +376,14 @@ export function DrillDetailPage() {
                 type="button"
                 onClick={() => submitSkeletonDeduction(opt.styleTargetId)}
                 disabled={loading}
-                className="focus:outline-none focus:ring-2 focus:ring-brass-500 rounded-chip"
+                className="focus:outline-none focus:ring-2 focus:ring-accent rounded-full"
               >
                 <Chip variant="base">{opt.name}</Chip>
               </button>
             ))}
           </div>
           {loading && (
-            <p className="text-small text-cork-400 animate-pulse">
+            <p className="text-sm text-muted-foreground animate-pulse">
               Checking...
             </p>
           )}
@@ -402,8 +402,8 @@ export function DrillDetailPage() {
 
     return (
       <div className="space-y-6">
-        <h1 className="font-display text-h1 text-linen-100">{template.name}</h1>
-        <p className="text-small text-cork-400">
+        <h1 className="font-serif text-3xl text-foreground">{template.name}</h1>
+        <p className="text-sm text-muted-foreground">
           Drag each grape to its correct position on the map.
         </p>
         <DndContext
@@ -434,7 +434,7 @@ export function DrillDetailPage() {
               </MapCanvas>
             </div>
             <div className="flex flex-col gap-4 min-w-[200px]">
-              <p className="text-small text-cork-400">Grapes to place:</p>
+              <p className="text-sm text-muted-foreground">Grapes to place:</p>
               <div className="flex flex-wrap gap-2">
                 {styleTargets
                   .filter((s) => !mapRecallPlacements[s.styleTargetId])
@@ -454,11 +454,11 @@ export function DrillDetailPage() {
                 Submit placements
               </Button>
               {loading && (
-                <p className="text-small text-cork-400 animate-pulse">
+                <p className="text-sm text-muted-foreground animate-pulse">
                   Checking...
                 </p>
               )}
-              {error && <p className="text-small text-oxblood-700">{error}</p>}
+              {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
           </div>
         </DndContext>
@@ -468,9 +468,9 @@ export function DrillDetailPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-h1 text-linen-100">{template.name}</h1>
+      <h1 className="font-serif text-3xl text-foreground">{template.name}</h1>
       <Panel variant="oak">
-        <p className="text-body text-cork-400">
+        <p className="text-base text-muted-foreground">
           Unknown format: {String(format)}
         </p>
       </Panel>

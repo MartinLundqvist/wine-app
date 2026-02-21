@@ -84,7 +84,7 @@ export function RegionMap({
   };
 
   return (
-    <div className="relative w-full rounded-card overflow-hidden bg-cellar-950 border border-cork-500/30">
+    <div className="relative w-full rounded-lg overflow-hidden bg-background border border-border">
       <ComposableMap
         projection="geoEqualEarth"
         projectionConfig={{
@@ -155,12 +155,12 @@ export function RegionMap({
       </ComposableMap>
       {tooltip && (
         <div
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-2 rounded-control bg-oak-800 border border-cork-500/50 text-linen-100 text-small font-ui pointer-events-none z-10"
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-2 rounded-md bg-oak border border-border text-foreground text-sm font-sans pointer-events-none z-10"
           role="tooltip"
         >
           {tooltip.name}
           {tooltip.count > 0 && (
-            <span className="text-cork-400 ml-1">
+            <span className="text-muted-foreground ml-1">
               · {tooltip.count} region{tooltip.count !== 1 ? "s" : ""}
             </span>
           )}

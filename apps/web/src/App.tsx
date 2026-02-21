@@ -1,7 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { AppShell } from "./components/AppShell";
+import { MainLayout } from "./components/MainLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { LoginPage } from "./pages/LoginPage";
+import { LandingPage } from "./pages/LandingPage";
 import { LauncherPage } from "./pages/LauncherPage";
 import { ProgressPage } from "./pages/ProgressPage";
 import { MapPage } from "./pages/MapPage";
@@ -18,18 +19,17 @@ import { ExploreAromasPage } from "./pages/explore/ExploreAromasPage";
 function MapListPlaceholder() {
   return (
     <div className="space-y-4">
-      <h1 className="font-display text-h1 text-linen-100">Maps</h1>
-      <p className="text-cork-400">Choose a map from the launcher.</p>
+      <h1 className="font-serif text-3xl text-foreground">Maps</h1>
+      <p className="text-muted-foreground">Choose a map from the launcher.</p>
     </div>
   );
 }
 
-
 function TastingPlaceholder() {
   return (
     <div className="space-y-4">
-      <h1 className="font-display text-h1 text-linen-100">Tasting Mode</h1>
-      <p className="text-cork-400">Tasting input — Phase 7.</p>
+      <h1 className="font-serif text-3xl text-foreground">Tasting Mode</h1>
+      <p className="text-muted-foreground">Tasting input — Phase 7.</p>
     </div>
   );
 }
@@ -38,131 +38,35 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route
-        path="/"
-        element={
-          <AppShell>
-            <LauncherPage />
-          </AppShell>
-        }
-      />
-      <Route
-        path="/explore"
-        element={
-          <AppShell>
-            <ExploreLandingPage />
-          </AppShell>
-        }
-      />
-      <Route
-        path="/explore/styles"
-        element={
-          <AppShell>
-            <ExploreStylesPage />
-          </AppShell>
-        }
-      />
-      <Route
-        path="/explore/styles/:id"
-        element={
-          <AppShell>
-            <StyleTargetDetailPage />
-          </AppShell>
-        }
-      />
-      <Route
-        path="/explore/grapes"
-        element={
-          <AppShell>
-            <ExploreGrapesPage />
-          </AppShell>
-        }
-      />
-      <Route
-        path="/explore/grapes/:id"
-        element={
-          <AppShell>
-            <GrapeDetailPage />
-          </AppShell>
-        }
-      />
-      <Route
-        path="/explore/regions"
-        element={
-          <AppShell>
-            <ExploreRegionsPage />
-          </AppShell>
-        }
-      />
-      <Route
-        path="/explore/aromas"
-        element={
-          <AppShell>
-            <ExploreAromasPage />
-          </AppShell>
-        }
-      />
-      <Route
-        path="/maps"
-        element={
-          <AppShell>
-            <MapListPlaceholder />
-          </AppShell>
-        }
-      />
-      <Route
-        path="/maps/:id"
-        element={
-          <AppShell>
-            <MapPage />
-          </AppShell>
-        }
-      />
-      <Route
-        path="/drills"
-        element={
-          <AppShell>
-            <DrillsPage />
-          </AppShell>
-        }
-      />
-      <Route
-        path="/drills/:templateId"
-        element={
-          <AppShell>
-            <DrillDetailPage />
-          </AppShell>
-        }
-      />
-      <Route
-        path="/progress"
-        element={
-          <AppShell>
-            <ProgressPage />
-          </AppShell>
-        }
-      />
-      <Route
-        path="/tasting"
-        element={
-          <AppShell>
-            <TastingPlaceholder />
-          </AppShell>
-        }
-      />
-      <Route
-        path="/me"
-        element={
-          <ProtectedRoute>
-            <AppShell>
+      <Route path="/app" element={<Navigate to="/learn" replace />} />
+      <Route element={<MainLayout />}>
+        <Route index element={<LandingPage />} />
+        <Route path="learn" element={<LauncherPage />} />
+        <Route path="explore" element={<ExploreLandingPage />} />
+        <Route path="explore/styles" element={<ExploreStylesPage />} />
+        <Route path="explore/styles/:id" element={<StyleTargetDetailPage />} />
+        <Route path="explore/grapes" element={<ExploreGrapesPage />} />
+        <Route path="explore/grapes/:id" element={<GrapeDetailPage />} />
+        <Route path="explore/regions" element={<ExploreRegionsPage />} />
+        <Route path="explore/aromas" element={<ExploreAromasPage />} />
+        <Route path="maps" element={<MapListPlaceholder />} />
+        <Route path="maps/:id" element={<MapPage />} />
+        <Route path="drills" element={<DrillsPage />} />
+        <Route path="drills/:templateId" element={<DrillDetailPage />} />
+        <Route path="progress" element={<ProgressPage />} />
+        <Route path="tasting" element={<TastingPlaceholder />} />
+        <Route
+          path="me"
+          element={
+            <ProtectedRoute>
               <div className="p-6">
-                <h2 className="font-display text-h2 text-linen-100">Protected</h2>
-                <p className="text-cork-400">You are logged in.</p>
+                <h2 className="font-serif text-2xl text-foreground">Protected</h2>
+                <p className="text-muted-foreground">You are logged in.</p>
               </div>
-            </AppShell>
-          </ProtectedRoute>
-        }
-      />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

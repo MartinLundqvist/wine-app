@@ -16,8 +16,8 @@ export function OrdinalScale({
       {Array.from({ length: max }, (_, i) => (
         <span
           key={i}
-          className={`h-2 w-2 rounded-full transition-colors duration-fast ${
-            i < value ? "bg-brass-500" : "bg-cork-500/60"
+          className={`h-2 w-2 rounded-full transition-colors duration-150 ${
+            i < value ? "bg-accent" : "bg-muted-foreground/60"
           }`}
         />
       ))}

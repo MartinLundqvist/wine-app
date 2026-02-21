@@ -11,7 +11,7 @@ export function LoginPage() {
   const { login, register } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? "/";
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? "/learn";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,49 +29,49 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-cellar-950 text-linen-100 font-ui flex items-center justify-center p-6">
+    <div className="min-h-screen dark bg-background text-foreground font-sans flex items-center justify-center p-6">
       <div className="w-full max-w-md">
-      <h1 className="font-display text-h1 text-linen-100 mb-6">{tab === "login" ? "Log in" : "Register"}</h1>
+      <h1 className="font-serif text-3xl text-foreground mb-6">{tab === "login" ? "Log in" : "Register"}</h1>
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label htmlFor="email" className="block text-small text-cork-400 mb-1">Email</label>
+          <label htmlFor="email" className="block text-sm text-muted-foreground mb-1">Email</label>
           <input
             id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-3 py-2 rounded-control bg-cellar-800 border border-cork-500 text-linen-100 focus:ring-2 focus:ring-brass-500 focus:border-transparent"
+            className="w-full px-3 py-2 rounded-md bg-card border border-input text-foreground focus:ring-2 focus:ring-accent focus:border-transparent"
           />
         </div>
         {tab === "register" && (
           <div className="mb-4">
-            <label htmlFor="displayName" className="block text-small text-cork-400 mb-1">Display name (optional)</label>
+            <label htmlFor="displayName" className="block text-sm text-muted-foreground mb-1">Display name (optional)</label>
             <input
               id="displayName"
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full px-3 py-2 rounded-control bg-cellar-800 border border-cork-500 text-linen-100 focus:ring-2 focus:ring-brass-500"
+              className="w-full px-3 py-2 rounded-md bg-card border border-input text-foreground focus:ring-2 focus:ring-accent"
             />
           </div>
         )}
         <div className="mb-4">
-          <label htmlFor="password" className="block text-small text-cork-400 mb-1">Password</label>
+          <label htmlFor="password" className="block text-sm text-muted-foreground mb-1">Password</label>
           <input
             id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full px-3 py-2 rounded-control bg-cellar-800 border border-cork-500 text-linen-100 focus:ring-2 focus:ring-brass-500"
+            className="w-full px-3 py-2 rounded-md bg-card border border-input text-foreground focus:ring-2 focus:ring-accent"
           />
         </div>
-        {error && <p className="text-oxblood-700 mb-4">{error}</p>}
+        {error && <p className="text-destructive mb-4">{error}</p>}
         <div className="flex gap-2">
           <button
             type="submit"
-            className="px-4 py-2 rounded-control bg-burgundy-700 text-linen-100 hover:bg-burgundy-600 focus:ring-2 focus:ring-brass-500 transition-colors"
+            className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-wine-light focus:ring-2 focus:ring-accent transition-colors"
           >
             {tab === "login" ? "Log in" : "Register"}
           </button>
@@ -81,7 +81,7 @@ export function LoginPage() {
               setTab(tab === "login" ? "register" : "login");
               setError("");
             }}
-            className="px-4 py-2 rounded-control border border-oak-600 text-linen-100 hover:bg-oak-700 transition-colors"
+            className="px-4 py-2 rounded-md border border-oak text-foreground hover:bg-oak transition-colors"
           >
             {tab === "login" ? "Register instead" : "Log in instead"}
           </button>

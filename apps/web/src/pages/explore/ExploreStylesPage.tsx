@@ -1,44 +1,63 @@
 import { useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
+import { ArrowLeft, Wine } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/client";
 import type { StyleTargetFull } from "@wine-app/shared";
-import { Panel } from "../../components/ui/Panel";
 import { Chip } from "../../components/ui/Chip";
-import { Button } from "../../components/ui/Button";
+import { WineAttributeBar } from "../../components/ui/WineAttributeBar";
 
-function StructureBar({
-  structure,
-  dimensionId,
-  maxVal = 5,
-}: {
-  structure: StyleTargetFull["structure"];
-  dimensionId: string;
-  maxVal?: number;
-}) {
-  const row = structure?.find(
-    (s) => s.structureDimensionId === dimensionId || s.dimension?.id === dimensionId
-  );
-  if (!row) return null;
-  const min = row.minValue ?? 0;
-  const max = row.maxValue ?? min;
-  const cat = row.categoricalValue;
-  if (cat) return <span className="text-small text-cork-300">{cat}</span>;
-  const pct = maxVal > 0 ? (max / maxVal) * 100 : 0;
-  return (
-    <div className="flex items-center gap-2">
-      <div className="w-16 h-2 bg-cellar-800 rounded overflow-hidden">
-        <div
-          className="h-full bg-burgundy-600 rounded"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <span className="text-micro text-cork-400">
-        {min === max ? min : `${min}–${max}`}
-      </span>
-    </div>
+type StructureRow = NonNullable<StyleTargetFull["structure"]>[number];
+
+function getStructureRow(
+  structure: StyleTargetFull["structure"],
+  dimensionId: string,
+): StructureRow | undefined {
+  return structure?.find(
+    (s) =>
+      s.structureDimensionId === dimensionId || s.dimension?.id === dimensionId,
   );
 }
+
+/** Returns min, max, and scale max for an ordinal dimension. Used for range display and sort. */
+function getStructureRange(
+  structure: StyleTargetFull["structure"],
+  dimensionId: string,
+): { minValue: number; maxValue: number; scaleMax: number } | null {
+  const row = getStructureRow(structure, dimensionId);
+  if (!row?.dimension || row.dimension.scaleType !== "ordinal") return null;
+  const scaleMax = row.dimension.scaleMax ?? 5;
+  const min = row.minValue ?? row.maxValue ?? 0;
+  const max = row.maxValue ?? row.minValue ?? 0;
+  return {
+    minValue: Math.min(min, max),
+    maxValue: Math.min(Math.max(min, max), scaleMax),
+    scaleMax,
+  };
+}
+
+/** Single numeric value for sorting: midpoint when range, else the value. */
+function getStructureSortValue(
+  structure: StyleTargetFull["structure"],
+  dimensionId: string,
+): number {
+  const range = getStructureRange(structure, dimensionId);
+  if (!range) return 0;
+  return (range.minValue + range.maxValue) / 2;
+}
+
+const filterOptions = [
+  { label: "All", value: "" },
+  { label: "Red", value: "red" },
+  { label: "White", value: "white" },
+] as const;
+
+const sortOptions = [
+  { value: "name", label: "Name" },
+  { value: "tier", label: "Tier" },
+  { value: "tannin", label: "Tannin (high→low)" },
+] as const;
 
 export function ExploreStylesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -55,104 +74,209 @@ export function ExploreStylesPage() {
     let list = [...styleTargets];
     if (colorFilter === "red" || colorFilter === "white") {
       list = list.filter((st) => {
-        const primaryGrape = st.grapes?.find((g) => g.role === "primary")?.grape;
+        const primaryGrape = st.grapes?.find(
+          (g) => g.role === "primary",
+        )?.grape;
         return primaryGrape?.color === colorFilter;
       });
     }
     if (sortBy === "name")
       list.sort((a, b) => a.displayName.localeCompare(b.displayName));
     else if (sortBy === "tier")
-      list.sort((a, b) => a.ladderTier - b.ladderTier || a.displayName.localeCompare(b.displayName));
+      list.sort(
+        (a, b) =>
+          a.ladderTier - b.ladderTier ||
+          a.displayName.localeCompare(b.displayName),
+      );
     else if (sortBy === "tannin") {
       list.sort((a, b) => {
-        const getTannin = (st: StyleTargetFull) => {
-          const row = st.structure?.find(
-            (s) => s.structureDimensionId === "tannin" || s.dimension?.id === "tannin"
-          );
-          return row?.maxValue ?? row?.minValue ?? 0;
-        };
-        return getTannin(b) - getTannin(a);
+        const tanninA = getStructureSortValue(a.structure, "tannin");
+        const tanninB = getStructureSortValue(b.structure, "tannin");
+        return tanninB - tanninA;
       });
     }
     return list;
   }, [styleTargets, colorFilter, sortBy]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="font-display text-h1 text-linen-100">Wine Styles</h1>
-          <p className="text-cork-400 mt-1">
-            Browse benchmark styles. Filter by color and sort by name, tier, or structure.
-          </p>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="bg-gradient-hero">
+        <div className="max-w-6xl mx-auto px-6 pt-20 pb-20 md:pt-24 md:pb-28">
+          <Link
+            to="/explore"
+            className="inline-flex items-center gap-2 text-primary-foreground/60 hover:text-primary-foreground transition-colors mb-8 text-sm font-sans"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Explore
+          </Link>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="flex items-center gap-3 mb-4"
+          >
+            <Wine className="w-6 h-6 text-wine-light" />
+            <p className="text-sm tracking-[0.25em] uppercase text-wine-light font-sans">
+              Explore
+            </p>
+          </motion.div>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="font-serif text-4xl md:text-6xl font-bold text-primary-foreground mb-4"
+          >
+            Wine Styles
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-primary-foreground/70 text-lg max-w-2xl font-sans leading-relaxed"
+          >
+            Browse benchmark styles. Filter by color and sort by name, tier, or
+            structure.
+          </motion.p>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <span className="text-small text-cork-400 self-center">Color:</span>
-        {["", "red", "white"].map((c) => (
-          <Button
-            key={c || "all"}
-            variant={colorFilter === c ? "primary" : "tertiary"}
-            onClick={() => {
-              const next = new URLSearchParams(searchParams);
-              if (c) next.set("color", c);
-              else next.delete("color");
-              setSearchParams(next);
-            }}
-          >
-            {c || "All"}
-          </Button>
-        ))}
-        <span className="text-small text-cork-400 self-center ml-4">Sort:</span>
-        {[
-          { value: "name", label: "Name" },
-          { value: "tier", label: "Tier" },
-          { value: "tannin", label: "Tannin (high→low)" },
-        ].map(({ value, label }) => (
-          <Button
-            key={value}
-            variant={sortBy === value ? "primary" : "tertiary"}
-            onClick={() => setSearchParams({ ...Object.fromEntries(searchParams), sort: value })}
-          >
-            {label}
-          </Button>
-        ))}
+      {/* Filters */}
+      <div className="max-w-6xl mx-auto px-6 -mt-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="flex flex-wrap items-center gap-6 bg-card rounded-xl p-4 shadow-soft"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-sans text-muted-foreground font-medium">
+              Color:
+            </span>
+            <div className="flex gap-1">
+              {filterOptions.map((opt) => (
+                <button
+                  key={opt.value || "all"}
+                  type="button"
+                  onClick={() => {
+                    const next = new URLSearchParams(searchParams);
+                    if (opt.value) next.set("color", opt.value);
+                    else next.delete("color");
+                    setSearchParams(next);
+                  }}
+                  className={`px-4 py-1.5 rounded-full text-sm font-sans font-medium transition-all duration-200 ${
+                    colorFilter === opt.value
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-sans text-muted-foreground font-medium">
+              Sort:
+            </span>
+            <div className="flex gap-1">
+              {sortOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() =>
+                    setSearchParams({
+                      ...Object.fromEntries(searchParams),
+                      sort: opt.value,
+                    })
+                  }
+                  className={`px-4 py-1.5 rounded-full text-sm font-sans font-medium transition-all duration-200 ${
+                    sortBy === opt.value
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </motion.div>
       </div>
 
-      {isLoading ? (
-        <p className="text-cork-400">Loading...</p>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((st) => (
-            <Link key={st.id} to={`/explore/styles/${st.id}`} className="no-underline">
-              <Panel variant="oak" className="h-full transition-colors duration-base hover:border-brass-500/50">
-                <h3 className="font-display text-h3 text-linen-100">{st.displayName}</h3>
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {st.region && (
-                    <Chip variant="ghost">{st.region.displayName}</Chip>
-                  )}
-                  {st.grapes?.map(({ grape }) => (
-                    <Chip key={grape.id} variant="ghost">
-                      {grape.displayName}
-                    </Chip>
-                  ))}
-                </div>
-                <div className="mt-3 space-y-2">
-                  <div className="flex justify-between items-center gap-2 text-micro text-cork-400">
-                    <span>Tannin</span>
-                    <StructureBar structure={st.structure} dimensionId="tannin" />
+      {/* Grid */}
+      <div className="max-w-6xl mx-auto px-6 py-10 pb-24">
+        {isLoading ? (
+          <p className="text-muted-foreground font-sans">Loading...</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filtered.map((st, index) => (
+              <motion.div
+                key={st.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 + index * 0.04 }}
+              >
+                <Link
+                  to={`/explore/styles/${st.id}`}
+                  className="block rounded-xl overflow-hidden bg-accent text-accent-foreground p-5 shadow-soft hover:shadow-wine transition-all duration-500 hover:-translate-y-1 no-underline"
+                >
+                  <h3 className="font-serif text-xl font-bold mb-2 text-accent-foreground">
+                    {st.displayName}
+                  </h3>
+                  <div className="flex gap-2 mb-4 flex-wrap">
+                    {st.region && (
+                      <Chip
+                        variant="ghost"
+                        className="bg-accent-foreground/10 border-accent-foreground/20 text-accent-foreground/80 text-xs border"
+                      >
+                        {st.region.displayName}
+                      </Chip>
+                    )}
+                    {st.grapes?.map(({ grape }) => (
+                      <Chip
+                        key={grape.id}
+                        variant="ghost"
+                        className="bg-accent-foreground/10 border-accent-foreground/20 text-accent-foreground/80 text-xs border"
+                      >
+                        {grape.displayName}
+                      </Chip>
+                    ))}
                   </div>
-                  <div className="flex justify-between items-center gap-2 text-micro text-cork-400">
-                    <span>Body</span>
-                    <StructureBar structure={st.structure} dimensionId="body" />
+                  <div className="space-y-3">
+                    {(() => {
+                      const tannin = getStructureRange(st.structure, "tannin");
+                      return (
+                        <WineAttributeBar
+                          label="Tannin"
+                          minValue={tannin?.minValue ?? 0}
+                          maxValue={tannin?.maxValue ?? 0}
+                          max={tannin?.scaleMax ?? 5}
+                        />
+                      );
+                    })()}
+                    {(() => {
+                      const body = getStructureRange(st.structure, "body");
+                      return (
+                        <WineAttributeBar
+                          label="Body"
+                          minValue={body?.minValue ?? 0}
+                          maxValue={body?.maxValue ?? 0}
+                          max={body?.scaleMax ?? 5}
+                        />
+                      );
+                    })()}
                   </div>
-                </div>
-              </Panel>
-            </Link>
-          ))}
-        </div>
-      )}
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

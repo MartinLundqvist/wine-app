@@ -23,11 +23,11 @@ export function ProgressPage() {
   if (!state.user) {
     return (
       <div className="space-y-6">
-        <h1 className="font-display text-h1 font-semibold text-linen-100">
+        <h1 className="font-serif text-3xl font-semibold text-foreground">
           Progress
         </h1>
         <Panel variant="oak">
-          <p className="text-body text-cork-400">
+          <p className="text-base text-muted-foreground">
             Log in to track your progress and mastery.
           </p>
         </Panel>
@@ -46,42 +46,42 @@ export function ProgressPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-h1 font-semibold text-linen-100">
+      <h1 className="font-serif text-3xl font-semibold text-foreground">
         Progress
       </h1>
-      <p className="text-small text-cork-400">
+      <p className="text-sm text-muted-foreground">
         Logged in as {state.user.email}
       </p>
       {isLoading ? (
-        <p className="text-cork-400">Loading...</p>
+        <p className="text-muted-foreground">Loading...</p>
       ) : progress && progress.length > 0 ? (
         <>
           <Panel variant="linenSheet" className="space-y-2">
-            <h3 className="font-display text-h3 text-cellar-950">
+            <h3 className="font-serif text-xl text-foreground">
               Overall summary
             </h3>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
-                <p className="text-h2 font-display text-cellar-950">
+                <p className="text-2xl font-serif text-foreground">
                   {totalAttempts}
                 </p>
-                <p className="text-small text-cork-600">Total exercises</p>
+                <p className="text-sm text-muted-foreground">Total exercises</p>
               </div>
               <div>
-                <p className="text-h2 font-display text-cellar-950">
+                <p className="text-2xl font-serif text-foreground">
                   {overallAccuracy}%
                 </p>
-                <p className="text-small text-cork-600">Overall accuracy</p>
+                <p className="text-sm text-muted-foreground">Overall accuracy</p>
               </div>
               <div>
-                <p className="text-h2 font-display text-cellar-950">
+                <p className="text-2xl font-serif text-foreground">
                   {masteredCount}
                 </p>
-                <p className="text-small text-cork-600">Mastery badges</p>
+                <p className="text-sm text-muted-foreground">Mastery badges</p>
               </div>
             </div>
           </Panel>
-          <h3 className="font-display text-h2 text-linen-100">Per format</h3>
+          <h3 className="font-serif text-2xl text-foreground">Per format</h3>
           <div className="space-y-4">
             {progress.map((row) => (
               <Panel
@@ -89,7 +89,7 @@ export function ProgressPage() {
                 variant="oak"
               >
                 <div className="flex items-center justify-between flex-wrap gap-2">
-                  <span className="text-body text-linen-100">
+                  <span className="text-base text-foreground">
                     {FORMAT_DISPLAY_NAMES[row.exerciseFormat] ??
                       row.exerciseFormat.replace(/_/g, " ")}{" "}
                     ({row.wineColor})
@@ -108,7 +108,7 @@ export function ProgressPage() {
                       : "In progress"}
                   </Chip>
                 </div>
-                <p className="text-small text-cork-400 mt-2">
+                <p className="text-sm text-muted-foreground mt-2">
                   {row.correctAttempts}/{row.totalAttempts} correct ·{" "}
                   {Math.round(row.accuracy * 100)}% accuracy
                 </p>
@@ -118,7 +118,7 @@ export function ProgressPage() {
         </>
       ) : (
         <Panel variant="oak">
-          <p className="text-body text-cork-400">
+          <p className="text-base text-muted-foreground">
             Complete map exercises or drills to see your progress here.
           </p>
         </Panel>

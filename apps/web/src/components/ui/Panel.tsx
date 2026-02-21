@@ -3,11 +3,11 @@ import { type HTMLAttributes } from "react";
 type Variant = "oak" | "linenCard" | "linenSheet";
 
 const variants: Record<Variant, string> = {
-  oak: "bg-oak-800 border border-cork-500/50 rounded-card p-6 text-linen-100",
+  oak: "bg-oak border border-muted-foreground/50 rounded-lg p-6 text-foreground",
   linenCard:
-    "bg-linen-100 text-cellar-950 border border-cork-300 rounded-card p-5",
+    "bg-card text-foreground border border-border rounded-lg p-5",
   linenSheet:
-    "bg-linen-50 text-cellar-950 rounded-card shadow-lift2 max-w-xl p-6",
+    "bg-cream text-foreground rounded-lg shadow-soft max-w-xl p-6",
 };
 
 export function Panel({
@@ -17,7 +17,7 @@ export function Panel({
   ...props
 }: HTMLAttributes<HTMLDivElement> & { variant?: Variant }) {
   return (
-    <div className={`font-ui ${variants[variant]} ${className}`} {...props}>
+    <div className={`font-sans ${variants[variant]} ${className}`} {...props}>
       {children}
     </div>
   );

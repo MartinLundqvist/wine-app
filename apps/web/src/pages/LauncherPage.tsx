@@ -52,17 +52,17 @@ export function LauncherPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="font-display text-h1 font-semibold text-linen-100 mb-2">
+        <h1 className="font-serif text-3xl font-semibold text-foreground mb-2">
           Level 1 — Archetype Training
         </h1>
-        <p className="text-body text-cork-400">
+        <p className="text-base text-muted-foreground">
           Build canonical mental maps. Recognize structure, fruit direction, and
           oak.
         </p>
       </div>
 
       <section>
-        <h2 className="font-display text-h2 text-linen-100 mb-4">
+        <h2 className="font-serif text-2xl text-foreground mb-4">
           Canonical Maps
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -70,10 +70,10 @@ export function LauncherPage() {
             <Panel
               key={map.id}
               variant="oak"
-              className="hover:border-cork-400/50 transition-colors"
+              className="hover:border-muted-foreground/50 transition-colors"
             >
-              <h3 className="text-h3 text-linen-100 mb-1">{map.name}</h3>
-              <p className="text-small text-cork-400 mb-4">{map.description}</p>
+              <h3 className="text-xl text-foreground mb-1">{map.name}</h3>
+              <p className="text-sm text-muted-foreground mb-4">{map.description}</p>
               <Link to={map.path}>
                 <Button variant="secondary" className="w-full sm:w-auto">
                   Open map
@@ -85,15 +85,15 @@ export function LauncherPage() {
       </section>
 
       <section>
-        <h2 className="font-display text-h2 text-linen-100 mb-4">Drills</h2>
-        <p className="text-small text-cork-400 mb-4">
+        <h2 className="font-serif text-2xl text-foreground mb-4">Drills</h2>
+        <p className="text-sm text-muted-foreground mb-4">
           Descriptor matching, elimination, map recall, and skeleton deduction.
           Filter by format on the Drills page.
         </p>
         <Link to="/drills">
           <Button variant="secondary">Open Drills</Button>
         </Link>
-        <p className="text-small text-cork-400 mt-4">
+        <p className="text-sm text-muted-foreground mt-4">
           {state.user
             ? "You are logged in. Progress is saved."
             : "Log in to save progress."}
@@ -102,7 +102,7 @@ export function LauncherPage() {
 
       {state.user && progress && progress.length > 0 && (
         <section>
-          <h2 className="font-display text-h2 text-linen-100 mb-4">
+          <h2 className="font-serif text-2xl text-foreground mb-4">
             Your progress
           </h2>
           <div className="flex flex-wrap gap-2">

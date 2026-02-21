@@ -9,13 +9,13 @@ export function ExploreAromasPage() {
     queryFn: () => api.getAromaTerms(),
   });
 
-  if (isLoading) return <p className="text-cork-400">Loading...</p>;
+  if (isLoading) return <p className="text-muted-foreground">Loading...</p>;
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-h1 text-linen-100">Aroma Explorer</h1>
-        <p className="text-cork-400 mt-1">
+        <h1 className="font-serif text-3xl text-foreground">Aroma Explorer</h1>
+        <p className="text-muted-foreground mt-1">
           WSET-aligned aroma taxonomy: trace from source (primary, secondary, tertiary) to clusters and descriptors.
         </p>
       </div>
@@ -23,7 +23,7 @@ export function ExploreAromasPage() {
         {aromaTerms && aromaTerms.length > 0 ? (
           <AromaFlowTree terms={aromaTerms} />
         ) : (
-          <p className="text-cork-400 font-ui">No aroma terms loaded.</p>
+          <p className="text-muted-foreground font-sans">No aroma terms loaded.</p>
         )}
       </Panel>
     </div>

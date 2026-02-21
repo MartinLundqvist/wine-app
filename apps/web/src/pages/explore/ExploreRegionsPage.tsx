@@ -15,13 +15,13 @@ export function ExploreRegionsPage() {
     queryFn: () => api.getStyleTargets(),
   });
 
-  if (isLoading) return <p className="text-cork-400">Loading...</p>;
+  if (isLoading) return <p className="text-muted-foreground">Loading...</p>;
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-h1 text-linen-100">Regions</h1>
-        <p className="text-cork-400 mt-1">
+        <h1 className="font-serif text-3xl text-foreground">Regions</h1>
+        <p className="text-muted-foreground mt-1">
           Click a wine country on the map to see its sub-regions and wine styles.
         </p>
       </div>

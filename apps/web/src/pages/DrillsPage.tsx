@@ -39,8 +39,8 @@ export function DrillsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-h1 text-linen-100">Drills</h1>
-      <p className="text-cork-400">
+      <h1 className="font-serif text-3xl text-foreground">Drills</h1>
+      <p className="text-muted-foreground">
         {format
           ? `Format: ${FORMAT_LABELS[format] ?? format}`
           : "Choose a format from the launcher or below."}
@@ -55,13 +55,13 @@ export function DrillsPage() {
         ))}
       </div>
       {isLoading ? (
-        <p className="text-cork-400">Loading...</p>
+        <p className="text-muted-foreground">Loading...</p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {filtered.map((t) => (
             <Panel key={t.exerciseTemplateId} variant="oak">
-              <h3 className="text-h3 text-linen-100 mb-1">{t.name}</h3>
-              <p className="text-small text-cork-400 mb-4">{t.promptStem}</p>
+              <h3 className="text-xl text-foreground mb-1">{t.name}</h3>
+              <p className="text-sm text-muted-foreground mb-4">{t.promptStem}</p>
               <Link to={`/drills/${t.exerciseTemplateId}`}>
                 <Button variant="secondary">Start</Button>
               </Link>

@@ -4,13 +4,13 @@ type Variant = "primary" | "secondary" | "tertiary" | "destructive";
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-burgundy-700 text-linen-100 hover:bg-burgundy-600 focus:ring-2 focus:ring-brass-500 focus:ring-offset-2 focus:ring-offset-cellar-950 rounded-control px-4 py-2 transition-colors duration-base",
+    "bg-primary text-primary-foreground hover:bg-wine-light focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background rounded-md px-4 py-2 transition-colors duration-200",
   secondary:
-    "bg-transparent border border-oak-600 text-linen-100 hover:bg-oak-700 hover:border-oak-600 focus:ring-2 focus:ring-brass-500 focus:ring-offset-2 rounded-control px-4 py-2 transition-colors duration-base",
+    "bg-transparent border border-oak text-foreground hover:bg-oak hover:border-oak focus:ring-2 focus:ring-accent focus:ring-offset-2 rounded-md px-4 py-2 transition-colors duration-200",
   tertiary:
-    "bg-transparent text-cork-400 hover:text-linen-100 hover:border-cork-500 border border-transparent rounded-control px-4 py-2 transition-colors duration-fast",
+    "bg-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground border border-transparent rounded-md px-4 py-2 transition-colors duration-150",
   destructive:
-    "bg-transparent border border-oxblood-700 text-oxblood-700 hover:bg-oxblood-700/20 focus:ring-2 focus:ring-brass-500 rounded-control px-4 py-2 transition-colors duration-base",
+    "bg-transparent border border-destructive text-destructive hover:bg-destructive/20 focus:ring-2 focus:ring-accent rounded-md px-4 py-2 transition-colors duration-200",
 };
 
 export function Button({
@@ -21,7 +21,7 @@ export function Button({
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {
   return (
     <button
-      className={`font-ui text-body ${variants[variant]} ${className}`}
+      className={`font-sans text-base ${variants[variant]} ${className}`}
       {...props}
     >
       {children}

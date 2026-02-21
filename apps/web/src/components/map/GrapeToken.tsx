@@ -23,7 +23,7 @@ export function GrapeToken({ id, name, variant = "base" }: GrapeTokenProps) {
       {...listeners}
       {...attributes}
       className={`relative inline-flex cursor-grab active:cursor-grabbing touch-none select-none ${
-        isDragging ? "z-50 shadow-lift2 ring-2 ring-brass-500 rounded-chip" : ""
+        isDragging ? "z-50 shadow-soft ring-2 ring-accent rounded-full" : ""
       }`}
     >
       <Chip variant={variant}>{name}</Chip>

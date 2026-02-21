@@ -6,12 +6,12 @@ type AromaSource = "primary" | "secondary" | "tertiary";
 
 const SOURCE_COLORS: Record<AromaSource, { border: string; bg: string }> = {
   primary: {
-    border: "border-burgundy-700",
-    bg: "bg-burgundy-800/30",
+    border: "border-primary",
+    bg: "bg-primary/30",
   },
   secondary: {
-    border: "border-oak-600",
-    bg: "bg-oak-800/30",
+    border: "border-oak",
+    bg: "bg-oak/30",
   },
   tertiary: {
     border: "border-moss-600",
@@ -62,10 +62,10 @@ export function AromaFlowTree({ terms }: { terms: AromaTerm[] }) {
   );
 
   return (
-    <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6 min-h-[480px] transition-opacity duration-base">
+    <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6 min-h-[480px] transition-opacity duration-200">
       {/* Column 1: Sources */}
       <div className="relative z-10 flex flex-col gap-3">
-        <p className="text-micro text-cork-400 uppercase tracking-wider font-ui mb-1">
+        <p className="text-xs text-muted-foreground uppercase tracking-wider font-sans mb-1">
           Source
         </p>
         {roots.map((r) => {
@@ -79,17 +79,17 @@ export function AromaFlowTree({ terms }: { terms: AromaTerm[] }) {
                 setSelectedSource(isSelected ? null : r);
                 setSelectedCluster(null);
               }}
-              className={`text-left rounded-control p-4 border-2 transition-all duration-base ${colors.border} ${colors.bg} ${
+              className={`text-left rounded-md p-4 border-2 transition-all duration-200 ${colors.border} ${colors.bg} ${
                 isSelected
-                  ? "ring-2 ring-brass-500/50 ring-offset-2 ring-offset-cellar-950"
+                  ? "ring-2 ring-accent/50 ring-offset-2 ring-offset-background"
                   : "hover:opacity-90"
               }`}
             >
-              <span className="font-display text-h3 text-linen-100 block">
+              <span className="font-serif text-xl text-foreground block">
                 {r.displayName}
               </span>
               {r.description && (
-                <span className="text-small text-cork-300 mt-0.5 block">
+                <span className="text-sm text-muted-foreground mt-0.5 block">
                   {r.description}
                 </span>
               )}
@@ -100,7 +100,7 @@ export function AromaFlowTree({ terms }: { terms: AromaTerm[] }) {
 
       {/* Column 2: Clusters */}
       <div className="relative z-10 flex flex-col">
-        <p className="text-micro text-cork-400 uppercase tracking-wider font-ui mb-1">
+        <p className="text-xs text-muted-foreground uppercase tracking-wider font-sans mb-1">
           Cluster
         </p>
         {selectedSource ? (
@@ -115,13 +115,13 @@ export function AromaFlowTree({ terms }: { terms: AromaTerm[] }) {
                   onClick={() =>
                     setSelectedCluster(isSelected ? null : c)
                   }
-                  className={`text-left rounded-control px-3 py-2.5 border transition-all duration-base ${colors.border} ${colors.bg} ${
+                  className={`text-left rounded-md px-3 py-2.5 border transition-all duration-200 ${colors.border} ${colors.bg} ${
                     isSelected
-                      ? "ring-2 ring-brass-500/50 ring-offset-2 ring-offset-cellar-950"
+                      ? "ring-2 ring-accent/50 ring-offset-2 ring-offset-background"
                       : "hover:opacity-90"
                   }`}
                 >
-                  <span className="font-ui text-body text-linen-100">
+                  <span className="font-sans text-base text-foreground">
                     {c.displayName}
                   </span>
                 </button>
@@ -129,7 +129,7 @@ export function AromaFlowTree({ terms }: { terms: AromaTerm[] }) {
             })}
           </div>
         ) : (
-          <p className="text-small text-cork-500 font-ui mt-2">
+          <p className="text-sm text-muted-foreground font-sans mt-2">
             Select a source
           </p>
         )}
@@ -137,7 +137,7 @@ export function AromaFlowTree({ terms }: { terms: AromaTerm[] }) {
 
       {/* Column 3: Descriptors */}
       <div className="relative z-10 flex flex-col">
-        <p className="text-micro text-cork-400 uppercase tracking-wider font-ui mb-1">
+        <p className="text-xs text-muted-foreground uppercase tracking-wider font-sans mb-1">
           Descriptors
         </p>
         {selectedCluster ? (
@@ -154,7 +154,7 @@ export function AromaFlowTree({ terms }: { terms: AromaTerm[] }) {
             ))}
           </div>
         ) : (
-          <p className="text-small text-cork-500 font-ui mt-2">
+          <p className="text-sm text-muted-foreground font-sans mt-2">
             {selectedSource
               ? "Select a cluster"
               : "Select a source"}

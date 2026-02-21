@@ -75,7 +75,7 @@ export function MapCanvas({
       <div className="flex items-stretch gap-4">
         {/* Y-axis title (vertical, left side) */}
         <div
-          className="text-small font-ui text-cork-400 flex items-center justify-center shrink-0"
+          className="text-sm font-sans text-muted-foreground flex items-center justify-center shrink-0"
           style={{
             writingMode: "vertical-rl",
             textOrientation: "mixed",
@@ -93,7 +93,7 @@ export function MapCanvas({
             return (
               <span
                 key={`y-${i}`}
-                className="absolute right-1 text-micro font-ui text-cork-400 text-right leading-none"
+                className="absolute right-1 text-xs font-sans text-muted-foreground text-right leading-none"
                 style={{
                   top: i * CELL_PX + CELL_PX / 2,
                   transform: "translateY(-50%)",
@@ -109,19 +109,19 @@ export function MapCanvas({
         <div
           ref={setNodeRef}
           data-droppable-id={dropId}
-          className={`relative rounded-card transition-colors ${
-            isOver ? "ring-2 ring-brass-500/60" : ""
+          className={`relative rounded-lg transition-colors ${
+            isOver ? "ring-2 ring-accent/60" : ""
           }`}
           style={{ width: gridW, height: gridH }}
         >
           {/* Background */}
-          <div className="absolute inset-0 rounded-card bg-cellar-800 border border-cork-500/30" />
+          <div className="absolute inset-0 rounded-lg bg-card border border-border" />
 
           {/* Vertical grid lines */}
           {Array.from({ length: gridCols - 1 }, (_, i) => (
             <div
               key={`v-${i}`}
-              className="absolute top-2 bottom-2 border-l border-dashed border-cork-500/20"
+              className="absolute top-2 bottom-2 border-l border-dashed border-border/50"
               style={{ left: (i + 1) * CELL_PX }}
             />
           ))}
@@ -129,7 +129,7 @@ export function MapCanvas({
           {Array.from({ length: gridRows - 1 }, (_, i) => (
             <div
               key={`h-${i}`}
-              className="absolute left-2 right-2 border-t border-dashed border-cork-500/20"
+              className="absolute left-2 right-2 border-t border-dashed border-border/50"
               style={{ top: (i + 1) * CELL_PX }}
             />
           ))}
@@ -147,7 +147,7 @@ export function MapCanvas({
         {Array.from({ length: gridCols }, (_, i) => (
           <span
             key={`x-${i}`}
-            className="absolute text-micro font-ui text-cork-400 text-center leading-none"
+            className="absolute text-xs font-sans text-muted-foreground text-center leading-none"
             style={{
               left: i * CELL_PX,
               width: CELL_PX,
@@ -161,7 +161,7 @@ export function MapCanvas({
 
       {/* X-axis title */}
       <div
-        className="text-small font-ui text-cork-400 text-center"
+        className="text-sm font-sans text-muted-foreground text-center"
         style={{ letterSpacing: "0.1em", marginLeft: 96 }}
       >
         {attrLabels[xAttr] ?? xAttr}

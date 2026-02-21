@@ -206,7 +206,7 @@ export function MapPage() {
   if (!state.accessToken) {
     return (
       <div className="space-y-4">
-        <p className="text-cork-400">Log in to play map exercises.</p>
+        <p className="text-muted-foreground">Log in to play map exercises.</p>
         <Button variant="secondary" onClick={() => navigate("/login")}>
           Log in
         </Button>
@@ -217,7 +217,7 @@ export function MapPage() {
   if (error && !payload) {
     return (
       <div className="space-y-4">
-        <p className="text-oxblood-700">{error}</p>
+        <p className="text-destructive">{error}</p>
         <Button variant="secondary" onClick={() => window.location.reload()}>
           Retry
         </Button>
@@ -226,7 +226,7 @@ export function MapPage() {
   }
 
   if (!payload) {
-    return <p className="text-cork-400">Loading exercise...</p>;
+    return <p className="text-muted-foreground">Loading exercise...</p>;
   }
 
   /* ---------- Session complete ---------- */
@@ -236,32 +236,32 @@ export function MapPage() {
       sessionTotal > 0 ? Math.round((sessionCorrect / sessionTotal) * 100) : 0;
     return (
       <div className="space-y-6 max-w-lg mx-auto">
-        <h1 className="font-display text-h1 text-linen-100">
+        <h1 className="font-serif text-3xl text-foreground">
           Session Complete
         </h1>
         <Panel variant="linenSheet" className="space-y-4">
-          <h3 className="font-display text-h3 text-cellar-950">Results</h3>
+          <h3 className="font-serif text-xl text-foreground">Results</h3>
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-h2 font-display text-cellar-950">
+              <p className="text-2xl font-serif text-foreground">
                 {sessionTotal}
               </p>
-              <p className="text-small text-cork-600">Rounds</p>
+              <p className="text-sm text-muted-foreground">Rounds</p>
             </div>
             <div>
-              <p className="text-h2 font-display text-cellar-950">
+              <p className="text-2xl font-serif text-foreground">
                 {sessionCorrect}
               </p>
-              <p className="text-small text-cork-600">Correct</p>
+              <p className="text-sm text-muted-foreground">Correct</p>
             </div>
             <div>
-              <p className="text-h2 font-display text-cellar-950">
+              <p className="text-2xl font-serif text-foreground">
                 {accuracy}%
               </p>
-              <p className="text-small text-cork-600">Accuracy</p>
+              <p className="text-sm text-muted-foreground">Accuracy</p>
             </div>
           </div>
-          <p className="text-body text-cellar-950">
+          <p className="text-base text-foreground">
             {accuracy >= 80
               ? "Excellent work! You have a strong grasp of this map."
               : accuracy >= 50
@@ -273,7 +273,7 @@ export function MapPage() {
           <Button variant="primary" onClick={handlePlayAgain}>
             Play Again
           </Button>
-          <Button variant="secondary" onClick={() => navigate("/")}>
+          <Button variant="secondary" onClick={() => navigate("/learn")}>
             Back to Menu
           </Button>
         </div>
@@ -377,7 +377,7 @@ export function MapPage() {
         <div className="flex flex-col gap-6 min-w-[260px] max-w-sm w-full">
           {/* Progress */}
           <div className="space-y-2">
-            <div className="flex justify-between text-small text-cork-400">
+            <div className="flex justify-between text-sm text-muted-foreground">
               <span>
                 Round {sessionRound} of {sessionTotal}
               </span>
@@ -386,9 +386,9 @@ export function MapPage() {
                 {answeredSoFar > 0 && ` (${currentAccuracy}%)`}
               </span>
             </div>
-            <div className="w-full h-1.5 bg-cellar-800 rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-card rounded-full overflow-hidden">
               <div
-                className="h-full bg-brass-500 rounded-full transition-all duration-300 ease-ritual"
+                className="h-full bg-accent rounded-full transition-all duration-300 ease-out"
                 style={{ width: `${progressPct}%` }}
               />
             </div>
@@ -396,12 +396,12 @@ export function MapPage() {
 
           {/* Heading */}
           <div>
-            <h1 className="font-display text-h2 text-linen-100 mb-1">
+            <h1 className="font-serif text-2xl text-foreground mb-1">
               Place the grape
             </h1>
-            <p className="text-small text-cork-400">
+            <p className="text-sm text-muted-foreground">
               Drag{" "}
-              <span className="text-linen-100 font-medium">
+              <span className="text-foreground font-medium">
                 {payload.correctName ?? "Grape"}
               </span>{" "}
               to its correct position on the map.
@@ -417,7 +417,7 @@ export function MapPage() {
 
           {/* Loading */}
           {loading && (
-            <p className="text-small text-cork-400 animate-pulse">
+            <p className="text-sm text-muted-foreground animate-pulse">
               Checking...
             </p>
           )}
@@ -425,10 +425,10 @@ export function MapPage() {
           {/* Feedback (after answer) */}
           {result && (
             <Panel variant="linenSheet" className="!max-w-none">
-              <h3 className="font-display text-h3 text-cellar-950 mb-1">
+              <h3 className="font-serif text-xl text-foreground mb-1">
                 {result.isCorrect ? "Correct!" : "Not quite"}
               </h3>
-              <p className="text-body text-cellar-950 mb-4">
+              <p className="text-base text-foreground mb-4">
                 {result.isCorrect
                   ? `${payload.correctName ?? "Grape"} has ${correctXLabel} ${xAttrName} and ${correctYLabel} ${yAttrName}.`
                   : `${payload.correctName ?? "Grape"} has ${correctXLabel} ${xAttrName} and ${correctYLabel} ${yAttrName}. You placed it at ${mapId === "flavor-direction" ? (FLAVOR_DIRECTION_X_LABELS[placed!.x] ?? placed!.x) : (ORDINAL_FULL[placed!.x] ?? placed!.x)} ${xAttrName}, ${mapId === "flavor-direction" ? (FLAVOR_DIRECTION_Y_LABELS[placed!.y] ?? placed!.y) : (ORDINAL_FULL[placed!.y] ?? placed!.y)} ${yAttrName}.`}

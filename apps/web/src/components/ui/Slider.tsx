@@ -15,11 +15,11 @@ export function Slider({
 }) {
   const id = useId();
   return (
-    <div className={`font-ui ${className}`}>
+    <div className={`font-sans ${className}`}>
       {label && (
         <label
           htmlFor={id}
-          className="block text-small text-cork-400 mb-1 tracking-ui"
+          className="block text-sm text-muted-foreground mb-1"
         >
           {label}
         </label>
@@ -31,10 +31,10 @@ export function Slider({
           min={min}
           max={max}
           value={value}
-          className="w-32 h-2 rounded-full appearance-none bg-cork-500 accent-burgundy-700 focus:outline-none focus:ring-2 focus:ring-brass-500 focus:ring-offset-2 focus:ring-offset-cellar-950"
+          className="w-32 h-2 rounded-full appearance-none bg-muted-foreground accent-primary focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background"
           {...props}
         />
-        <span className="text-small text-linen-100 min-w-[1.5rem]">{value}</span>
+        <span className="text-sm text-foreground min-w-[1.5rem]">{value}</span>
       </div>
     </div>
   );
