@@ -14,8 +14,5 @@
   "engines": {
     "node": ">=20"
   },
-  "packageManager": "pnpm@9.14.2",
-  "pnpm": {
-    "neverBuiltDependencies": ["bcrypt"]
-  }
+  "packageManager": "pnpm@9.14.2"
 }

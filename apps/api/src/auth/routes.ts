@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { db } from "@wine-app/db";
 import { user } from "@wine-app/db/schema";
 import { eq } from "drizzle-orm";
