@@ -1,10 +1,21 @@
 # Wine App
 
-Monorepo: web app (Vite + React), API (Fastify), shared packages, and Drizzle + Postgres.
+pnpm monorepo: React SPA, Fastify API, shared packages, Drizzle + Postgres.
+
+## Structure
+
+| Path | Description |
+|------|-------------|
+| `apps/web` | Vite + React 18, React Router 7, TanStack Query, Tailwind, Framer Motion. Explore (grapes, styles, regions, aromas), landing, login. Vitest, ESLint, Prettier. |
+| `apps/api` | Fastify 5, CORS, cookie, static (serves `web/dist` in prod). Auth (JWT access/refresh, bcrypt). Read routes: grapes, regions, map-config, styles, style-targets, aromas. `/health`, `/me`. |
+| `packages/db` | Drizzle ORM + postgres.js. Schema: users, grapes, regions, styleTargets, aromas, mapConfig, etc. Exports `@wine-app/db` (client) and `@wine-app/db/schema`. Migrate + seed scripts; local Postgres via Docker. |
+| `packages/shared` | Zod schemas and `APP_NAME`. Consumed by `api` and `web`. |
+
+**Workspace:** `pnpm-workspace.yaml` → `apps/*`, `packages/*`. Root scripts: `dev` (parallel web + api), `build`, `db:up` / `db:down`, `db:generate`.
 
 ## Development
 
-- **Node:** Use the version in `.nvmrc` (e.g. `nvm use`).
+- **Node:** Use version in `.nvmrc` (e.g. `nvm use`). Engines: `>=20`.
 - **Install:** `pnpm install`
 - **Dev (web + API):** `pnpm dev`
 - **DB (local Docker Postgres + migrate + seed):** `pnpm db:up`
@@ -12,26 +23,24 @@ Monorepo: web app (Vite + React), API (Fastify), shared packages, and Drizzle + 
 
 ## Deployment (Fly.io + Neon)
 
-Single Fly app serves both the API and the built web app. Postgres is provided by [Neon](https://neon.tech) (no Fly Postgres).
+Single Fly app serves the API and the built web app. Postgres from [Neon](https://neon.tech) (pooled connection).
 
 ### Prerequisites
 
 - [Fly CLI](https://fly.io/docs/hub/install-flyctl/) installed and logged in (`fly auth login`)
-- [Neon](https://neon.tech) account; create a project and database
+- [Neon](https://neon.tech) project and database
 - Node 24 (see `.nvmrc`)
 
-### Required Fly secrets
+### Fly secrets (set before first deploy)
 
-Set these **before** the first deploy (or before running the release command). Use Neon’s **pooled** connection string for `DATABASE_URL`.
+Use Neon **pooled** connection string for `DATABASE_URL`.
 
 | Secret | Description |
 |--------|-------------|
-| `DATABASE_URL` | Neon Postgres connection string (pooled), e.g. `postgresql://user:pass@ep-xxx.pooler.us-east-1.aws.neon.tech/neondb?sslmode=require` |
-| `JWT_SECRET` | Min 32 characters; used for access tokens |
-| `JWT_REFRESH_SECRET` | Min 32 characters; used for refresh tokens |
-| `NODE_ENV` | Set to `production` |
-
-Example (replace values):
+| `DATABASE_URL` | Neon Postgres pooled URL, e.g. `postgresql://user:pass@ep-xxx.pooler.us-east-1.aws.neon.tech/neondb?sslmode=require` |
+| `JWT_SECRET` | Min 32 chars (access tokens) |
+| `JWT_REFRESH_SECRET` | Min 32 chars (refresh tokens) |
+| `NODE_ENV` | `production` |
 
 ```bash
 fly secrets set \
@@ -43,27 +52,18 @@ fly secrets set \
 
 ### Deploy runbook
 
-1. **Code and lockfile:** Ensure changes are committed and run `pnpm install` if you added dependencies.
-2. **Local smoke test (optional):**  
-   `pnpm build && NODE_ENV=production pnpm --filter api run start`  
-   Then open http://localhost:3000 and check API + web.
-3. **Neon:** Create a project and database; copy the pooled `DATABASE_URL`.
-4. **Fly app:** From repo root, create the app without deploying:  
-   `fly launch --no-deploy`  
-   (If the app already exists, skip or use `fly apps create wine-app` as needed.)
-5. **Secrets:** Set the four secrets above with `fly secrets set ...`.
-6. **Deploy:**  
-   `fly deploy`  
-   The release command runs DB migrations automatically (`pnpm --filter @wine-app/db run migrate`).
-7. **Seed (first time only):**  
-   `fly ssh console -C "cd /app && pnpm --filter @wine-app/db run seed"`
-8. **Verify:**  
-   - Health: `curl https://<your-app>.fly.dev/health`  
-   - Web app and API routes (explore, auth, SPA deep links, geo maps).
+1. Commit changes; run `pnpm install` if deps changed.
+2. **Optional local smoke:** `pnpm build && NODE_ENV=production pnpm --filter api run start` then check http://localhost:3000.
+3. **Neon:** Create project/database; copy pooled `DATABASE_URL`.
+4. **Fly:** From repo root, `fly launch --no-deploy` (or skip if app exists).
+5. Set the four secrets with `fly secrets set ...`.
+6. **Deploy:** `fly deploy` (release runs `pnpm --filter @wine-app/db run migrate`).
+7. **First-time seed:** `fly ssh console -C "cd /app && pnpm --filter @wine-app/db run seed"`.
+8. **Verify:** `curl https://<your-app>.fly.dev/health`; test web and API.
 
-**Later deploys:** Run `fly deploy` only. Migrations run on each deploy; seed is not re-run (it’s idempotent and insert-only).
+**Later deploys:** `fly deploy` only. Migrations run each deploy; seed is idempotent and not re-run by default.
 
 ### Config
 
-- **Region / app name:** Edit `fly.toml` (`primary_region`, `app`).
-- **VM:** `fly.toml` uses `shared-cpu-1x` and `512mb`; adjust `[[vm]]` if needed.
+- **Region / app name:** `fly.toml` (`primary_region`, `app`).
+- **VM:** `fly.toml` uses `shared-cpu-1x`, `512mb`; adjust `[[vm]]` if needed.
