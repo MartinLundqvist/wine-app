@@ -12,7 +12,10 @@ import {
   thermalBand,
   styleTargetContext,
   exerciseTemplate,
+  countryMapConfig,
+  regionBoundaryMapping,
 } from "@wine-app/db/schema";
+import { regionsMapConfigResponseSchema } from "@wine-app/shared";
 import { eq, inArray } from "drizzle-orm";
 
 export async function registerReadRoutes(app: FastifyInstance) {
@@ -38,6 +41,47 @@ export async function registerReadRoutes(app: FastifyInstance) {
   app.get("/regions", async (_req: FastifyRequest, reply: FastifyReply) => {
     const rows = await db.select().from(region).orderBy(region.country, region.displayName);
     return reply.send(rows);
+  });
+
+  app.get("/regions/map-config", async (_req: FastifyRequest, reply: FastifyReply) => {
+    const [countries, boundaryRows, regionsRows] = await Promise.all([
+      db.select().from(countryMapConfig).orderBy(countryMapConfig.countryName),
+      db.select().from(regionBoundaryMapping),
+      db.select().from(region),
+    ]);
+    const boundaryMappings: Record<string, string[]> = {};
+    for (const row of boundaryRows) {
+      const list = boundaryMappings[row.regionId] ?? [];
+      list.push(row.featureName);
+      boundaryMappings[row.regionId] = list;
+    }
+    const regionIds = new Set(regionsRows.map((r) => r.id));
+    const mappableCountries = new Set(
+      countries.filter((c) => c.isMappable).map((c) => c.countryName)
+    );
+    for (const c of countries) {
+      if (c.isMappable && (c.isoNumeric == null || !c.geoSlug || c.zoomLevel == null)) {
+        app.log.warn({ countryName: c.countryName }, "[map-config] Mappable country missing ISO/geoSlug/zoom");
+      }
+    }
+    for (const r of regionsRows) {
+      if (r.parentRegionId == null) continue;
+      const parent = regionsRows.find((p) => p.id === r.parentRegionId);
+      if (parent && mappableCountries.has(parent.country)) {
+        const mappings = boundaryMappings[r.id] ?? [];
+        if (mappings.length === 0) {
+          app.log.warn({ regionId: r.id, country: r.country }, "[map-config] Sub-region under mappable country has no boundary mapping");
+        }
+      }
+    }
+    for (const regionId of Object.keys(boundaryMappings)) {
+      if (!regionIds.has(regionId)) {
+        app.log.warn({ regionId }, "[map-config] Boundary mapping references non-existent region");
+      }
+    }
+    const payload = { countries, boundaryMappings };
+    const parsed = regionsMapConfigResponseSchema.parse(payload);
+    return reply.send(parsed);
   });
 
   app.get(

@@ -14,6 +14,8 @@ import {
   styleTargetAromaProfile,
   thermalBand,
   styleTargetContext,
+  countryMapConfig,
+  regionBoundaryMapping,
 } from "./schema";
 
 async function seed() {
@@ -54,6 +56,67 @@ async function seed() {
       parentRegionId: r.parentRegionId,
       notes: r.notes,
     }).onConflictDoNothing();
+  }
+
+  // Country map config (mirrors countryCodes.ts for world map + admin-1 overlay)
+  console.log("Seeding country_map_config...");
+  const countryConfigs = [
+    { countryName: "France", isoNumeric: 250, geoSlug: "france", naturalEarthAdminName: "France", zoomCenterLon: 2.5, zoomCenterLat: 46.5, zoomLevel: 5, isMappable: true },
+    { countryName: "Italy", isoNumeric: 380, geoSlug: "italy", naturalEarthAdminName: "Italy", zoomCenterLon: 12.5, zoomCenterLat: 42.5, zoomLevel: 5, isMappable: true },
+    { countryName: "Spain", isoNumeric: 724, geoSlug: "spain", naturalEarthAdminName: "Spain", zoomCenterLon: -3.5, zoomCenterLat: 40, zoomLevel: 5, isMappable: true },
+    { countryName: "USA", isoNumeric: 840, geoSlug: "usa", naturalEarthAdminName: "United States of America", zoomCenterLon: -98, zoomCenterLat: 39, zoomLevel: 3, isMappable: true },
+    { countryName: "Australia", isoNumeric: 36, geoSlug: "australia", naturalEarthAdminName: "Australia", zoomCenterLon: 133, zoomCenterLat: -26, zoomLevel: 4, isMappable: true },
+  ];
+  for (const c of countryConfigs) {
+    await db.insert(countryMapConfig).values(c).onConflictDoNothing();
+  }
+
+  // Region boundary mapping (sub-region id -> admin-1 feature names in TopoJSON)
+  console.log("Seeding region_boundary_mapping...");
+  const boundaryMappings: { regionId: string; featureName: string }[] = [
+    { regionId: "bordeaux", featureName: "Gironde" },
+    { regionId: "burgundy", featureName: "Côte-d'Or" },
+    { regionId: "burgundy", featureName: "Saône-et-Loire" },
+    { regionId: "burgundy", featureName: "Yonne" },
+    { regionId: "burgundy", featureName: "Nièvre" },
+    { regionId: "rhone", featureName: "Rhône" },
+    { regionId: "rhone", featureName: "Ardèche" },
+    { regionId: "rhone", featureName: "Drôme" },
+    { regionId: "rhone", featureName: "Vaucluse" },
+    { regionId: "rhone", featureName: "Gard" },
+    { regionId: "rhone", featureName: "Bouches-du-Rhône" },
+    { regionId: "loire", featureName: "Loire-Atlantique" },
+    { regionId: "loire", featureName: "Maine-et-Loire" },
+    { regionId: "loire", featureName: "Indre-et-Loire" },
+    { regionId: "loire", featureName: "Loir-et-Cher" },
+    { regionId: "loire", featureName: "Loire" },
+    { regionId: "loire", featureName: "Cher" },
+    { regionId: "loire", featureName: "Nièvre" },
+    { regionId: "loire", featureName: "Allier" },
+    { regionId: "loire", featureName: "Haute-Loire" },
+    { regionId: "tuscany", featureName: "Firenze" },
+    { regionId: "tuscany", featureName: "Siena" },
+    { regionId: "tuscany", featureName: "Grosseto" },
+    { regionId: "tuscany", featureName: "Livorno" },
+    { regionId: "tuscany", featureName: "Pisa" },
+    { regionId: "tuscany", featureName: "Lucca" },
+    { regionId: "tuscany", featureName: "Massa-Carrara" },
+    { regionId: "tuscany", featureName: "Arezzo" },
+    { regionId: "tuscany", featureName: "Pistoia" },
+    { regionId: "tuscany", featureName: "Prato" },
+    { regionId: "piedmont", featureName: "Turin" },
+    { regionId: "piedmont", featureName: "Cuneo" },
+    { regionId: "piedmont", featureName: "Alessandria" },
+    { regionId: "piedmont", featureName: "Asti" },
+    { regionId: "piedmont", featureName: "Vercelli" },
+    { regionId: "piedmont", featureName: "Novara" },
+    { regionId: "piedmont", featureName: "Biella" },
+    { regionId: "piedmont", featureName: "Verbano-Cusio-Ossola" },
+    { regionId: "rioja", featureName: "La Rioja" },
+    { regionId: "california", featureName: "California" },
+  ];
+  for (const b of boundaryMappings) {
+    await db.insert(regionBoundaryMapping).values(b).onConflictDoNothing();
   }
 
   // Grapes (9 red, 3 white)

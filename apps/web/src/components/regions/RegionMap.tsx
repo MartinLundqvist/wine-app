@@ -5,14 +5,7 @@ import {
   Geography,
   ZoomableGroup,
 } from "react-simple-maps";
-import type { Region } from "@wine-app/shared";
-import {
-  COUNTRY_TO_ISO_NUMERIC,
-  getWineCountryNames,
-  COUNTRY_ZOOM_CONFIG,
-  COUNTRY_TO_GEO_SLUG,
-  SUB_REGION_TO_ADMIN1_NAMES,
-} from "./countryCodes";
+import type { Region, RegionsMapConfigResponse } from "@wine-app/shared";
 
 const GEO_URL =
   "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
@@ -36,6 +29,7 @@ type RegionMapProps = {
   selectedCountry: string | null;
   onSelectCountry: (country: string | null) => void;
   hoveredSubRegionId: string | null;
+  mapConfig?: RegionsMapConfigResponse | null;
 };
 
 export function RegionMap({
@@ -43,6 +37,7 @@ export function RegionMap({
   selectedCountry,
   onSelectCountry,
   hoveredSubRegionId,
+  mapConfig,
 }: RegionMapProps) {
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
   const [tooltip, setTooltip] = useState<{ name: string; count: number } | null>(
@@ -53,14 +48,18 @@ export function RegionMap({
   const [hoveredAdmin1Name, setHoveredAdmin1Name] = useState<string | null>(null);
   const geoCacheRef = useRef<Record<string, object>>({});
 
+  const useApiConfig = mapConfig != null && mapConfig.countries.length > 0;
+
   const { countryToRegionCount, numericIds } = useMemo(() => {
     const countries = [...new Set(regions.map((r) => r.country))];
-    const wineCountryNames = getWineCountryNames(countries);
-    const numericIds = new Set(
-      wineCountryNames
-        .map((name) => COUNTRY_TO_ISO_NUMERIC[name])
-        .filter((id): id is number => id != null),
-    );
+    const wineCountryNames = useApiConfig
+      ? countries.filter((c) =>
+          mapConfig!.countries.some((cfg) => cfg.countryName === c)
+        )
+      : countries.filter((c) => c !== "International");
+    const numericIds = useApiConfig
+      ? new Set(mapConfig!.countries.map((c) => c.isoNumeric))
+      : new Set<number>();
     const countryToRegionCount = new Map<string, number>();
     for (const r of regions) {
       if (r.parentRegionId == null) continue;
@@ -76,22 +75,47 @@ export function RegionMap({
       }
     }
     return { countryToRegionCount, numericIds };
-  }, [regions]);
+  }, [regions, useApiConfig, mapConfig?.countries]);
 
   const numericToName = useMemo(() => {
     const map = new Map<number, string>();
-    for (const [name, id] of Object.entries(COUNTRY_TO_ISO_NUMERIC)) {
-      map.set(id, name);
+    if (useApiConfig && mapConfig) {
+      for (const c of mapConfig.countries) {
+        map.set(c.isoNumeric, c.countryName);
+      }
     }
     return map;
-  }, []);
+  }, [useApiConfig, mapConfig?.countries]);
+
+  const zoomConfigByCountry = useMemo(() => {
+    const m = new Map<string, { center: [number, number]; zoom: number }>();
+    if (useApiConfig && mapConfig) {
+      for (const c of mapConfig.countries) {
+        m.set(c.countryName, {
+          center: [c.zoomCenterLon, c.zoomCenterLat],
+          zoom: c.zoomLevel,
+        });
+      }
+    }
+    return m;
+  }, [useApiConfig, mapConfig?.countries]);
 
   const { center: zoomCenter, zoom: zoomLevel } = useMemo(() => {
     if (!selectedCountry) return WORLD_VIEW;
-    const config = COUNTRY_ZOOM_CONFIG[selectedCountry];
+    const config = zoomConfigByCountry.get(selectedCountry);
     if (!config) return WORLD_VIEW;
     return { center: config.center, zoom: config.zoom };
-  }, [selectedCountry]);
+  }, [selectedCountry, zoomConfigByCountry]);
+
+  const geoSlugByCountry = useMemo(() => {
+    const m = new Map<string, string>();
+    if (useApiConfig && mapConfig) {
+      for (const c of mapConfig.countries) {
+        m.set(c.countryName, c.geoSlug);
+      }
+    }
+    return m;
+  }, [useApiConfig, mapConfig?.countries]);
 
   useEffect(() => {
     if (!selectedCountry) {
@@ -99,7 +123,7 @@ export function RegionMap({
       setAdmin1LoadError(false);
       return;
     }
-    const slug = COUNTRY_TO_GEO_SLUG[selectedCountry];
+    const slug = geoSlugByCountry.get(selectedCountry);
     if (!slug) {
       setAdmin1Geo(null);
       return;
@@ -133,11 +157,14 @@ export function RegionMap({
                 (p) => p.id === r.parentRegionId && p.country === selectedCountry,
               ),
           );
+          const subRegionToAdmin1 = useApiConfig && mapConfig
+            ? mapConfig.boundaryMappings
+            : {};
           for (const sub of subRegions) {
-            const admin1Names = SUB_REGION_TO_ADMIN1_NAMES[sub.id];
-            if (!admin1Names?.length) {
+            const admin1Names = subRegionToAdmin1[sub.id] ?? [];
+            if (!admin1Names.length) {
               console.warn(
-                `[Regions] No admin-1 mapping for sub-region "${sub.id}". Add to SUB_REGION_TO_ADMIN1_NAMES in countryCodes.ts.`,
+                `[Regions] No admin-1 mapping for sub-region "${sub.id}". Add boundary mapping in DB.`,
               );
               continue;
             }
@@ -157,7 +184,7 @@ export function RegionMap({
         setAdmin1LoadError(true);
         setAdmin1Geo(null);
       });
-  }, [selectedCountry, regions]);
+  }, [selectedCountry, regions, useApiConfig, mapConfig?.boundaryMappings, geoSlugByCountry]);
 
   const handleMouseEnter = (geo: { id?: string | number; name?: string }) => {
     const id = geo.id != null ? Number(geo.id) : undefined;
@@ -186,7 +213,8 @@ export function RegionMap({
 
   const admin1NameToRegionIds = useMemo(() => {
     const map = new Map<string, string[]>();
-    for (const [regionId, names] of Object.entries(SUB_REGION_TO_ADMIN1_NAMES)) {
+    const source = useApiConfig && mapConfig ? mapConfig.boundaryMappings : {};
+    for (const [regionId, names] of Object.entries(source)) {
       for (const n of names) {
         const list = map.get(n) ?? [];
         list.push(regionId);
@@ -194,7 +222,7 @@ export function RegionMap({
       }
     }
     return map;
-  }, []);
+  }, [useApiConfig, mapConfig?.boundaryMappings]);
 
   return (
     <div className="relative w-full h-full rounded-lg overflow-hidden bg-background border-0">

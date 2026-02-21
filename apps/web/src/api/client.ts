@@ -1,6 +1,7 @@
 import type {
   GrapeWithStyleTargets,
   Region,
+  RegionsMapConfigResponse,
   StructureDimension,
   AromaTerm,
   ThermalBand,
@@ -27,6 +28,12 @@ export const api = {
   async getRegions(): Promise<Region[]> {
     const res = await fetch(`${getBaseUrl()}${apiPrefix()}/regions`);
     if (!res.ok) throw new Error(`Failed to fetch regions: ${res.statusText}`);
+    return res.json();
+  },
+  async getRegionsMapConfig(): Promise<RegionsMapConfigResponse> {
+    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/regions/map-config`);
+    if (!res.ok)
+      throw new Error(`Failed to fetch regions map config: ${res.statusText}`);
     return res.json();
   },
   async getStructureDimensions(): Promise<StructureDimension[]> {

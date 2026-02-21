@@ -34,6 +34,10 @@ export function ExploreRegionsPage() {
     queryKey: ["style-targets"],
     queryFn: () => api.getStyleTargets(),
   });
+  const { data: mapConfig } = useQuery({
+    queryKey: ["regions-map-config"],
+    queryFn: () => api.getRegionsMapConfig(),
+  });
 
   const handleClose = useCallback(() => {
     setSelectedCountry(null);
@@ -139,6 +143,7 @@ export function ExploreRegionsPage() {
                   selectedCountry={selectedCountry}
                   onSelectCountry={setSelectedCountry}
                   hoveredSubRegionId={hoveredSubRegionId}
+                  mapConfig={mapConfig}
                 />
               </div>
 

@@ -62,6 +62,32 @@ export const regionSchema = z.object({
 });
 export type Region = z.infer<typeof regionSchema>;
 
+export const countryMapConfigSchema = z.object({
+  countryName: z.string(),
+  isoNumeric: z.number(),
+  geoSlug: z.string(),
+  naturalEarthAdminName: z.string(),
+  zoomCenterLon: z.number(),
+  zoomCenterLat: z.number(),
+  zoomLevel: z.number(),
+  isMappable: z.boolean().optional(),
+});
+export type CountryMapConfig = z.infer<typeof countryMapConfigSchema>;
+
+export const regionBoundaryMappingSchema = z.object({
+  regionId: z.string(),
+  featureName: z.string(),
+});
+export type RegionBoundaryMapping = z.infer<typeof regionBoundaryMappingSchema>;
+
+export const regionsMapConfigResponseSchema = z.object({
+  countries: z.array(countryMapConfigSchema),
+  boundaryMappings: z.record(z.string(), z.array(z.string())),
+});
+export type RegionsMapConfigResponse = z.infer<
+  typeof regionsMapConfigResponseSchema
+>;
+
 export const structureDimensionSchema = z.object({
   id: z.string(),
   displayName: z.string(),
