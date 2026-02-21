@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { motion, useReducedMotion } from "framer-motion";
+import { X } from "lucide-react";
 import type { Region } from "@wine-app/shared";
 import type { StyleTargetFull } from "@wine-app/shared";
-import { Panel } from "../ui/Panel";
 
 type RegionDetailPanelProps = {
   country: string;
@@ -11,12 +12,43 @@ type RegionDetailPanelProps = {
   onClose: () => void;
 };
 
+const slideRight = {
+  initial: { x: "100%" },
+  animate: { x: 0 },
+  exit: { x: "100%" },
+};
+
+const slideUp = {
+  initial: { y: "100%" },
+  animate: { y: 0 },
+  exit: { y: "100%" },
+};
+
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== "undefined"
+      ? window.matchMedia("(min-width: 1024px)").matches
+      : true,
+  );
+  useEffect(() => {
+    const m = window.matchMedia("(min-width: 1024px)");
+    const fn = () => setIsDesktop(m.matches);
+    m.addEventListener("change", fn);
+    return () => m.removeEventListener("change", fn);
+  }, []);
+  return isDesktop;
+}
+
 export function RegionDetailPanel({
   country,
   regions,
   styleTargets,
   onClose,
 }: RegionDetailPanelProps) {
+  const reducedMotion = useReducedMotion();
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const isDesktop = useIsDesktop();
+
   const { rootRegion, subRegions, stylesByRegionId } = useMemo(() => {
     const rootRegion = regions.find(
       (r) => (r.parentRegionId ?? null) === null && r.country === country,
@@ -42,25 +74,49 @@ export function RegionDetailPanel({
     return { rootRegion, subRegions, stylesByRegionId };
   }, [country, regions, styleTargets]);
 
+  useEffect(() => {
+    closeRef.current?.focus();
+  }, [country]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   if (!rootRegion) return null;
 
-  return (
-    <Panel
-      variant="oak"
-      className="w-full lg:w-80 flex-shrink-0 flex flex-col max-h-[70vh] lg:max-h-none overflow-hidden transition-all duration-200"
-    >
-      <div className="flex items-center justify-between gap-2 mb-4">
-        <h2 className="font-serif text-2xl text-foreground">{country}</h2>
+  const transition = reducedMotion
+    ? { duration: 0 }
+    : { type: "tween" as const, duration: 0.25 };
+  const variants = reducedMotion
+    ? { initial: {}, animate: {}, exit: {} }
+    : isDesktop
+      ? slideRight
+      : slideUp;
+
+  const panelContent = (
+    <>
+      <div className="flex items-center justify-between gap-2 p-4 border-b border-border flex-shrink-0">
+        <h2
+          id="region-panel-title"
+          className="font-serif text-xl text-foreground"
+        >
+          {country}
+        </h2>
         <button
+          ref={closeRef}
           type="button"
           onClick={onClose}
-          className="text-muted-foreground hover:text-foreground font-sans text-base transition-colors duration-150"
-          aria-label="Close"
+          className="p-2 text-muted-foreground hover:text-foreground rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-card"
+          aria-label="Close panel"
         >
-          Close
+          <X className="w-5 h-5" />
         </button>
       </div>
-      <div className="flex flex-col gap-4 overflow-y-auto pr-1">
+      <div className="flex flex-col gap-4 overflow-y-auto p-4 pr-2 lg:pr-2 pb-8 lg:pb-4">
         {subRegions.length === 0 ? (
           <p className="text-sm text-muted-foreground font-sans">
             No sub-regions in this country.
@@ -74,12 +130,12 @@ export function RegionDetailPanel({
                   {sub.displayName}
                 </h3>
                 {styles.length > 0 ? (
-                  <ul className="space-y-1 ml-0">
+                  <ul className="space-y-1 ml-0 list-none">
                     {styles.map((st) => (
                       <li key={st.id}>
                         <Link
                           to={`/explore/styles/${st.id}`}
-                          className="text-sm text-muted-foreground hover:text-oak-light no-underline font-ui"
+                          className="text-sm text-muted-foreground hover:text-oak-light no-underline font-sans focus:outline-none focus:underline"
                         >
                           {st.displayName}
                         </Link>
@@ -96,6 +152,37 @@ export function RegionDetailPanel({
           })
         )}
       </div>
-    </Panel>
+    </>
+  );
+
+  return (
+    <>
+      {/* Backdrop — keeps map visible, blocks map interaction while open */}
+      <motion.div
+        className="absolute inset-0 bg-black/20 z-10 pointer-events-auto"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={transition as { duration: number }}
+        onClick={onClose}
+        aria-hidden
+      />
+
+      {/* Single panel: right drawer on desktop, bottom sheet on mobile */}
+      <motion.div
+        className="absolute z-20 flex flex-col bg-card border-border shadow-soft overflow-hidden
+          inset-x-0 bottom-0 max-h-[70vh] rounded-t-xl border-t
+          lg:inset-y-0 lg:right-0 lg:left-auto lg:bottom-auto lg:max-h-none lg:w-full lg:max-w-sm lg:rounded-none lg:border-l lg:border-t-0"
+        initial={variants.initial}
+        animate={variants.animate}
+        exit={variants.exit}
+        transition={transition as { duration: number; type?: "tween" }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="region-panel-title"
+      >
+        {panelContent}
+      </motion.div>
+    </>
   );
 }
