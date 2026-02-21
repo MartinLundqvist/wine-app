@@ -6,6 +6,7 @@
     "dev:web": "pnpm --filter web run dev",
     "dev:api": "pnpm --filter api run dev",
     "build": "pnpm -r run build",
+    "build:web": "pnpm --filter web run build",
     "db:generate": "pnpm --filter db run generate",
     "db:up": "pnpm --filter db run up",
     "db:down": "pnpm --filter db run down"

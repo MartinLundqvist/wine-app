@@ -13,8 +13,8 @@ const TestimonialSection = () => {
         >
           <Quote className="w-10 h-10 text-primary/30 mx-auto mb-8" />
           <blockquote className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground leading-relaxed mb-8 italic">
-            "Sommelier transformed how I experience wine. What used to be a casual interest is now a deep,
-            enriching passion that connects me to cultures and traditions around the world."
+            &quot;Sommelier transformed how I experience wine. What used to be a casual interest is now a deep,
+            enriching passion that connects me to cultures and traditions around the world.&quot;
           </blockquote>
           <div>
             <p className="font-serif text-lg font-semibold text-foreground">

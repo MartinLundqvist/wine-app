@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Wine } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/client";
+import { queryKeys } from "../../api/queryKeys";
 import exploreStylesImg from "@/assets/explore-styles.jpg";
 import exploreGrapesImg from "@/assets/explore-grapes.jpg";
 import exploreRegionsImg from "@/assets/explore-regions.jpg";
@@ -10,19 +11,19 @@ import exploreAromasImg from "@/assets/explore-aromas.jpg";
 
 export function ExploreLandingPage() {
   const { data: grapes } = useQuery({
-    queryKey: ["grapes"],
+    queryKey: queryKeys.grapes,
     queryFn: () => api.getGrapes(),
   });
   const { data: styleTargets } = useQuery({
-    queryKey: ["style-targets"],
+    queryKey: queryKeys.styleTargets,
     queryFn: () => api.getStyleTargets(),
   });
   const { data: regions } = useQuery({
-    queryKey: ["regions"],
+    queryKey: queryKeys.regions,
     queryFn: () => api.getRegions(),
   });
   const { data: aromaTerms } = useQuery({
-    queryKey: ["aroma-terms"],
+    queryKey: queryKeys.aromaTerms,
     queryFn: () => api.getAromaTerms(),
   });
 

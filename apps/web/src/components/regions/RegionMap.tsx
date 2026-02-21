@@ -75,7 +75,7 @@ export function RegionMap({
       }
     }
     return { countryToRegionCount, numericIds };
-  }, [regions, useApiConfig, mapConfig?.countries]);
+  }, [regions, useApiConfig, mapConfig]);
 
   const numericToName = useMemo(() => {
     const map = new Map<number, string>();
@@ -85,7 +85,7 @@ export function RegionMap({
       }
     }
     return map;
-  }, [useApiConfig, mapConfig?.countries]);
+  }, [useApiConfig, mapConfig]);
 
   const zoomConfigByCountry = useMemo(() => {
     const m = new Map<string, { center: [number, number]; zoom: number }>();
@@ -98,7 +98,7 @@ export function RegionMap({
       }
     }
     return m;
-  }, [useApiConfig, mapConfig?.countries]);
+  }, [useApiConfig, mapConfig]);
 
   const { center: zoomCenter, zoom: zoomLevel } = useMemo(() => {
     if (!selectedCountry) return WORLD_VIEW;
@@ -115,7 +115,7 @@ export function RegionMap({
       }
     }
     return m;
-  }, [useApiConfig, mapConfig?.countries]);
+  }, [useApiConfig, mapConfig]);
 
   useEffect(() => {
     if (!selectedCountry) {
@@ -184,7 +184,7 @@ export function RegionMap({
         setAdmin1LoadError(true);
         setAdmin1Geo(null);
       });
-  }, [selectedCountry, regions, useApiConfig, mapConfig?.boundaryMappings, geoSlugByCountry]);
+  }, [selectedCountry, regions, useApiConfig, mapConfig, geoSlugByCountry]);
 
   const handleMouseEnter = (geo: { id?: string | number; name?: string }) => {
     const id = geo.id != null ? Number(geo.id) : undefined;
@@ -222,7 +222,7 @@ export function RegionMap({
       }
     }
     return map;
-  }, [useApiConfig, mapConfig?.boundaryMappings]);
+  }, [useApiConfig, mapConfig]);
 
   return (
     <div className="relative w-full h-full rounded-lg overflow-hidden bg-background border-0">

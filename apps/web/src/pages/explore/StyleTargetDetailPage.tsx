@@ -3,14 +3,16 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Wine } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/client";
+import { queryKeys } from "../../api/queryKeys";
 import type { StyleTargetFull } from "@wine-app/shared";
+import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { Chip } from "../../components/ui/Chip";
 import { WineAttributeBar } from "../../components/ui/WineAttributeBar";
 
 export function StyleTargetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: style, isLoading, error } = useQuery({
-    queryKey: ["style-target", id],
+    queryKey: queryKeys.styleTarget(id!),
     queryFn: () => api.getStyleTarget(id!),
     enabled: !!id,
   });
@@ -18,7 +20,7 @@ export function StyleTargetDetailPage() {
   if (isLoading || !id) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground font-sans">Loading...</p>
+        <LoadingSpinner />
       </div>
     );
   }

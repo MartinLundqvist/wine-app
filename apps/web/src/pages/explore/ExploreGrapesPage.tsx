@@ -1,11 +1,15 @@
 import { useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Wine } from "lucide-react";
+import { Wine } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/client";
+import { queryKeys } from "../../api/queryKeys";
 import type { GrapeWithStyleTargets } from "@wine-app/shared";
+import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { Chip } from "../../components/ui/Chip";
+import { ExplorePageShell } from "../../components/explore/ExplorePageShell";
+import { FilterBar } from "../../components/explore/FilterBar";
 
 const filterOptions = [
   { label: "All", value: "" },
@@ -25,10 +29,10 @@ function styleCount(g: GrapeWithStyleTargets): number {
 export function ExploreGrapesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const colorFilter = searchParams.get("color") ?? "";
-  const sortBy = searchParams.get("sort") ?? "name";
+  const sortBy = (searchParams.get("sort") ?? "name") as (typeof sortOptions)[number]["value"];
 
   const { data: grapes, isLoading } = useQuery({
-    queryKey: ["grapes"],
+    queryKey: queryKeys.grapes,
     queryFn: () => api.getGrapes(),
   });
 
@@ -54,120 +58,38 @@ export function ExploreGrapesPage() {
     return list;
   }, [grapes, colorFilter, sortBy]);
 
+  const handleFilterChange = (value: string) => {
+    const next = new URLSearchParams(searchParams);
+    if (value) next.set("color", value);
+    else next.delete("color");
+    setSearchParams(next);
+  };
+
+  const handleSortChange = (value: (typeof sortOptions)[number]["value"]) => {
+    setSearchParams({ ...Object.fromEntries(searchParams), sort: value });
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-gradient-hero">
-        <div className="max-w-6xl mx-auto px-6 pt-20 pb-20 md:pt-24 md:pb-28">
-          <Link
-            to="/explore"
-            className="inline-flex items-center gap-2 text-primary-foreground/60 hover:text-primary-foreground transition-colors mb-8 text-sm font-sans"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Explore
-          </Link>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="flex items-center gap-3 mb-4"
-          >
-            <Wine className="w-6 h-6 text-wine-light" />
-            <p className="text-sm tracking-[0.25em] uppercase text-wine-light font-sans">
-              Explore
-            </p>
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="font-serif text-4xl md:text-6xl font-bold text-primary-foreground mb-4"
-          >
-            Grape Varieties
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-primary-foreground/70 text-lg max-w-2xl font-sans leading-relaxed"
-          >
-            Browse grape varieties. Filter by color and sort by name or number of
-            associated styles.
-          </motion.p>
-        </div>
-      </div>
-
-      {/* Filters */}
+    <ExplorePageShell
+      title="Grape Varieties"
+      subtitle="Browse grape varieties. Filter by color and sort by name or number of associated styles."
+      icon={<Wine className="w-6 h-6 text-wine-light" />}
+      backTo={{ path: "/explore", label: "Back to Explore" }}
+    >
       <div className="max-w-6xl mx-auto px-6 -mt-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="flex flex-wrap items-center gap-6 bg-card rounded-xl p-4 shadow-soft"
-        >
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-sans text-muted-foreground font-medium">
-              Color:
-            </span>
-            <div className="flex gap-1">
-              {filterOptions.map((opt) => (
-                <button
-                  key={opt.value || "all"}
-                  type="button"
-                  onClick={() => {
-                    const next = new URLSearchParams(searchParams);
-                    if (opt.value) next.set("color", opt.value);
-                    else next.delete("color");
-                    setSearchParams(next);
-                  }}
-                  className={`px-4 py-1.5 rounded-full text-sm font-sans font-medium transition-all duration-200 ${
-                    colorFilter === opt.value
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-sans text-muted-foreground font-medium">
-              Sort:
-            </span>
-            <div className="flex gap-1">
-              {sortOptions.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() =>
-                    setSearchParams({
-                      ...Object.fromEntries(searchParams),
-                      sort: opt.value,
-                    })
-                  }
-                  className={`px-4 py-1.5 rounded-full text-sm font-sans font-medium transition-all duration-200 ${
-                    sortBy === opt.value
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </motion.div>
+        <FilterBar
+          filterOptions={filterOptions}
+          filterValue={colorFilter}
+          onFilterChange={handleFilterChange}
+          sortOptions={sortOptions}
+          sortValue={sortBy}
+          onSortChange={handleSortChange}
+        />
       </div>
 
-      {/* Grid */}
       <div className="max-w-6xl mx-auto px-6 py-10 pb-24">
         {isLoading ? (
-          <p className="text-muted-foreground font-sans">Loading...</p>
+          <LoadingSpinner />
         ) : filtered.length === 0 ? (
           <p className="text-muted-foreground font-sans">
             No grape varieties match the current filters.
@@ -233,6 +155,6 @@ export function ExploreGrapesPage() {
           </div>
         )}
       </div>
-    </div>
+    </ExplorePageShell>
   );
 }

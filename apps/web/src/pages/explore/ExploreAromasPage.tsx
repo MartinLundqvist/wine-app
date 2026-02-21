@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Flower2, AlertCircle, Inbox } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/client";
+import { queryKeys } from "../../api/queryKeys";
 import { AromaFlowTree } from "../../components/aroma/AromaFlowTree";
 import { Button } from "../../components/ui/Button";
 
@@ -40,7 +41,7 @@ function AromaExplorerSkeleton() {
 
 export function ExploreAromasPage() {
   const { data: aromaTerms, isLoading, isError, refetch } = useQuery({
-    queryKey: ["aroma-terms"],
+    queryKey: queryKeys.aromaTerms,
     queryFn: () => api.getAromaTerms(),
   });
 

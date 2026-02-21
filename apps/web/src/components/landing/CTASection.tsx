@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Button } from "@/components/landing/button";
+import { Button } from "@/components/ui/Button";
 
 const CTASection = () => {
   return (

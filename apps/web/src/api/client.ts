@@ -18,54 +18,45 @@ const getBaseUrl = () => {
 const apiPrefix = () =>
   import.meta.env.DEV && !import.meta.env.VITE_API_URL ? "/api" : "";
 
+async function fetchJson<T>(
+  url: string,
+  options?: RequestInit & { notFoundMessage?: string }
+): Promise<T> {
+  const { notFoundMessage, ...init } = options ?? {};
+  const res = await fetch(url, init);
+  if (res.status === 404 && notFoundMessage) throw new Error(notFoundMessage);
+  if (!res.ok) throw new Error(`${url}: ${res.statusText}`);
+  return res.json();
+}
+
+const base = () => `${getBaseUrl()}${apiPrefix()}`;
+
 export const api = {
   async getGrapes(): Promise<GrapeWithStyleTargets[]> {
-    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/grapes`);
-    if (!res.ok) throw new Error(`Failed to fetch grapes: ${res.statusText}`);
-    return res.json();
+    return fetchJson(`${base()}/grapes`);
   },
   async getRegions(): Promise<Region[]> {
-    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/regions`);
-    if (!res.ok) throw new Error(`Failed to fetch regions: ${res.statusText}`);
-    return res.json();
+    return fetchJson(`${base()}/regions`);
   },
   async getRegionsMapConfig(): Promise<RegionsMapConfigResponse> {
-    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/regions/map-config`);
-    if (!res.ok)
-      throw new Error(`Failed to fetch regions map config: ${res.statusText}`);
-    return res.json();
+    return fetchJson(`${base()}/regions/map-config`);
   },
   async getStructureDimensions(): Promise<StructureDimension[]> {
-    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/structure-dimensions`);
-    if (!res.ok)
-      throw new Error(`Failed to fetch structure dimensions: ${res.statusText}`);
-    return res.json();
+    return fetchJson(`${base()}/structure-dimensions`);
   },
   async getAromaTerms(): Promise<AromaTerm[]> {
-    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/aroma-terms`);
-    if (!res.ok)
-      throw new Error(`Failed to fetch aroma terms: ${res.statusText}`);
-    return res.json();
+    return fetchJson(`${base()}/aroma-terms`);
   },
   async getThermalBands(): Promise<ThermalBand[]> {
-    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/thermal-bands`);
-    if (!res.ok)
-      throw new Error(`Failed to fetch thermal bands: ${res.statusText}`);
-    return res.json();
+    return fetchJson(`${base()}/thermal-bands`);
   },
   async getStyleTargets(): Promise<StyleTargetFull[]> {
-    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/style-targets`);
-    if (!res.ok)
-      throw new Error(`Failed to fetch style targets: ${res.statusText}`);
-    return res.json();
+    return fetchJson(`${base()}/style-targets`);
   },
   async getStyleTarget(id: string): Promise<StyleTargetFull> {
-    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/style-targets/${encodeURIComponent(id)}`);
-    if (!res.ok) {
-      if (res.status === 404) throw new Error("Style target not found");
-      throw new Error(`Failed to fetch style target: ${res.statusText}`);
-    }
-    return res.json();
+    return fetchJson(`${base()}/style-targets/${encodeURIComponent(id)}`, {
+      notFoundMessage: "Style target not found",
+    });
   },
 };
 

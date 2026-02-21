@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, MapPin, AlertCircle, Inbox } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/client";
+import { queryKeys } from "../../api/queryKeys";
 import { RegionMap } from "../../components/regions/RegionMap";
 import { RegionDetailPanel } from "../../components/regions/RegionDetailPanel";
 import { Button } from "../../components/ui/Button";
@@ -27,15 +28,15 @@ export function ExploreRegionsPage() {
     useState<string | null>(null);
 
   const { data: regions, isLoading, isError, refetch } = useQuery({
-    queryKey: ["regions"],
+    queryKey: queryKeys.regions,
     queryFn: () => api.getRegions(),
   });
   const { data: styleTargets } = useQuery({
-    queryKey: ["style-targets"],
+    queryKey: queryKeys.styleTargets,
     queryFn: () => api.getStyleTargets(),
   });
   const { data: mapConfig } = useQuery({
-    queryKey: ["regions-map-config"],
+    queryKey: queryKeys.regionsMapConfig,
     queryFn: () => api.getRegionsMapConfig(),
   });
 

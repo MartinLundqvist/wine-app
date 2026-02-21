@@ -1,29 +1,49 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { lazy, Suspense } from "react";
+import { Routes, Route } from "react-router-dom";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { MainLayout } from "./components/MainLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { LoginPage } from "./pages/LoginPage";
-import { LandingPage } from "./pages/LandingPage";
-import { ExploreLandingPage } from "./pages/explore/ExploreLandingPage";
-import { ExploreStylesPage } from "./pages/explore/ExploreStylesPage";
-import { StyleTargetDetailPage } from "./pages/explore/StyleTargetDetailPage";
-import { ExploreGrapesPage } from "./pages/explore/ExploreGrapesPage";
-import { GrapeDetailPage } from "./pages/explore/GrapeDetailPage";
-import { ExploreRegionsPage } from "./pages/explore/ExploreRegionsPage";
-import { ExploreAromasPage } from "./pages/explore/ExploreAromasPage";
+import { LoadingSpinner } from "./components/LoadingSpinner";
+
+const LoginPage = lazy(() => import("./pages/LoginPage").then((m) => ({ default: m.LoginPage })));
+const LandingPage = lazy(() => import("./pages/LandingPage").then((m) => ({ default: m.LandingPage })));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage").then((m) => ({ default: m.NotFoundPage })));
+const ExploreLandingPage = lazy(() => import("./pages/explore/ExploreLandingPage").then((m) => ({ default: m.ExploreLandingPage })));
+const ExploreStylesPage = lazy(() => import("./pages/explore/ExploreStylesPage").then((m) => ({ default: m.ExploreStylesPage })));
+const StyleTargetDetailPage = lazy(() => import("./pages/explore/StyleTargetDetailPage").then((m) => ({ default: m.StyleTargetDetailPage })));
+const ExploreGrapesPage = lazy(() => import("./pages/explore/ExploreGrapesPage").then((m) => ({ default: m.ExploreGrapesPage })));
+const GrapeDetailPage = lazy(() => import("./pages/explore/GrapeDetailPage").then((m) => ({ default: m.GrapeDetailPage })));
+const ExploreRegionsPage = lazy(() => import("./pages/explore/ExploreRegionsPage").then((m) => ({ default: m.ExploreRegionsPage })));
+const ExploreAromasPage = lazy(() => import("./pages/explore/ExploreAromasPage").then((m) => ({ default: m.ExploreAromasPage })));
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route element={<MainLayout />}>
-        <Route index element={<LandingPage />} />
-        <Route path="explore" element={<ExploreLandingPage />} />
-        <Route path="explore/styles" element={<ExploreStylesPage />} />
-        <Route path="explore/styles/:id" element={<StyleTargetDetailPage />} />
-        <Route path="explore/grapes" element={<ExploreGrapesPage />} />
-        <Route path="explore/grapes/:id" element={<GrapeDetailPage />} />
-        <Route path="explore/regions" element={<ExploreRegionsPage />} />
-        <Route path="explore/aromas" element={<ExploreAromasPage />} />
+    <Suspense fallback={<LoadingSpinner />}>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route element={<MainLayout />}>
+          <Route index element={<LandingPage />} />
+          <Route path="explore" element={<ExploreLandingPage />} />
+          <Route path="explore/styles" element={<ExploreStylesPage />} />
+          <Route path="explore/styles/:id" element={<StyleTargetDetailPage />} />
+          <Route path="explore/grapes" element={<ExploreGrapesPage />} />
+          <Route path="explore/grapes/:id" element={<GrapeDetailPage />} />
+        <Route
+          path="explore/regions"
+          element={
+            <ErrorBoundary>
+              <ExploreRegionsPage />
+            </ErrorBoundary>
+          }
+        />
+        <Route
+          path="explore/aromas"
+          element={
+            <ErrorBoundary>
+              <ExploreAromasPage />
+            </ErrorBoundary>
+          }
+        />
         <Route
           path="me"
           element={
@@ -36,7 +56,8 @@ export default function App() {
           }
         />
       </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </Suspense>
   );
 }
