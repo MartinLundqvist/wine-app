@@ -6,7 +6,6 @@ import type {
   AromaTerm,
   ThermalBand,
   StyleTargetFull,
-  ExerciseTemplate,
 } from "@wine-app/shared";
 
 const getBaseUrl = () => {
@@ -68,12 +67,6 @@ export const api = {
     }
     return res.json();
   },
-  async getExerciseTemplates(): Promise<ExerciseTemplate[]> {
-    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/exercise-templates`);
-    if (!res.ok)
-      throw new Error(`Failed to fetch exercise templates: ${res.statusText}`);
-    return res.json();
-  },
 };
 
 export type AuthUser = { userId: string; email: string; displayName?: string };
@@ -125,118 +118,5 @@ export const authApi = {
       method: "POST",
       credentials: "include",
     });
-  },
-};
-
-export type ExercisePayload = {
-  mapId?: string;
-  xAttr?: string;
-  yAttr?: string;
-  correctStyleTargetId?: string;
-  correctName?: string;
-  correctPosition?: { x: number; y: number };
-  seed?: number;
-  wineColor?: string;
-  format?: string;
-  descriptorClue?: { descriptorId: string; name: string };
-  options?: { styleTargetId: string; name: string }[];
-  structureClues?: Record<string, number>;
-  styleTargets?: {
-    styleTargetId: string;
-    name: string;
-    correctPosition: { x: number; y: number };
-  }[];
-};
-
-export type ExerciseSubmitResult = {
-  isCorrect: boolean;
-  score: number;
-  correctPosition: { x: number; y: number } | null;
-  feedback: { structureMatch: string; [k: string]: unknown };
-};
-
-export type ProgressRow = {
-  userId: string;
-  exerciseFormat: string;
-  wineColor: string;
-  totalAttempts: number;
-  correctAttempts: number;
-  accuracy: number;
-  masteryState: string;
-  lastAttemptedAt: string | null;
-  updatedAt: string;
-};
-
-export const progressApi = {
-  async getProgress(accessToken: string): Promise<ProgressRow[]> {
-    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/progress`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-      credentials: "include",
-    });
-    if (!res.ok) throw new Error("Failed to fetch progress");
-    return res.json();
-  },
-};
-
-export const exerciseApi = {
-  async generate(
-    accessToken: string,
-    mapId: string,
-    exclude?: string[],
-  ): Promise<{
-    payload: ExercisePayload;
-    totalAvailable: number;
-    templateId: string;
-  }> {
-    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/exercise/generate`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      credentials: "include",
-      body: JSON.stringify({ mapId, exclude }),
-    });
-    if (!res.ok) throw new Error("Failed to generate exercise");
-    return res.json();
-  },
-  async generateDrill(
-    accessToken: string,
-    templateId: string,
-    exclude?: string[],
-  ): Promise<{
-    payload: ExercisePayload;
-    totalAvailable: number;
-    templateId: string;
-  }> {
-    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/exercise/generate`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      credentials: "include",
-      body: JSON.stringify({ templateId, exclude }),
-    });
-    if (!res.ok) throw new Error("Failed to generate drill");
-    return res.json();
-  },
-  async submit(
-    accessToken: string,
-    templateId: string,
-    payload: ExercisePayload,
-    userAnswer: Record<string, unknown>,
-  ): Promise<ExerciseSubmitResult> {
-    const res = await fetch(`${getBaseUrl()}${apiPrefix()}/exercise/submit`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      credentials: "include",
-      body: JSON.stringify({ templateId, payload, userAnswer }),
-    });
-    if (!res.ok) throw new Error("Failed to submit");
-    return res.json();
   },
 };

@@ -5,16 +5,7 @@ import { Menu, X, Wine } from "lucide-react";
 import { Button } from "@/components/landing/button";
 import { useAuth } from "@/contexts/AuthContext";
 
-const appNavLinks = [
-  { to: "/explore", label: "Explore" },
-  { to: "/learn", label: "Learn" }, // also active for /maps, /drills
-  { to: "/tasting", label: "Taste" },
-  { to: "/progress", label: "Progress" },
-];
-
-function isLearnActive(pathname: string) {
-  return pathname === "/learn" || pathname.startsWith("/maps") || pathname.startsWith("/drills");
-}
+const appNavLinks = [{ to: "/explore", label: "Explore" }];
 
 const LandingNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -37,9 +28,7 @@ const LandingNavbar = () => {
         <div className="hidden md:flex items-center gap-8">
           {appNavLinks.map(({ to, label }) => {
             const active =
-              to === "/learn"
-                ? isLearnActive(location.pathname)
-                : location.pathname === to || location.pathname.startsWith(to + "/");
+              location.pathname === to || location.pathname.startsWith(to + "/");
             return (
               <Link
                 key={to}
@@ -90,9 +79,7 @@ const LandingNavbar = () => {
             <div className="px-6 py-4 flex flex-col gap-4">
               {appNavLinks.map(({ to, label }) => {
                 const active =
-                  to === "/learn"
-                    ? isLearnActive(location.pathname)
-                    : location.pathname === to || location.pathname.startsWith(to + "/");
+                  location.pathname === to || location.pathname.startsWith(to + "/");
                 return (
                   <Link
                     key={to}

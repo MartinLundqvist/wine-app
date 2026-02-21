@@ -11,7 +11,6 @@ import {
   styleTargetAromaProfile,
   thermalBand,
   styleTargetContext,
-  exerciseTemplate,
   countryMapConfig,
   regionBoundaryMapping,
 } from "@wine-app/db/schema";
@@ -199,17 +198,6 @@ export async function registerReadRoutes(app: FastifyInstance) {
       if (!target) return reply.status(404).send({ error: "Style target not found" });
       const [full] = await buildStyleTargetFull([target]);
       return reply.send(full);
-    }
-  );
-
-  app.get(
-    "/exercise-templates",
-    async (_req: FastifyRequest, reply: FastifyReply) => {
-      const rows = await db
-        .select()
-        .from(exerciseTemplate)
-        .orderBy(exerciseTemplate.exerciseTemplateId);
-      return reply.send(rows);
     }
   );
 }

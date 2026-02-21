@@ -3,8 +3,6 @@ import cors from "@fastify/cors";
 import cookie from "@fastify/cookie";
 import { APP_NAME } from "@wine-app/shared";
 import { registerReadRoutes } from "./routes/read.js";
-import { registerExerciseRoutes } from "./routes/exercise.js";
-import { registerProgressRoutes } from "./routes/progress.js";
 import { registerAuthRoutes } from "./auth/routes.js";
 import { requireAuth } from "./auth/preHandler.js";
 
@@ -21,8 +19,6 @@ app.get("/", async (_request: FastifyRequest, reply: FastifyReply) => {
 });
 
 await registerReadRoutes(app);
-await registerExerciseRoutes(app);
-await registerProgressRoutes(app);
 
 app.get("/me", { preHandler: [requireAuth] }, async (req, reply) => {
   return reply.send({ user: req.user });

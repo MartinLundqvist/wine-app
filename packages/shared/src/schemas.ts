@@ -29,19 +29,8 @@ export const continentalitySchema = z.enum([
 ]);
 export const malolacticSchema = z.enum(["none", "partial", "full"]);
 
-// Kept for exercise layer
+// Kept for explore layer
 export const wineColorSchema = z.enum(["red", "white"]);
-export const exerciseFormatSchema = z.enum([
-  "map_place",
-  "map_recall",
-  "order_rank",
-  "descriptor_match",
-  "structure_deduction",
-  "elimination",
-  "skeleton_deduction",
-  "tasting_input",
-]);
-export const difficultySchema = z.enum(["easy", "medium", "hard", "expert"]);
 
 // Truth layer
 export const grapeSchema = z.object({
@@ -239,22 +228,6 @@ export const aromaTermWithChildrenSchema: z.ZodType<AromaTermWithChildren> =
     children: z.lazy(() => z.array(aromaTermWithChildrenSchema)).optional(),
   });
 
-// Exercise layer (unchanged for now)
-export const exerciseTemplateSchema = z.object({
-  exerciseTemplateId: z.string(),
-  name: z.string(),
-  level: z.number(),
-  wineColor: z.string(),
-  format: exerciseFormatSchema,
-  promptStem: z.string(),
-  testedAttributeIds: z.string(),
-  selectionRules: z.string(),
-  correctnessRules: z.string(),
-  difficulty: difficultySchema,
-  timeLimitMs: z.number().nullable().optional(),
-});
-export type ExerciseTemplate = z.infer<typeof exerciseTemplateSchema>;
-
 // Response schemas
 export const grapesResponseSchema = z.array(grapeSchema);
 export const regionsResponseSchema = z.array(regionSchema);
@@ -265,4 +238,3 @@ export const aromaTermsResponseSchema = z.array(aromaTermSchema);
 export const thermalBandsResponseSchema = z.array(thermalBandSchema);
 export const styleTargetsResponseSchema = z.array(styleTargetFullSchema);
 export const styleTargetResponseSchema = styleTargetFullSchema;
-export const exerciseTemplatesResponseSchema = z.array(exerciseTemplateSchema);

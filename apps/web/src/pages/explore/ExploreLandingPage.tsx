@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight, Wine, ArrowLeft } from "lucide-react";
+import { ArrowRight, Wine } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/client";
 import exploreStylesImg from "@/assets/explore-styles.jpg";
@@ -77,14 +77,6 @@ export function ExploreLandingPage() {
       {/* Header */}
       <div className="bg-gradient-hero">
         <div className="max-w-6xl mx-auto px-6 pt-20 pb-20 md:pt-24 md:pb-28">
-          <Link
-            to="/learn"
-            className="inline-flex items-center gap-2 text-primary-foreground/60 hover:text-primary-foreground transition-colors mb-8 text-sm font-sans"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Learn
-          </Link>
-
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -93,7 +85,7 @@ export function ExploreLandingPage() {
           >
             <Wine className="w-6 h-6 text-wine-light" />
             <p className="text-sm tracking-[0.25em] uppercase text-wine-light font-sans">
-              Your Learning Journey
+              Wine Discovery
             </p>
           </motion.div>
 
