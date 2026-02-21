@@ -37,7 +37,7 @@ export function StyleCard({ style: st, index = 0 }: StyleCardProps) {
     >
       <Link
         to={`/explore/styles/${st.id}`}
-        className="group block rounded-xl overflow-hidden shadow-soft hover:shadow-wine transition-all duration-500 hover:-translate-y-1.5 no-underline"
+        className="group block rounded-xl overflow-hidden shadow-soft border border-border hover:shadow-wine transition-all duration-500 hover:-translate-y-1.5 no-underline"
       >
         <div className={`h-1.5 ${colorBarClass(st.producedColor)}`} />
         <div className="bg-card p-5">

@@ -28,7 +28,7 @@ export function FilterBar<TFilter extends string, TSort extends string>({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.3 }}
-      className="flex flex-wrap items-center gap-6 bg-card rounded-xl p-4 shadow-soft"
+      className="flex flex-wrap items-center gap-6 bg-card rounded-xl p-4 shadow-soft border border-border"
     >
       <div className="flex items-center gap-3">
         <span className="text-sm font-sans text-muted-foreground font-medium">
