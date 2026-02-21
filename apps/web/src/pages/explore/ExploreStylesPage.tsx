@@ -73,12 +73,7 @@ export function ExploreStylesPage() {
     if (!styleTargets) return [];
     let list = [...styleTargets];
     if (colorFilter === "red" || colorFilter === "white") {
-      list = list.filter((st) => {
-        const primaryGrape = st.grapes?.find(
-          (g) => g.role === "primary",
-        )?.grape;
-        return primaryGrape?.color === colorFilter;
-      });
+      list = list.filter((st) => st.producedColor === colorFilter);
     }
     if (sortBy === "name")
       list.sort((a, b) => a.displayName.localeCompare(b.displayName));
@@ -223,53 +218,94 @@ export function ExploreStylesPage() {
               >
                 <Link
                   to={`/explore/styles/${st.id}`}
-                  className="block rounded-xl overflow-hidden bg-accent text-accent-foreground p-5 shadow-soft hover:shadow-wine transition-all duration-500 hover:-translate-y-1 no-underline"
+                  className="group block rounded-xl overflow-hidden shadow-soft hover:shadow-wine transition-all duration-500 hover:-translate-y-1.5 no-underline"
                 >
-                  <h3 className="font-serif text-xl font-bold mb-2 text-accent-foreground">
-                    {st.displayName}
-                  </h3>
-                  <div className="flex gap-2 mb-4 flex-wrap">
-                    {st.region && (
+                  <div
+                    className={`h-1.5 ${
+                      st.producedColor === "red"
+                        ? "bg-gradient-to-r from-wine-deep to-wine-rich"
+                        : st.producedColor === "white"
+                          ? "bg-gradient-to-r from-oak-light to-cream-dark"
+                          : "bg-gradient-to-r from-wine-light to-cream-dark"
+                    }`}
+                  />
+                  <div className="bg-card p-5">
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="font-serif text-xl font-bold text-foreground group-hover:text-wine-light transition-colors">
+                        {st.displayName}
+                      </h3>
+                      <span
+                        className={`text-[10px] font-sans font-semibold tracking-widest uppercase px-2 py-0.5 rounded-full ${
+                          st.producedColor === "red"
+                            ? "bg-wine-deep/15 text-wine-light"
+                            : st.producedColor === "white"
+                              ? "bg-oak/15 text-oak-light"
+                              : "bg-wine-light/15 text-wine-light"
+                        }`}
+                      >
+                        {st.producedColor}
+                      </span>
+                    </div>
+                    <div className="flex gap-2 mb-4 flex-wrap">
+                      {st.region && (
+                        <Chip
+                          variant="ghost"
+                          className="bg-secondary border-border text-muted-foreground text-xs"
+                        >
+                          {st.region.displayName}
+                        </Chip>
+                      )}
+                      {st.grapes?.map(({ grape }) => (
+                        <Chip
+                          key={grape.id}
+                          variant="ghost"
+                          className="bg-secondary border-border text-muted-foreground text-xs"
+                        >
+                          {grape.displayName}
+                        </Chip>
+                      ))}
                       <Chip
                         variant="ghost"
-                        className="bg-accent-foreground/10 border-accent-foreground/20 text-accent-foreground/80 text-xs border"
+                        className="bg-secondary border-border text-muted-foreground text-xs"
                       >
-                        {st.region.displayName}
+                        Tier {st.ladderTier}
                       </Chip>
-                    )}
-                    {st.grapes?.map(({ grape }) => (
-                      <Chip
-                        key={grape.id}
-                        variant="ghost"
-                        className="bg-accent-foreground/10 border-accent-foreground/20 text-accent-foreground/80 text-xs border"
-                      >
-                        {grape.displayName}
-                      </Chip>
-                    ))}
-                  </div>
-                  <div className="space-y-3">
-                    {(() => {
-                      const tannin = getStructureRange(st.structure, "tannin");
-                      return (
-                        <WineAttributeBar
-                          label="Tannin"
-                          minValue={tannin?.minValue ?? 0}
-                          maxValue={tannin?.maxValue ?? 0}
-                          max={tannin?.scaleMax ?? 5}
-                        />
-                      );
-                    })()}
-                    {(() => {
-                      const body = getStructureRange(st.structure, "body");
-                      return (
-                        <WineAttributeBar
-                          label="Body"
-                          minValue={body?.minValue ?? 0}
-                          maxValue={body?.maxValue ?? 0}
-                          max={body?.scaleMax ?? 5}
-                        />
-                      );
-                    })()}
+                    </div>
+                    <div className="space-y-2.5 pt-3 border-t border-border">
+                      {(() => {
+                        const tannin = getStructureRange(st.structure, "tannin");
+                        return (
+                          <WineAttributeBar
+                            label="Tannin"
+                            minValue={tannin?.minValue ?? 0}
+                            maxValue={tannin?.maxValue ?? 0}
+                            max={tannin?.scaleMax ?? 5}
+                          />
+                        );
+                      })()}
+                      {(() => {
+                        const body = getStructureRange(st.structure, "body");
+                        return (
+                          <WineAttributeBar
+                            label="Body"
+                            minValue={body?.minValue ?? 0}
+                            maxValue={body?.maxValue ?? 0}
+                            max={body?.scaleMax ?? 5}
+                          />
+                        );
+                      })()}
+                      {(() => {
+                        const acidity = getStructureRange(st.structure, "acidity");
+                        return (
+                          <WineAttributeBar
+                            label="Acidity"
+                            minValue={acidity?.minValue ?? 0}
+                            maxValue={acidity?.maxValue ?? 0}
+                            max={acidity?.scaleMax ?? 5}
+                          />
+                        );
+                      })()}
+                    </div>
                   </div>
                 </Link>
               </motion.div>

@@ -38,24 +38,24 @@ export function WineAttributeBar({
         : `${displayMax}/${scaleMax}`;
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1">
       <div className="flex justify-between items-center">
-        <span className="text-xs font-sans tracking-wide text-primary-foreground/70">
+        <span className="text-xs font-sans tracking-wide text-muted-foreground">
           {label}
         </span>
-        <span className="text-xs font-sans font-medium text-primary-foreground/80">
+        <span className="text-xs font-sans font-semibold text-foreground/70">
           {labelText}
         </span>
       </div>
-      <div className="h-1.5 rounded-full bg-primary-foreground/15 overflow-hidden relative">
+      <div className="h-1.5 rounded-full bg-border overflow-hidden relative">
         {isRange ? (
           <>
             <div
-              className="absolute inset-y-0 left-0 h-full rounded-l-full bg-wine-light transition-all duration-700 ease-out"
+              className="absolute inset-y-0 left-0 h-full rounded-l-full bg-gradient-to-r from-wine-deep to-wine-rich transition-all duration-700 ease-out"
               style={{ width: `${minPct}%` }}
             />
             <div
-              className="absolute inset-y-0 h-full rounded-r-full bg-wine-light/60 transition-all duration-700 ease-out"
+              className="absolute inset-y-0 h-full rounded-r-full bg-wine-rich/40 transition-all duration-700 ease-out"
               style={{
                 left: `${leftPct}%`,
                 width: `${widthPct}%`,
@@ -64,7 +64,7 @@ export function WineAttributeBar({
           </>
         ) : (
           <div
-            className="h-full rounded-full bg-wine-light transition-all duration-700 ease-out"
+            className="h-full rounded-full bg-gradient-to-r from-wine-deep to-wine-rich transition-all duration-700 ease-out"
             style={{ width: `${singlePct}%` }}
           />
         )}
