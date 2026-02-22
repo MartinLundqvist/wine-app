@@ -22,12 +22,17 @@ const CTASection = () => {
             <span className="italic font-normal">Awaits</span>
           </h2>
           <p className="text-cream-dark/70 text-lg mb-10 font-light leading-relaxed max-w-xl mx-auto">
-            Join thousands of wine lovers who have deepened their appreciation
-            and knowledge through our expertly crafted courses.
+            Join thousands of wine lovers who have deepened their appreciation and
+            knowledge through our expertly crafted courses.
           </p>
-          <Button variant="hero" size="lg" className="px-12 py-6" asChild>
-            <Link to="/explore">Begin Your Journey</Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button variant="hero" size="lg" className="px-10 py-6" asChild>
+              <Link to="/explore">Explore styles</Link>
+            </Button>
+            <Button variant="heroOutline" size="lg" className="px-10 py-6 border-cream/30 text-cream hover:bg-cream/10" asChild>
+              <Link to="/visualize">Visualize differences</Link>
+            </Button>
+          </div>
         </motion.div>
       </div>
     </section>
