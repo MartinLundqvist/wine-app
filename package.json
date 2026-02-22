@@ -9,7 +9,8 @@
     "build:web": "pnpm --filter web run build",
     "db:generate": "pnpm --filter db run generate",
     "db:up": "pnpm --filter db run up",
-    "db:down": "pnpm --filter db run down"
+    "db:down": "pnpm --filter db run down",
+    "clean": "find . -name node_modules -type d -prune -exec rm -rf {} +"
   },
   "engines": {
     "node": ">=20"
