@@ -5,7 +5,10 @@ import { Menu, X, Wine } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/contexts/AuthContext";
 
-const appNavLinks = [{ to: "/explore", label: "Explore" }];
+const appNavLinks = [
+  { to: "/explore", label: "Explore" },
+  { to: "/visualize", label: "Visualize" },
+];
 
 const LandingNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);

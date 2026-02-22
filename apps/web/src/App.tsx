@@ -15,6 +15,12 @@ const ExploreGrapesPage = lazy(() => import("./pages/explore/ExploreGrapesPage")
 const GrapeDetailPage = lazy(() => import("./pages/explore/GrapeDetailPage").then((m) => ({ default: m.GrapeDetailPage })));
 const ExploreRegionsPage = lazy(() => import("./pages/explore/ExploreRegionsPage").then((m) => ({ default: m.ExploreRegionsPage })));
 const ExploreAromasPage = lazy(() => import("./pages/explore/ExploreAromasPage").then((m) => ({ default: m.ExploreAromasPage })));
+const VisualizeLandingPage = lazy(() => import("./pages/visualize/VisualizeLandingPage").then((m) => ({ default: m.VisualizeLandingPage })));
+const StructureRadarPage = lazy(() => import("./pages/visualize/StructureRadarPage").then((m) => ({ default: m.StructureRadarPage })));
+const FlavorMapPage = lazy(() => import("./pages/visualize/FlavorMapPage").then((m) => ({ default: m.FlavorMapPage })));
+const ClimateExplorerPage = lazy(() => import("./pages/visualize/ClimateExplorerPage").then((m) => ({ default: m.ClimateExplorerPage })));
+const ConfusionZonePage = lazy(() => import("./pages/visualize/ConfusionZonePage").then((m) => ({ default: m.ConfusionZonePage })));
+const AgingSimulatorPage = lazy(() => import("./pages/visualize/AgingSimulatorPage").then((m) => ({ default: m.AgingSimulatorPage })));
 
 export default function App() {
   return (
@@ -28,6 +34,12 @@ export default function App() {
           <Route path="explore/styles/:id" element={<StyleTargetDetailPage />} />
           <Route path="explore/grapes" element={<ExploreGrapesPage />} />
           <Route path="explore/grapes/:id" element={<GrapeDetailPage />} />
+          <Route path="visualize" element={<VisualizeLandingPage />} />
+          <Route path="visualize/structure" element={<StructureRadarPage />} />
+          <Route path="visualize/flavor-map" element={<FlavorMapPage />} />
+          <Route path="visualize/climate" element={<ClimateExplorerPage />} />
+          <Route path="visualize/confusion" element={<ConfusionZonePage />} />
+          <Route path="visualize/aging" element={<AgingSimulatorPage />} />
         <Route
           path="explore/regions"
           element={

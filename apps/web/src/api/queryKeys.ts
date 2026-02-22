@@ -7,4 +7,6 @@ export const queryKeys = {
   aromaTerms: ["aroma-terms"] as const,
   structureDimensions: ["structure-dimensions"] as const,
   thermalBands: ["thermal-bands"] as const,
+  confusionGroup: (id: string, difficulty: string) =>
+    ["confusion-group", id, difficulty] as const,
 } as const;

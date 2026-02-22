@@ -6,6 +6,8 @@ import type {
   AromaTerm,
   ThermalBand,
   StyleTargetFull,
+  ConfusionGroupResponse,
+  ConfusionDifficulty,
 } from "@wine-app/shared";
 
 const getBaseUrl = () => {
@@ -57,6 +59,16 @@ export const api = {
     return fetchJson(`${base()}/style-targets/${encodeURIComponent(id)}`, {
       notFoundMessage: "Style target not found",
     });
+  },
+  async getConfusionGroup(
+    id: string,
+    difficulty: ConfusionDifficulty = "medium"
+  ): Promise<ConfusionGroupResponse> {
+    const params = new URLSearchParams({ difficulty });
+    return fetchJson(
+      `${base()}/style-targets/${encodeURIComponent(id)}/confusion-group?${params}`,
+      { notFoundMessage: "Style target not found" }
+    );
   },
 };
 

@@ -9,19 +9,27 @@ const TITLES: Record<string, string> = {
   "/explore/grapes": "Grape Varieties",
   "/explore/regions": "Wine Regions",
   "/explore/aromas": "Aromas",
+  "/visualize": "Visualize",
+  "/visualize/structure": "Structure Radar",
+  "/visualize/flavor-map": "Flavor Map",
+  "/visualize/climate": "Climate Explorer",
+  "/visualize/confusion": "Confusion Zone",
+  "/visualize/aging": "Aging Simulator",
   "/me": "My Account",
 };
 
 export function MainLayout() {
   const location = useLocation();
   const isFullWidth =
-    location.pathname === "/" || location.pathname.startsWith("/explore");
+    location.pathname === "/" ||
+    location.pathname.startsWith("/explore") ||
+    location.pathname.startsWith("/visualize");
 
   const title = location.pathname.startsWith("/explore/styles/")
     ? "Style"
     : location.pathname.startsWith("/explore/grapes/")
       ? "Grape"
-      : TITLES[location.pathname];
+      : TITLES[location.pathname] ?? "Wine App";
   useDocumentTitle(title);
 
   return (

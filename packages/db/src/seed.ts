@@ -404,6 +404,31 @@ async function seed() {
 
   const dimIds = ["acidity", "tannin", "alcohol", "body", "oak_intensity", "flavor_intensity", "color_intensity", "color_hue_white", "color_hue_red", "herbal_character", "earth_spice_character", "fruit_profile", "sweetness", "finish", "nose_intensity", "nose_development", "quality"];
 
+  type ContextEnrichment = {
+    agingPotentialYearsMin: number;
+    agingPotentialYearsMax: number;
+    commonTertiaryAromas: string;
+    structureEvolutionNotes: string;
+    continentality: "maritime" | "continental" | "mixed";
+    oakType: string;
+    oakNewPercentageRange: string;
+    malolacticConversion: "none" | "partial" | "full";
+  };
+  const contextEnrichment: Record<string, ContextEnrichment> = {
+    st_cabernet_sauvignon: { agingPotentialYearsMin: 5, agingPotentialYearsMax: 25, commonTertiaryAromas: "leather, tobacco, earth, cedar", structureEvolutionNotes: "Tannins soften; fruit recedes, tertiary notes develop.", continentality: "maritime", oakType: "French oak", oakNewPercentageRange: "25-50%", malolacticConversion: "full" },
+    st_merlot: { agingPotentialYearsMin: 3, agingPotentialYearsMax: 15, commonTertiaryAromas: "leather, tobacco, plum", structureEvolutionNotes: "Softer tannins than Cabernet; fruit-forward then savoury.", continentality: "maritime", oakType: "French oak", oakNewPercentageRange: "25-40%", malolacticConversion: "full" },
+    st_pinot_noir: { agingPotentialYearsMin: 3, agingPotentialYearsMax: 15, commonTertiaryAromas: "forest floor, mushroom, leather", structureEvolutionNotes: "Delicate; develops earth and sous-bois.", continentality: "continental", oakType: "French oak", oakNewPercentageRange: "20-40%", malolacticConversion: "full" },
+    st_syrah: { agingPotentialYearsMin: 4, agingPotentialYearsMax: 20, commonTertiaryAromas: "leather, meat, black pepper, earth", structureEvolutionNotes: "Peppery fruit evolves to savoury, gamey.", continentality: "continental", oakType: "French oak", oakNewPercentageRange: "0-30%", malolacticConversion: "full" },
+    st_grenache: { agingPotentialYearsMin: 2, agingPotentialYearsMax: 10, commonTertiaryAromas: "dried fruit, leather", structureEvolutionNotes: "Fruit-forward; best drunk young to mid-term.", continentality: "continental", oakType: "Large format / concrete", oakNewPercentageRange: "0-20%", malolacticConversion: "partial" },
+    st_nebbiolo: { agingPotentialYearsMin: 7, agingPotentialYearsMax: 30, commonTertiaryAromas: "tar, rose, leather, dried fruit", structureEvolutionNotes: "High tannin and acid allow long aging; tar and rose develop.", continentality: "continental", oakType: "Slavonian oak", oakNewPercentageRange: "0-15%", malolacticConversion: "full" },
+    st_sangiovese: { agingPotentialYearsMin: 4, agingPotentialYearsMax: 20, commonTertiaryAromas: "cherry, leather, earth, dried herbs", structureEvolutionNotes: "Acid and tannin support development; savoury with age.", continentality: "mixed", oakType: "Slavonian / French oak", oakNewPercentageRange: "0-30%", malolacticConversion: "full" },
+    st_tempranillo: { agingPotentialYearsMin: 5, agingPotentialYearsMax: 25, commonTertiaryAromas: "leather, tobacco, dried fig", structureEvolutionNotes: "Traditional Rioja: long oak and bottle age; strawberry to leather.", continentality: "continental", oakType: "American / French oak", oakNewPercentageRange: "30-70%", malolacticConversion: "full" },
+    st_zinfandel: { agingPotentialYearsMin: 2, agingPotentialYearsMax: 10, commonTertiaryAromas: "dried fruit, jam, pepper", structureEvolutionNotes: "Best young to mid-term; fruit fades.", continentality: "maritime", oakType: "American oak", oakNewPercentageRange: "20-40%", malolacticConversion: "full" },
+    st_chardonnay: { agingPotentialYearsMin: 3, agingPotentialYearsMax: 15, commonTertiaryAromas: "honey, nut, brioche, butter", structureEvolutionNotes: "Oak and MLF notes integrate; tertiary nut and honey.", continentality: "continental", oakType: "French oak", oakNewPercentageRange: "25-50%", malolacticConversion: "full" },
+    st_riesling: { agingPotentialYearsMin: 5, agingPotentialYearsMax: 30, commonTertiaryAromas: "petrol, honey, kerosene", structureEvolutionNotes: "Acid preserves; petrol and honey develop with age.", continentality: "continental", oakType: "None (stainless)", oakNewPercentageRange: "0%", malolacticConversion: "none" },
+    st_sauvignon_blanc: { agingPotentialYearsMin: 1, agingPotentialYearsMax: 5, commonTertiaryAromas: "grass, asparagus, flint", structureEvolutionNotes: "Best young; primary fruit and herbaceous notes fade.", continentality: "maritime", oakType: "None or neutral", oakNewPercentageRange: "0%", malolacticConversion: "none" },
+  };
+
   for (const st of styleTargetsData) {
     await db.insert(styleTarget).values({
       id: st.id,
@@ -448,11 +473,34 @@ async function seed() {
       }).onConflictDoNothing();
     }
 
+    const ctx = contextEnrichment[st.id];
     await db.insert(styleTargetContext).values({
       styleTargetId: st.id,
       thermalBandId: st.thermalBandId,
       notes: null,
-    }).onConflictDoNothing();
+      agingPotentialYearsMin: ctx?.agingPotentialYearsMin ?? null,
+      agingPotentialYearsMax: ctx?.agingPotentialYearsMax ?? null,
+      commonTertiaryAromas: ctx?.commonTertiaryAromas ?? null,
+      structureEvolutionNotes: ctx?.structureEvolutionNotes ?? null,
+      continentality: ctx?.continentality ?? null,
+      oakType: ctx?.oakType ?? null,
+      oakNewPercentageRange: ctx?.oakNewPercentageRange ?? null,
+      malolacticConversion: ctx?.malolacticConversion ?? null,
+    }).onConflictDoUpdate({
+      target: styleTargetContext.styleTargetId,
+      set: {
+        thermalBandId: st.thermalBandId,
+        notes: null,
+        agingPotentialYearsMin: ctx?.agingPotentialYearsMin ?? null,
+        agingPotentialYearsMax: ctx?.agingPotentialYearsMax ?? null,
+        commonTertiaryAromas: ctx?.commonTertiaryAromas ?? null,
+        structureEvolutionNotes: ctx?.structureEvolutionNotes ?? null,
+        continentality: ctx?.continentality ?? null,
+        oakType: ctx?.oakType ?? null,
+        oakNewPercentageRange: ctx?.oakNewPercentageRange ?? null,
+        malolacticConversion: ctx?.malolacticConversion ?? null,
+      },
+    });
   }
 
   console.log("Seed complete.");

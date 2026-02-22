@@ -7,6 +7,7 @@ type ExplorePageShellProps = {
   title: string;
   subtitle: string;
   icon: ReactNode;
+  sectionLabel?: string;
   backTo?: { path: string; label: string };
   children: ReactNode;
 };
@@ -15,20 +16,25 @@ export function ExplorePageShell({
   title,
   subtitle,
   icon,
-  backTo = { path: "/explore", label: "Back to Explore" },
+  sectionLabel = "Explore",
+  backTo,
   children,
 }: ExplorePageShellProps) {
+  const defaultBackTo = sectionLabel === "Visualize"
+    ? { path: "/visualize", label: "Back to Visualize" }
+    : { path: "/explore", label: "Back to Explore" };
+  const resolvedBackTo = backTo ?? defaultBackTo;
   return (
     <div className="min-h-screen bg-background">
       <div className="bg-gradient-hero">
         <div className="max-w-6xl mx-auto px-6 pt-20 pb-20 md:pt-24 md:pb-28">
-          {backTo && (
+          {resolvedBackTo && (
             <Link
-              to={backTo.path}
+              to={resolvedBackTo.path}
               className="inline-flex items-center gap-2 text-primary-foreground/60 hover:text-primary-foreground transition-colors mb-8 text-sm font-sans"
             >
               <ArrowLeft className="w-4 h-4" />
-              {backTo.label}
+              {resolvedBackTo.label}
             </Link>
           )}
 
@@ -40,7 +46,7 @@ export function ExplorePageShell({
           >
             {icon}
             <p className="text-sm tracking-[0.25em] uppercase text-wine-light font-sans">
-              Explore
+              {sectionLabel}
             </p>
           </motion.div>
 

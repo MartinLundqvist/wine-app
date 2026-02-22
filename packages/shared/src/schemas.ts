@@ -238,3 +238,42 @@ export const aromaTermsResponseSchema = z.array(aromaTermSchema);
 export const thermalBandsResponseSchema = z.array(thermalBandSchema);
 export const styleTargetsResponseSchema = z.array(styleTargetFullSchema);
 export const styleTargetResponseSchema = styleTargetFullSchema;
+
+// Confusion group (similar-style distractors)
+export const confusionDifficultySchema = z.enum(["easy", "medium", "hard"]);
+export type ConfusionDifficulty = z.infer<typeof confusionDifficultySchema>;
+
+export const confusionAromaSetsSchema = z.object({
+  sharedAromas: z.array(z.string()),
+  targetUniqueAromas: z.array(z.string()),
+  distractorUniqueAromas: z.array(z.string()),
+});
+export type ConfusionAromaSets = z.infer<typeof confusionAromaSetsSchema>;
+
+export const confusionDistractorRoleSchema = z.enum([
+  "evil_twin",
+  "structural_match",
+  "directional_match",
+]);
+export type ConfusionDistractorRole = z.infer<typeof confusionDistractorRoleSchema>;
+
+export const confusionDistractorSchema = z.object({
+  styleId: z.string(),
+  styleName: z.string(),
+  role: confusionDistractorRoleSchema,
+  similarity: z.number(),
+  pivotDimensions: z.array(z.string()),
+  aromaSets: confusionAromaSetsSchema,
+  whyConfusing: z.string(),
+  howToDistinguish: z.string(),
+});
+export type ConfusionDistractor = z.infer<typeof confusionDistractorSchema>;
+
+export const confusionGroupResponseSchema = z.object({
+  targetStyleId: z.string(),
+  difficulty: confusionDifficultySchema,
+  distractors: z.array(confusionDistractorSchema),
+  insufficientCandidates: z.boolean(),
+  generatedAt: z.string(),
+});
+export type ConfusionGroupResponse = z.infer<typeof confusionGroupResponseSchema>;

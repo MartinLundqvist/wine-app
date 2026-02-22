@@ -68,6 +68,10 @@ export default {
           700: "hsl(var(--moss-700))",
           600: "hsl(var(--moss-600))",
         },
+        "slate-cool": "hsl(var(--slate-cool))",
+        "terracotta-warm": "hsl(var(--terracotta-warm))",
+        "gold-muted": "hsl(var(--gold-muted))",
+        "charcoal-muted": "hsl(var(--charcoal-muted))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

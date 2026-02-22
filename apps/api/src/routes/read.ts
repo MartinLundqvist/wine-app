@@ -16,6 +16,7 @@ import {
 } from "@wine-app/db/schema";
 import { regionsMapConfigResponseSchema } from "@wine-app/shared";
 import { eq, inArray } from "drizzle-orm";
+import { getConfusionGroup } from "../services/confusion.js";
 
 export async function registerReadRoutes(app: FastifyInstance) {
   app.get("/grapes", async (_req: FastifyRequest, reply: FastifyReply) => {
@@ -198,6 +199,55 @@ export async function registerReadRoutes(app: FastifyInstance) {
       if (!target) return reply.status(404).send({ error: "Style target not found" });
       const [full] = await buildStyleTargetFull([target]);
       return reply.send(full);
+    }
+  );
+
+  app.get(
+    "/style-targets/:id/confusion-group",
+    async (
+      req: FastifyRequest<{
+        Params: { id: string };
+        Querystring: { difficulty?: string };
+      }>,
+      reply: FastifyReply
+    ) => {
+      const { id } = req.params;
+      const rawDifficulty = req.query.difficulty ?? "medium";
+      const difficulty =
+        rawDifficulty === "easy" || rawDifficulty === "medium" || rawDifficulty === "hard"
+          ? rawDifficulty
+          : null;
+      if (!difficulty) {
+        return reply.status(400).send({
+          error: "Invalid difficulty",
+          message: "Query param 'difficulty' must be one of: easy, medium, hard",
+        });
+      }
+      const [target] = await db
+        .select()
+        .from(styleTarget)
+        .where(eq(styleTarget.id, id));
+      if (!target) {
+        return reply.status(404).send({ error: "Style target not found" });
+      }
+      const targets = await db
+        .select()
+        .from(styleTarget)
+        .orderBy(styleTarget.ladderTier, styleTarget.displayName);
+      const styles = await buildStyleTargetFull(targets);
+      const aromaTerms = await db.select().from(aromaTerm);
+      const result = getConfusionGroup(
+        styles,
+        aromaTerms.map((t) => ({
+          id: t.id,
+          displayName: t.displayName,
+          parentId: t.parentId,
+          source: t.source,
+        })),
+        id,
+        difficulty
+      );
+      return reply.send(result);
     }
   );
 }
