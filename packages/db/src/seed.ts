@@ -170,27 +170,155 @@ async function seed() {
     await db.insert(aromaCluster).values(c).onConflictDoNothing();
   }
 
-  // Aroma descriptors (subset used by seed styles)
+  // Aroma descriptors: WSET Level 3 Wine-Lexicon, page 2 (exact cluster parity)
   console.log("Seeding aroma_descriptor...");
   const descriptors: { id: string; displayName: string; aromaClusterId: string }[] = [
+    // Primary — Floral
+    { id: "desc_acacia", displayName: "Acacia", aromaClusterId: "cluster_floral" },
+    { id: "desc_honeysuckle", displayName: "Honeysuckle", aromaClusterId: "cluster_floral" },
+    { id: "desc_chamomile", displayName: "Chamomile", aromaClusterId: "cluster_floral" },
+    { id: "desc_elderflower", displayName: "Elderflower", aromaClusterId: "cluster_floral" },
+    { id: "desc_geranium", displayName: "Geranium", aromaClusterId: "cluster_floral" },
+    { id: "desc_blossom", displayName: "Blossom", aromaClusterId: "cluster_floral" },
+    { id: "desc_rose", displayName: "Rose", aromaClusterId: "cluster_floral" },
+    { id: "desc_violet", displayName: "Violet", aromaClusterId: "cluster_floral" },
+    // Primary — Green Fruit
     { id: "desc_apple", displayName: "Apple", aromaClusterId: "cluster_green_fruit" },
+    { id: "desc_gooseberry", displayName: "Gooseberry", aromaClusterId: "cluster_green_fruit" },
+    { id: "desc_pear", displayName: "Pear", aromaClusterId: "cluster_green_fruit" },
+    { id: "desc_pear_drop", displayName: "Pear Drop", aromaClusterId: "cluster_green_fruit" },
+    { id: "desc_quince", displayName: "Quince", aromaClusterId: "cluster_green_fruit" },
+    { id: "desc_grape", displayName: "Grape", aromaClusterId: "cluster_green_fruit" },
+    // Primary — Citrus
+    { id: "desc_grapefruit", displayName: "Grapefruit", aromaClusterId: "cluster_citrus" },
+    { id: "desc_lemon", displayName: "Lemon", aromaClusterId: "cluster_citrus" },
+    { id: "desc_lime", displayName: "Lime", aromaClusterId: "cluster_citrus" },
+    { id: "desc_orange_peel", displayName: "Orange Peel", aromaClusterId: "cluster_citrus" },
+    { id: "desc_lemon_peel", displayName: "Lemon Peel", aromaClusterId: "cluster_citrus" },
+    // Primary — Stone Fruit
+    { id: "desc_peach", displayName: "Peach", aromaClusterId: "cluster_stone_fruit" },
+    { id: "desc_apricot", displayName: "Apricot", aromaClusterId: "cluster_stone_fruit" },
+    { id: "desc_nectarine", displayName: "Nectarine", aromaClusterId: "cluster_stone_fruit" },
+    // Primary — Tropical
+    { id: "desc_banana", displayName: "Banana", aromaClusterId: "cluster_tropical" },
+    { id: "desc_lychee", displayName: "Lychee", aromaClusterId: "cluster_tropical" },
+    { id: "desc_mango", displayName: "Mango", aromaClusterId: "cluster_tropical" },
+    { id: "desc_melon", displayName: "Melon", aromaClusterId: "cluster_tropical" },
+    { id: "desc_passion_fruit", displayName: "Passion Fruit", aromaClusterId: "cluster_tropical" },
+    { id: "desc_pineapple", displayName: "Pineapple", aromaClusterId: "cluster_tropical" },
+    // Primary — Red Fruit
+    { id: "desc_redcurrant", displayName: "Redcurrant", aromaClusterId: "cluster_red_fruit" },
+    { id: "desc_cranberry", displayName: "Cranberry", aromaClusterId: "cluster_red_fruit" },
+    { id: "desc_raspberry", displayName: "Raspberry", aromaClusterId: "cluster_red_fruit" },
+    { id: "desc_strawberry", displayName: "Strawberry", aromaClusterId: "cluster_red_fruit" },
+    { id: "desc_red_cherry", displayName: "Red Cherry", aromaClusterId: "cluster_red_fruit" },
+    { id: "desc_red_plum", displayName: "Red Plum", aromaClusterId: "cluster_red_fruit" },
+    // Primary — Black Fruit
     { id: "desc_blackcurrant", displayName: "Blackcurrant", aromaClusterId: "cluster_black_fruit" },
     { id: "desc_blackberry", displayName: "Blackberry", aromaClusterId: "cluster_black_fruit" },
+    { id: "desc_bramble", displayName: "Bramble", aromaClusterId: "cluster_black_fruit" },
+    { id: "desc_blueberry", displayName: "Blueberry", aromaClusterId: "cluster_black_fruit" },
+    { id: "desc_black_cherry", displayName: "Black Cherry", aromaClusterId: "cluster_black_fruit" },
+    { id: "desc_black_plum", displayName: "Black Plum", aromaClusterId: "cluster_black_fruit" },
+    // Primary — Dried/Cooked Fruit
+    { id: "desc_fig", displayName: "Fig", aromaClusterId: "cluster_dried_cooked_fruit" },
+    { id: "desc_prune", displayName: "Prune", aromaClusterId: "cluster_dried_cooked_fruit" },
+    { id: "desc_raisin", displayName: "Raisin", aromaClusterId: "cluster_dried_cooked_fruit" },
+    { id: "desc_sultana", displayName: "Sultana", aromaClusterId: "cluster_dried_cooked_fruit" },
+    { id: "desc_kirsch", displayName: "Kirsch", aromaClusterId: "cluster_dried_cooked_fruit" },
+    { id: "desc_jamminess", displayName: "Jamminess", aromaClusterId: "cluster_dried_cooked_fruit" },
+    { id: "desc_baked_stewed_fruits", displayName: "Baked/Stewed Fruits", aromaClusterId: "cluster_dried_cooked_fruit" },
+    { id: "desc_preserved_fruits", displayName: "Preserved Fruits", aromaClusterId: "cluster_dried_cooked_fruit" },
+    // Primary — Herbaceous
+    { id: "desc_green_bell_pepper", displayName: "Green Bell Pepper (Capsicum)", aromaClusterId: "cluster_herbaceous" },
+    { id: "desc_grass", displayName: "Grass", aromaClusterId: "cluster_herbaceous" },
+    { id: "desc_tomato_leaf", displayName: "Tomato Leaf", aromaClusterId: "cluster_herbaceous" },
+    { id: "desc_asparagus", displayName: "Asparagus", aromaClusterId: "cluster_herbaceous" },
+    { id: "desc_blackcurrant_leaf", displayName: "Blackcurrant Leaf", aromaClusterId: "cluster_herbaceous" },
+    // Primary — Herbal
+    { id: "desc_eucalyptus", displayName: "Eucalyptus", aromaClusterId: "cluster_herbal" },
+    { id: "desc_mint", displayName: "Mint", aromaClusterId: "cluster_herbal" },
+    { id: "desc_medicinal", displayName: "Medicinal", aromaClusterId: "cluster_herbal" },
+    { id: "desc_lavender", displayName: "Lavender", aromaClusterId: "cluster_herbal" },
+    { id: "desc_fennel", displayName: "Fennel", aromaClusterId: "cluster_herbal" },
+    { id: "desc_dill", displayName: "Dill", aromaClusterId: "cluster_herbal" },
+    // Primary — Pungent Spice
+    { id: "desc_black_white_pepper", displayName: "Black/White Pepper", aromaClusterId: "cluster_pungent_spice" },
+    { id: "desc_liquorice", displayName: "Liquorice", aromaClusterId: "cluster_pungent_spice" },
+    // Primary — Other
+    { id: "desc_flint", displayName: "Flint", aromaClusterId: "cluster_other_primary" },
+    { id: "desc_wet_stones", displayName: "Wet Stones", aromaClusterId: "cluster_other_primary" },
+    { id: "desc_wet_wool", displayName: "Wet Wool", aromaClusterId: "cluster_other_primary" },
+    // Secondary — Yeast
+    { id: "desc_biscuit", displayName: "Biscuit", aromaClusterId: "cluster_yeast" },
+    { id: "desc_bread", displayName: "Bread", aromaClusterId: "cluster_yeast" },
+    { id: "desc_toast_yeast", displayName: "Toast", aromaClusterId: "cluster_yeast" },
+    { id: "desc_pastry", displayName: "Pastry", aromaClusterId: "cluster_yeast" },
+    { id: "desc_brioche", displayName: "Brioche", aromaClusterId: "cluster_yeast" },
+    { id: "desc_bread_dough", displayName: "Bread Dough", aromaClusterId: "cluster_yeast" },
+    { id: "desc_cheese_yeast", displayName: "Cheese", aromaClusterId: "cluster_yeast" },
+    // Secondary — Malolactic
+    { id: "desc_butter", displayName: "Butter", aromaClusterId: "cluster_malolactic" },
+    { id: "desc_cheese_malolactic", displayName: "Cheese", aromaClusterId: "cluster_malolactic" },
+    { id: "desc_cream", displayName: "Cream", aromaClusterId: "cluster_malolactic" },
+    // Secondary — Oak
     { id: "desc_vanilla", displayName: "Vanilla", aromaClusterId: "cluster_oak" },
     { id: "desc_cloves", displayName: "Cloves", aromaClusterId: "cluster_oak" },
-    { id: "desc_plum", displayName: "Plum", aromaClusterId: "cluster_red_fruit" },
-    { id: "desc_cherry", displayName: "Cherry", aromaClusterId: "cluster_red_fruit" },
-    { id: "desc_raspberry", displayName: "Raspberry", aromaClusterId: "cluster_red_fruit" },
-    { id: "desc_earth", displayName: "Earth", aromaClusterId: "cluster_bottle_age_red" },
+    { id: "desc_nutmeg_oak", displayName: "Nutmeg", aromaClusterId: "cluster_oak" },
+    { id: "desc_coconut", displayName: "Coconut", aromaClusterId: "cluster_oak" },
+    { id: "desc_butterscotch", displayName: "Butterscotch", aromaClusterId: "cluster_oak" },
+    { id: "desc_toast_oak", displayName: "Toast", aromaClusterId: "cluster_oak" },
+    { id: "desc_cedar", displayName: "Cedar", aromaClusterId: "cluster_oak" },
+    { id: "desc_charred_wood", displayName: "Charred Wood", aromaClusterId: "cluster_oak" },
+    { id: "desc_smoke", displayName: "Smoke", aromaClusterId: "cluster_oak" },
+    { id: "desc_chocolate_oak", displayName: "Chocolate", aromaClusterId: "cluster_oak" },
+    { id: "desc_coffee_oak", displayName: "Coffee", aromaClusterId: "cluster_oak" },
+    { id: "desc_resinous", displayName: "Resinous", aromaClusterId: "cluster_oak" },
+    // Tertiary — Oxidation
+    { id: "desc_almond", displayName: "Almond", aromaClusterId: "cluster_oxidation" },
+    { id: "desc_marzipan", displayName: "Marzipan", aromaClusterId: "cluster_oxidation" },
+    { id: "desc_hazelnut", displayName: "Hazelnut", aromaClusterId: "cluster_oxidation" },
+    { id: "desc_walnut", displayName: "Walnut", aromaClusterId: "cluster_oxidation" },
+    { id: "desc_chocolate_oxidation", displayName: "Chocolate", aromaClusterId: "cluster_oxidation" },
+    { id: "desc_coffee_oxidation", displayName: "Coffee", aromaClusterId: "cluster_oxidation" },
+    { id: "desc_toffee", displayName: "Toffee", aromaClusterId: "cluster_oxidation" },
+    { id: "desc_caramel", displayName: "Caramel", aromaClusterId: "cluster_oxidation" },
+    // Tertiary — Fruit Development (White)
+    { id: "desc_dried_apricot", displayName: "Dried Apricot", aromaClusterId: "cluster_fruit_dev_white" },
+    { id: "desc_marmalade", displayName: "Marmalade", aromaClusterId: "cluster_fruit_dev_white" },
+    { id: "desc_dried_apple", displayName: "Dried Apple", aromaClusterId: "cluster_fruit_dev_white" },
+    { id: "desc_dried_banana", displayName: "Dried Banana", aromaClusterId: "cluster_fruit_dev_white" },
+    // Tertiary — Fruit Development (Red)
+    { id: "desc_fig_fruit_dev_red", displayName: "Fig", aromaClusterId: "cluster_fruit_dev_red" },
+    { id: "desc_prune_fruit_dev_red", displayName: "Prune", aromaClusterId: "cluster_fruit_dev_red" },
+    { id: "desc_tar", displayName: "Tar", aromaClusterId: "cluster_fruit_dev_red" },
+    { id: "desc_dried_blackberry", displayName: "Dried Blackberry", aromaClusterId: "cluster_fruit_dev_red" },
+    { id: "desc_dried_cranberry", displayName: "Dried Cranberry", aromaClusterId: "cluster_fruit_dev_red" },
+    { id: "desc_cooked_blackberry", displayName: "Cooked Blackberry", aromaClusterId: "cluster_fruit_dev_red" },
+    { id: "desc_cooked_red_plum", displayName: "Cooked Red Plum", aromaClusterId: "cluster_fruit_dev_red" },
+    // Tertiary — Bottle Age (White)
+    { id: "desc_petrol", displayName: "Petrol", aromaClusterId: "cluster_bottle_age_white" },
+    { id: "desc_kerosene", displayName: "Kerosene", aromaClusterId: "cluster_bottle_age_white" },
+    { id: "desc_cinnamon", displayName: "Cinnamon", aromaClusterId: "cluster_bottle_age_white" },
+    { id: "desc_ginger", displayName: "Ginger", aromaClusterId: "cluster_bottle_age_white" },
+    { id: "desc_nutmeg_bottle_age_white", displayName: "Nutmeg", aromaClusterId: "cluster_bottle_age_white" },
+    { id: "desc_toast_bottle_age_white", displayName: "Toast", aromaClusterId: "cluster_bottle_age_white" },
+    { id: "desc_nutty", displayName: "Nutty", aromaClusterId: "cluster_bottle_age_white" },
+    { id: "desc_mushroom_bottle_age_white", displayName: "Mushroom", aromaClusterId: "cluster_bottle_age_white" },
+    { id: "desc_hay", displayName: "Hay", aromaClusterId: "cluster_bottle_age_white" },
+    { id: "desc_honey", displayName: "Honey", aromaClusterId: "cluster_bottle_age_white" },
+    // Tertiary — Bottle Age (Red)
     { id: "desc_leather", displayName: "Leather", aromaClusterId: "cluster_bottle_age_red" },
-    { id: "desc_black_pepper", displayName: "Black pepper", aromaClusterId: "cluster_herbal" },
-    { id: "desc_strawberry", displayName: "Strawberry", aromaClusterId: "cluster_red_fruit" },
-    { id: "desc_butter", displayName: "Butter", aromaClusterId: "cluster_malolactic" },
-    { id: "desc_cream", displayName: "Cream", aromaClusterId: "cluster_malolactic" },
-    { id: "desc_grapefruit", displayName: "Grapefruit", aromaClusterId: "cluster_citrus" },
-    { id: "desc_honeysuckle", displayName: "Honeysuckle", aromaClusterId: "cluster_floral" },
-    { id: "desc_grass", displayName: "Grass", aromaClusterId: "cluster_herbaceous" },
-    { id: "desc_bell_pepper", displayName: "Green bell pepper", aromaClusterId: "cluster_herbaceous" },
+    { id: "desc_forest_floor", displayName: "Forest Floor", aromaClusterId: "cluster_bottle_age_red" },
+    { id: "desc_earth", displayName: "Earth", aromaClusterId: "cluster_bottle_age_red" },
+    { id: "desc_mushroom_bottle_age_red", displayName: "Mushroom", aromaClusterId: "cluster_bottle_age_red" },
+    { id: "desc_game", displayName: "Game", aromaClusterId: "cluster_bottle_age_red" },
+    { id: "desc_tobacco", displayName: "Tobacco", aromaClusterId: "cluster_bottle_age_red" },
+    { id: "desc_vegetal", displayName: "Vegetal", aromaClusterId: "cluster_bottle_age_red" },
+    { id: "desc_wet_leaves", displayName: "Wet Leaves", aromaClusterId: "cluster_bottle_age_red" },
+    { id: "desc_savoury", displayName: "Savoury", aromaClusterId: "cluster_bottle_age_red" },
+    { id: "desc_meaty", displayName: "Meaty", aromaClusterId: "cluster_bottle_age_red" },
+    { id: "desc_farmyard", displayName: "Farmyard", aromaClusterId: "cluster_bottle_age_red" },
   ];
   for (const d of descriptors) {
     await db.insert(aromaDescriptor).values(d).onConflictDoNothing();
@@ -277,7 +405,7 @@ async function seed() {
       climateMax: 3,
       structure: { tannins: { min: 3, max: 3 }, sweetness: { min: 1, max: 1 }, body: { min: 3, max: 3 }, acidity: { min: 3, max: 3 }, alcohol: { min: 3, max: 3 }, overall_intensity: { min: 4, max: 4 }, oak_influence: { min: 3, max: 3 }, finish_length: { min: 3, max: 4 } },
       aromaClusters: [{ clusterId: "cluster_red_fruit", intensityMin: 4, intensityMax: 4 }, { clusterId: "cluster_oak", intensityMin: 3, intensityMax: 3 }],
-      aromaDescriptors: [{ descriptorId: "desc_plum", salience: "dominant" }, { descriptorId: "desc_cherry", salience: "dominant" }, { descriptorId: "desc_vanilla", salience: "supporting" }],
+      aromaDescriptors: [{ descriptorId: "desc_red_plum", salience: "dominant" }, { descriptorId: "desc_red_cherry", salience: "dominant" }, { descriptorId: "desc_vanilla", salience: "supporting" }],
     },
     {
       id: "ws_pinot_noir",
@@ -288,7 +416,7 @@ async function seed() {
       climateMax: 2,
       structure: { tannins: { min: 2, max: 2 }, sweetness: { min: 1, max: 1 }, body: { min: 2, max: 2 }, acidity: { min: 4, max: 4 }, alcohol: { min: 3, max: 3 }, overall_intensity: { min: 3, max: 3 }, oak_influence: { min: 2, max: 2 }, finish_length: { min: 4, max: 5 } },
       aromaClusters: [{ clusterId: "cluster_red_fruit", intensityMin: 3, intensityMax: 4 }, { clusterId: "cluster_bottle_age_red", intensityMin: 2, intensityMax: 3 }],
-      aromaDescriptors: [{ descriptorId: "desc_cherry", salience: "dominant" }, { descriptorId: "desc_raspberry", salience: "dominant" }, { descriptorId: "desc_earth", salience: "supporting" }, { descriptorId: "desc_leather", salience: "supporting" }],
+      aromaDescriptors: [{ descriptorId: "desc_red_cherry", salience: "dominant" }, { descriptorId: "desc_raspberry", salience: "dominant" }, { descriptorId: "desc_earth", salience: "supporting" }, { descriptorId: "desc_leather", salience: "supporting" }],
     },
     {
       id: "ws_syrah",
@@ -299,7 +427,7 @@ async function seed() {
       climateMax: 4,
       structure: { tannins: { min: 4, max: 4 }, sweetness: { min: 1, max: 1 }, body: { min: 4, max: 4 }, acidity: { min: 3, max: 3 }, alcohol: { min: 3, max: 3 }, overall_intensity: { min: 4, max: 4 }, oak_influence: { min: 3, max: 3 }, finish_length: { min: 4, max: 5 } },
       aromaClusters: [{ clusterId: "cluster_black_fruit", intensityMin: 4, intensityMax: 4 }, { clusterId: "cluster_herbal", intensityMin: 3, intensityMax: 4 }, { clusterId: "cluster_bottle_age_red", intensityMin: 2, intensityMax: 3 }],
-      aromaDescriptors: [{ descriptorId: "desc_blackberry", salience: "dominant" }, { descriptorId: "desc_black_pepper", salience: "dominant" }, { descriptorId: "desc_leather", salience: "supporting" }],
+      aromaDescriptors: [{ descriptorId: "desc_blackberry", salience: "dominant" }, { descriptorId: "desc_black_white_pepper", salience: "dominant" }, { descriptorId: "desc_leather", salience: "supporting" }],
     },
     {
       id: "ws_grenache",
@@ -321,7 +449,7 @@ async function seed() {
       climateMax: 2,
       structure: { tannins: { min: 5, max: 5 }, sweetness: { min: 1, max: 1 }, body: { min: 4, max: 4 }, acidity: { min: 4, max: 4 }, alcohol: { min: 3, max: 3 }, overall_intensity: { min: 4, max: 4 }, oak_influence: { min: 3, max: 3 }, finish_length: { min: 4, max: 5 } },
       aromaClusters: [{ clusterId: "cluster_red_fruit", intensityMin: 4, intensityMax: 4 }, { clusterId: "cluster_herbal", intensityMin: 2, intensityMax: 3 }, { clusterId: "cluster_bottle_age_red", intensityMin: 3, intensityMax: 4 }],
-      aromaDescriptors: [{ descriptorId: "desc_cherry", salience: "dominant" }, { descriptorId: "desc_leather", salience: "dominant" }, { descriptorId: "desc_earth", salience: "supporting" }, { descriptorId: "desc_black_pepper", salience: "supporting" }],
+      aromaDescriptors: [{ descriptorId: "desc_red_cherry", salience: "dominant" }, { descriptorId: "desc_leather", salience: "dominant" }, { descriptorId: "desc_earth", salience: "supporting" }, { descriptorId: "desc_black_white_pepper", salience: "supporting" }],
     },
     {
       id: "ws_sangiovese",
@@ -332,7 +460,7 @@ async function seed() {
       climateMax: 3,
       structure: { tannins: { min: 4, max: 4 }, sweetness: { min: 1, max: 1 }, body: { min: 3, max: 3 }, acidity: { min: 4, max: 4 }, alcohol: { min: 3, max: 3 }, overall_intensity: { min: 4, max: 4 }, oak_influence: { min: 3, max: 3 }, finish_length: { min: 4, max: 4 } },
       aromaClusters: [{ clusterId: "cluster_red_fruit", intensityMin: 4, intensityMax: 4 }, { clusterId: "cluster_bottle_age_red", intensityMin: 2, intensityMax: 3 }],
-      aromaDescriptors: [{ descriptorId: "desc_cherry", salience: "dominant" }, { descriptorId: "desc_earth", salience: "supporting" }, { descriptorId: "desc_plum", salience: "supporting" }],
+      aromaDescriptors: [{ descriptorId: "desc_red_cherry", salience: "dominant" }, { descriptorId: "desc_earth", salience: "supporting" }, { descriptorId: "desc_red_plum", salience: "supporting" }],
     },
     {
       id: "ws_tempranillo",
@@ -343,7 +471,7 @@ async function seed() {
       climateMax: 3,
       structure: { tannins: { min: 4, max: 4 }, sweetness: { min: 1, max: 1 }, body: { min: 4, max: 4 }, acidity: { min: 3, max: 3 }, alcohol: { min: 3, max: 3 }, overall_intensity: { min: 4, max: 4 }, oak_influence: { min: 4, max: 4 }, finish_length: { min: 4, max: 5 } },
       aromaClusters: [{ clusterId: "cluster_red_fruit", intensityMin: 4, intensityMax: 4 }, { clusterId: "cluster_oak", intensityMin: 4, intensityMax: 4 }, { clusterId: "cluster_bottle_age_red", intensityMin: 3, intensityMax: 4 }],
-      aromaDescriptors: [{ descriptorId: "desc_strawberry", salience: "dominant" }, { descriptorId: "desc_plum", salience: "dominant" }, { descriptorId: "desc_leather", salience: "supporting" }, { descriptorId: "desc_vanilla", salience: "supporting" }],
+      aromaDescriptors: [{ descriptorId: "desc_strawberry", salience: "dominant" }, { descriptorId: "desc_red_plum", salience: "dominant" }, { descriptorId: "desc_leather", salience: "supporting" }, { descriptorId: "desc_vanilla", salience: "supporting" }],
     },
     {
       id: "ws_zinfandel",
@@ -387,7 +515,7 @@ async function seed() {
       climateMax: 2,
       structure: { tannins: { min: 1, max: 1 }, sweetness: { min: 1, max: 1 }, body: { min: 2, max: 2 }, acidity: { min: 5, max: 5 }, alcohol: { min: 1, max: 2 }, overall_intensity: { min: 4, max: 4 }, oak_influence: { min: 1, max: 1 }, finish_length: { min: 3, max: 4 } },
       aromaClusters: [{ clusterId: "cluster_citrus", intensityMin: 4, intensityMax: 5 }, { clusterId: "cluster_herbaceous", intensityMin: 4, intensityMax: 5 }],
-      aromaDescriptors: [{ descriptorId: "desc_grapefruit", salience: "dominant" }, { descriptorId: "desc_grass", salience: "dominant" }, { descriptorId: "desc_bell_pepper", salience: "supporting" }],
+      aromaDescriptors: [{ descriptorId: "desc_grapefruit", salience: "dominant" }, { descriptorId: "desc_grass", salience: "dominant" }, { descriptorId: "desc_green_bell_pepper", salience: "supporting" }],
     },
   ];
 
