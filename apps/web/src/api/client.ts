@@ -1,5 +1,5 @@
 import type {
-  AromaTermFlat,
+  AromaSourceWithClusters,
   GrapeWithWineStyleIds,
   Region,
   RegionsMapConfigResponse,
@@ -45,8 +45,8 @@ export const api = {
   async getStructureDimensions(): Promise<StructureDimensionWithScale[]> {
     return fetchJson(`${base()}/structure-dimensions`);
   },
-  async getAromaTerms(): Promise<AromaTermFlat[]> {
-    return fetchJson(`${base()}/aroma-terms`);
+  async getAromaTaxonomy(): Promise<AromaSourceWithClusters[]> {
+    return fetchJson(`${base()}/aroma-taxonomy`);
   },
   async getOrdinalScales(): Promise<{ id: string; displayName: string; labels: string[] }[]> {
     return fetchJson(`${base()}/ordinal-scales`);

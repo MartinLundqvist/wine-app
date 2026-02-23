@@ -9,7 +9,7 @@ import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { Chip } from "../../components/ui/Chip";
 import { WineAttributeBar } from "../../components/ui/WineAttributeBar";
 
-export function StyleTargetDetailPage() {
+export function WineStyleDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: style, isLoading, error } = useQuery({
     queryKey: queryKeys.styleTarget(id!),

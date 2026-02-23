@@ -4,9 +4,8 @@ export const queryKeys = {
   styleTarget: (id: string) => ["style-target", id] as const,
   regions: ["regions"] as const,
   regionsMapConfig: ["regions-map-config"] as const,
-  aromaTerms: ["aroma-terms"] as const,
+  aromaTaxonomy: ["aroma-taxonomy"] as const,
   structureDimensions: ["structure-dimensions"] as const,
-  thermalBands: ["thermal-bands"] as const, // deprecated; kept for cache key compatibility
   ordinalScales: ["ordinal-scales"] as const,
   confusionGroup: (id: string, difficulty: string) =>
     ["confusion-group", id, difficulty] as const,

@@ -33,8 +33,8 @@ This fetches `GET /regions/map-config`, then for each country in the response fe
 ## How to add a new country (e.g. Germany → Rhineland)
 
 1. **Insert region rows** (in `packages/db/src/seed.ts` or via SQL):
-   - Root: `{ id: "germany", displayName: "Germany", country: "Germany", parentRegionId: null }`
-   - Sub-region: `{ id: "rhineland", displayName: "Rhineland", country: "Germany", parentRegionId: "germany" }`
+   - Root (country): `{ id: "germany", displayName: "Germany", regionLevel: "country", parentId: null }`
+   - Sub-region: `{ id: "rhineland", displayName: "Rhineland", regionLevel: "sub_region", parentId: "germany" }`
 
 2. **Insert `country_map_config` row** (ISO numeric, geo slug, zoom, Natural Earth admin name):
    - `countryName: "Germany"`, `isoNumeric: 276`, `geoSlug: "germany"`, `naturalEarthAdminName: "Germany"`, `zoomCenterLon`, `zoomCenterLat`, `zoomLevel`

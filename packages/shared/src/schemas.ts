@@ -74,7 +74,6 @@ export const structureDimensionSchema = z.object({
   id: z.string(),
   displayName: z.string(),
   ordinalScaleId: z.string(),
-  description: z.string().nullable().optional(),
 });
 export type StructureDimension = z.infer<typeof structureDimensionSchema>;
 
@@ -317,9 +316,3 @@ export const confusionGroupResponseSchema = z.object({
 export type ConfusionGroupResponse = z.infer<
   typeof confusionGroupResponseSchema
 >;
-
-// Legacy aliases for gradual migration (can remove once all consumers use new names)
-/** @deprecated Use WineStyleFull */
-export type StyleTargetFull = WineStyleFull;
-/** @deprecated Use wineStyleFullSchema */
-export const styleTargetFullSchema = wineStyleFullSchema;

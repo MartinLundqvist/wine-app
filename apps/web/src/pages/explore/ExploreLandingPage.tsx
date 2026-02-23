@@ -23,16 +23,27 @@ export function ExploreLandingPage() {
     queryKey: queryKeys.regions,
     queryFn: () => api.getRegions(),
   });
-  const { data: aromaTerms } = useQuery({
-    queryKey: queryKeys.aromaTerms,
-    queryFn: () => api.getAromaTerms(),
+  const { data: aromaTaxonomy } = useQuery({
+    queryKey: queryKeys.aromaTaxonomy,
+    queryFn: () => api.getAromaTaxonomy(),
   });
+
+  const descriptorCount =
+    aromaTaxonomy?.reduce(
+      (acc, s) =>
+        acc +
+        (s.clusters ?? []).reduce(
+          (a, c) => a + (c.descriptors ?? []).length,
+          0
+        ),
+      0
+    ) ?? 0;
 
   const counts = {
     styles: styleTargets?.length ?? 0,
     grapes: grapes?.length ?? 0,
     regions: regions?.length ?? 0,
-    aromas: aromaTerms?.length ?? 0,
+    aromas: descriptorCount,
   };
 
   const categories = [

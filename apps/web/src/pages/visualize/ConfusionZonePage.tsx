@@ -65,7 +65,7 @@ export function ConfusionZonePage() {
     return {
       id,
       displayName: d?.displayName ?? id.replace(/_/g, " "),
-      description: d?.description ?? null,
+      description: undefined,
       scaleMax: SCALE_MAX,
     };
   });

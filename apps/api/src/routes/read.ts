@@ -154,52 +154,6 @@ export async function registerReadRoutes(app: FastifyInstance) {
     return reply.send(result);
   });
 
-  // Legacy: flat aroma terms (source + parentId) for consumers that expect old shape
-  app.get("/aroma-terms", async (_req: FastifyRequest, reply: FastifyReply) => {
-    const [sources, clusters, descriptors] = await Promise.all([
-      db.select().from(aromaSource).orderBy(aromaSource.id),
-      db.select().from(aromaCluster).orderBy(aromaCluster.displayName),
-      db.select().from(aromaDescriptor).orderBy(aromaDescriptor.displayName),
-    ]);
-    type FlatTerm = {
-      id: string;
-      displayName: string;
-      parentId: string | null;
-      source: "primary" | "secondary" | "tertiary";
-      description?: string | null;
-    };
-    const flat: FlatTerm[] = [];
-    for (const s of sources) {
-      flat.push({
-        id: s.id,
-        displayName: s.displayName,
-        parentId: null,
-        source: s.id as "primary" | "secondary" | "tertiary",
-      });
-    }
-    for (const c of clusters) {
-      flat.push({
-        id: c.id,
-        displayName: c.displayName,
-        parentId: c.aromaSourceId,
-        source: (sources.find((x) => x.id === c.aromaSourceId)?.id ??
-          "primary") as "primary" | "secondary" | "tertiary",
-      });
-    }
-    for (const d of descriptors) {
-      const cluster = clusters.find((c) => c.id === d.aromaClusterId);
-      flat.push({
-        id: d.id,
-        displayName: d.displayName,
-        parentId: d.aromaClusterId,
-        source: (cluster
-          ? sources.find((x) => x.id === cluster.aromaSourceId)?.id
-          : "primary") as "primary" | "secondary" | "tertiary",
-      });
-    }
-    return reply.send(flat);
-  });
-
   async function buildWineStyleFull(
     styles: (typeof wineStyle.$inferSelect)[]
   ) {

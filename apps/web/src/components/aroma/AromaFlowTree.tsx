@@ -1,12 +1,12 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import type { AromaTermFlat } from "@wine-app/shared";
+import type { AromaClusterWithDescriptors, AromaSourceWithClusters } from "@wine-app/shared";
 import { Chip } from "../ui/Chip";
 
-type AromaSource = "primary" | "secondary" | "tertiary";
+type AromaSourceId = "primary" | "secondary" | "tertiary";
 
 const SOURCE_COLORS: Record<
-  AromaSource,
+  AromaSourceId,
   { border: string; bg: string; dot: string; label: string }
 > = {
   primary: {
@@ -29,40 +29,27 @@ const SOURCE_COLORS: Record<
   },
 };
 
-const SOURCE_ORDER: AromaSource[] = ["primary", "secondary", "tertiary"];
+const SOURCE_ORDER: AromaSourceId[] = ["primary", "secondary", "tertiary"];
 
-function buildByParent(terms: AromaTermFlat[]) {
-  const byParent = new Map<string | null, AromaTermFlat[]>();
-  for (const t of terms) {
-    const key = t.parentId ?? null;
-    if (!byParent.has(key)) byParent.set(key, []);
-    byParent.get(key)!.push(t);
-  }
-  for (const arr of byParent.values()) {
-    arr.sort((a, b) => a.displayName.localeCompare(b.displayName));
-  }
-  return byParent;
+function orderSources(taxonomy: AromaSourceWithClusters[]) {
+  const byId = new Map(taxonomy.map((s) => [s.id, s]));
+  return SOURCE_ORDER.map((id) => byId.get(id)).filter(
+    (s): s is AromaSourceWithClusters => s != null
+  );
 }
 
-export function AromaFlowTree({ terms }: { terms: AromaTermFlat[] }) {
+export function AromaFlowTree({
+  taxonomy,
+}: {
+  taxonomy: AromaSourceWithClusters[];
+}) {
   const reducedMotion = useReducedMotion();
-  const byParent = useMemo(() => buildByParent(terms), [terms]);
-  const roots = useMemo(
-    () =>
-      (byParent.get(null) ?? []).filter(
-        (r): r is AromaTermFlat & { source: "primary" | "secondary" | "tertiary" } =>
-          r.source != null
-      ),
-    [byParent]
-  );
+  const roots = orderSources(taxonomy);
 
-  const [selectedSource, setSelectedSource] = useState<AromaTermFlat | null>(null);
-  const [selectedCluster, setSelectedCluster] = useState<AromaTermFlat | null>(
-    null
-  );
+  const [selectedSource, setSelectedSource] = useState<AromaSourceWithClusters | null>(null);
+  const [selectedCluster, setSelectedCluster] = useState<AromaClusterWithDescriptors | null>(null);
   const hasPreselected = useRef(false);
 
-  // Preselect first source once when data loads so the explorer doesn't start blank
   useEffect(() => {
     if (roots.length > 0 && !hasPreselected.current) {
       hasPreselected.current = true;
@@ -70,16 +57,8 @@ export function AromaFlowTree({ terms }: { terms: AromaTermFlat[] }) {
     }
   }, [roots]);
 
-  const clusters = useMemo(
-    () =>
-      selectedSource ? byParent.get(selectedSource.id) ?? [] : [],
-    [byParent, selectedSource]
-  );
-  const descriptors = useMemo(
-    () =>
-      selectedCluster ? byParent.get(selectedCluster.id) ?? [] : [],
-    [byParent, selectedCluster]
-  );
+  const clusters = selectedSource?.clusters ?? [];
+  const descriptors = selectedCluster?.descriptors ?? [];
 
   const transition = reducedMotion
     ? { duration: 0 }
@@ -136,7 +115,7 @@ export function AromaFlowTree({ terms }: { terms: AromaTermFlat[] }) {
           </p>
           <div className="flex flex-col gap-3">
             {roots.map((r) => {
-              const colors = SOURCE_COLORS[r.source as AromaSource];
+              const colors = SOURCE_COLORS[r.id as AromaSourceId];
               const isSelected = selectedSource?.id === r.id;
               return (
                 <motion.button
@@ -147,7 +126,7 @@ export function AromaFlowTree({ terms }: { terms: AromaTermFlat[] }) {
                     setSelectedCluster(null);
                   }}
                   aria-pressed={isSelected}
-                  aria-label={`${r.displayName}${r.description ? `: ${r.description}` : ""}`}
+                  aria-label={r.displayName}
                   transition={transition}
                   className={`text-left rounded-xl p-4 border-2 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${colors.border} ${colors.bg} ${
                     isSelected
@@ -158,11 +137,6 @@ export function AromaFlowTree({ terms }: { terms: AromaTermFlat[] }) {
                   <span className="font-serif text-xl text-foreground block">
                     {r.displayName}
                   </span>
-                  {r.description && (
-                    <span className="text-sm text-muted-foreground mt-0.5 block">
-                      {r.description}
-                    </span>
-                  )}
                 </motion.button>
               );
             })}
@@ -188,7 +162,7 @@ export function AromaFlowTree({ terms }: { terms: AromaTermFlat[] }) {
                 </p>
               ) : (
                 clusters.map((c) => {
-                  const colors = SOURCE_COLORS[c.source as AromaSource];
+                  const colors = SOURCE_COLORS[selectedSource.id as AromaSourceId];
                   const isSelected = selectedCluster?.id === c.id;
                   return (
                     <motion.button
@@ -244,7 +218,6 @@ export function AromaFlowTree({ terms }: { terms: AromaTermFlat[] }) {
                     key={d.id}
                     variant="ghost"
                     className="cursor-default bg-secondary/50 border-border text-foreground font-sans"
-                    title={d.description ?? undefined}
                   >
                     {d.displayName}
                   </Chip>
@@ -275,7 +248,7 @@ export function AromaFlowTree({ terms }: { terms: AromaTermFlat[] }) {
           </p>
           <div className="flex flex-col gap-3">
             {roots.map((r) => {
-              const colors = SOURCE_COLORS[r.source as AromaSource];
+              const colors = SOURCE_COLORS[r.id as AromaSourceId];
               const isSelected = selectedSource?.id === r.id;
               return (
                 <button
@@ -286,7 +259,7 @@ export function AromaFlowTree({ terms }: { terms: AromaTermFlat[] }) {
                     setSelectedCluster(null);
                   }}
                   aria-pressed={isSelected}
-                  aria-label={`${r.displayName}${r.description ? `: ${r.description}` : ""}`}
+                  aria-label={r.displayName}
                   className={`text-left rounded-xl p-4 border-2 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${colors.border} ${colors.bg} ${
                     isSelected
                       ? "ring-2 ring-accent ring-offset-2 ring-offset-background shadow-md"
@@ -296,11 +269,6 @@ export function AromaFlowTree({ terms }: { terms: AromaTermFlat[] }) {
                   <span className="font-serif text-xl text-foreground block">
                     {r.displayName}
                   </span>
-                  {r.description && (
-                    <span className="text-sm text-muted-foreground mt-0.5 block">
-                      {r.description}
-                    </span>
-                  )}
                 </button>
               );
             })}
@@ -325,7 +293,7 @@ export function AromaFlowTree({ terms }: { terms: AromaTermFlat[] }) {
                 </p>
               ) : (
                 clusters.map((c) => {
-                  const colors = SOURCE_COLORS[c.source as AromaSource];
+                  const colors = SOURCE_COLORS[selectedSource.id as AromaSourceId];
                   const isSelected = selectedCluster?.id === c.id;
                   return (
                     <button
@@ -379,7 +347,6 @@ export function AromaFlowTree({ terms }: { terms: AromaTermFlat[] }) {
                     key={d.id}
                     variant="ghost"
                     className="cursor-default bg-secondary/50 border-border text-foreground font-sans"
-                    title={d.description ?? undefined}
                   >
                     {d.displayName}
                   </Chip>

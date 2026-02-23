@@ -88,7 +88,7 @@ function applyAgingCurve(
 type AgingTimelineProps = {
   style: WineStyleFull | null;
   mode: "structure" | "aroma" | "both";
-  structureDimensions: { id: string; displayName: string; description?: string | null; scaleMax?: number | null }[];
+  structureDimensions: { id: string; displayName: string; scaleMax?: number | null }[];
 };
 
 export function AgingTimeline({
@@ -103,7 +103,7 @@ export function AgingTimeline({
     return {
       id,
       displayName: d?.displayName ?? id.replace(/_/g, " "),
-      description: d?.description ?? null,
+      description: undefined,
       scaleMax: SCALE_MAX,
     };
   });
