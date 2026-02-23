@@ -6,6 +6,7 @@ export const queryKeys = {
   regionsMapConfig: ["regions-map-config"] as const,
   aromaTaxonomy: ["aroma-taxonomy"] as const,
   structureDimensions: ["structure-dimensions"] as const,
+  appearanceDimensions: ["appearance-dimensions"] as const,
   ordinalScales: ["ordinal-scales"] as const,
   confusionGroup: (id: string, difficulty: string) =>
     ["confusion-group", id, difficulty] as const,

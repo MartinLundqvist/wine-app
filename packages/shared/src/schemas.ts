@@ -26,11 +26,11 @@ export const descriptorSalienceSchema = z.enum([
 // Kept for explore / user layer
 export const wineColorSchema = z.enum(["red", "white"]);
 
-// Ordinal scale (labels for 1–5 axes)
+// Ordinal scale (variable-length labels; structure/climate dimensions use 5-point scales by convention)
 export const ordinalScaleSchema = z.object({
   id: z.string(),
   displayName: z.string(),
-  labels: z.array(z.string()).length(5),
+  labels: z.array(z.string()).min(2),
 });
 export type OrdinalScale = z.infer<typeof ordinalScaleSchema>;
 
@@ -85,6 +85,24 @@ export const wineStyleStructureSchema = z.object({
   maxValue: z.number(),
 });
 export type WineStyleStructure = z.infer<typeof wineStyleStructureSchema>;
+
+// Appearance dimension (nullable producedColor = applies to all colors)
+export const appearanceDimensionSchema = z.object({
+  id: z.string(),
+  displayName: z.string(),
+  producedColor: producedColorSchema.nullable().optional(),
+  ordinalScaleId: z.string(),
+});
+export type AppearanceDimension = z.infer<typeof appearanceDimensionSchema>;
+
+// Wine style – appearance range (min/max 1-based; max must be <= dimension scale length)
+export const wineStyleAppearanceSchema = z.object({
+  wineStyleId: z.string(),
+  appearanceDimensionId: z.string(),
+  minValue: z.number(),
+  maxValue: z.number(),
+});
+export type WineStyleAppearance = z.infer<typeof wineStyleAppearanceSchema>;
 
 // Aroma taxonomy
 export const aromaSourceSchema = z.object({
@@ -187,6 +205,23 @@ export type WineStyleStructureWithDimension = z.infer<
   typeof wineStyleStructureWithDimensionSchema
 >;
 
+// Composite: appearance dimension with its scale labels (for API)
+export const appearanceDimensionWithScaleSchema =
+  appearanceDimensionSchema.extend({
+    ordinalScale: ordinalScaleSchema.optional(),
+  });
+export type AppearanceDimensionWithScale = z.infer<
+  typeof appearanceDimensionWithScaleSchema
+>;
+
+export const wineStyleAppearanceWithDimensionSchema =
+  wineStyleAppearanceSchema.extend({
+    dimension: appearanceDimensionWithScaleSchema.optional(),
+  });
+export type WineStyleAppearanceWithDimension = z.infer<
+  typeof wineStyleAppearanceWithDimensionSchema
+>;
+
 // Composite: aroma cluster with optional source info
 export const wineStyleAromaClusterWithClusterSchema =
   wineStyleAromaClusterSchema.extend({
@@ -219,6 +254,7 @@ export const wineStyleFullSchema = wineStyleSchema.extend({
     )
     .optional(),
   structure: z.array(wineStyleStructureWithDimensionSchema).optional(),
+  appearance: z.array(wineStyleAppearanceWithDimensionSchema).optional(),
   aromaClusters: z.array(wineStyleAromaClusterWithClusterSchema).optional(),
   aromaDescriptors: z
     .array(wineStyleAromaDescriptorWithDescriptorSchema)
@@ -269,6 +305,9 @@ export const regionsResponseSchema = z.array(regionSchema);
 export const ordinalScalesResponseSchema = z.array(ordinalScaleSchema);
 export const structureDimensionsResponseSchema = z.array(
   structureDimensionWithScaleSchema
+);
+export const appearanceDimensionsResponseSchema = z.array(
+  appearanceDimensionWithScaleSchema
 );
 export const aromaTaxonomyResponseSchema = z.array(aromaSourceWithClustersSchema);
 export const wineStylesResponseSchema = z.array(wineStyleFullSchema);

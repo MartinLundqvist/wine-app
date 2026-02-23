@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Wine } from "lucide-react";
+import { ArrowLeft, Wine, Palette } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/client";
 import { queryKeys } from "../../api/queryKeys";
@@ -45,6 +45,7 @@ export function WineStyleDetailPage() {
 
   const st = style as WineStyleFull;
   const ordinalDims = st.structure ?? [];
+  const appearanceDims = st.appearance ?? [];
   const aromasBySource = (st.aromaDescriptors ?? []).reduce(
     (acc, a) => {
       const src = a.cluster?.aromaSourceId ?? "primary";
@@ -147,6 +148,41 @@ export function WineStyleDetailPage() {
           ))}
         </motion.div>
 
+        {appearanceDims.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.12 }}
+            className="bg-card rounded-xl p-6 md:p-8 shadow-soft border border-border"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-8 rounded-full bg-wine-deep/15 flex items-center justify-center">
+                <Palette className="w-4 h-4 text-wine-light" />
+              </div>
+              <h2 className="font-serif text-2xl font-bold text-foreground">
+                Appearance
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+              {appearanceDims.map((row) => {
+                const dim = row.dimension;
+                const scaleMax = dim?.ordinalScale?.labels?.length ?? 5;
+                const min = row.minValue ?? row.maxValue ?? 0;
+                const max = row.maxValue ?? row.minValue ?? 0;
+                return (
+                  <WineAttributeBar
+                    key={row.appearanceDimensionId}
+                    label={dim?.displayName ?? row.appearanceDimensionId}
+                    minValue={min}
+                    maxValue={max}
+                    max={scaleMax}
+                  />
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -164,7 +200,7 @@ export function WineStyleDetailPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
             {ordinalDims.map((row) => {
               const dim = row.dimension;
-              const scaleMax = 5;
+              const scaleMax = dim?.ordinalScale?.labels?.length ?? 5;
               const min = row.minValue ?? row.maxValue ?? 0;
               const max = row.maxValue ?? row.minValue ?? 0;
               return (

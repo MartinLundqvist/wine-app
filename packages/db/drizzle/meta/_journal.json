@@ -1,1 +1,20 @@
-{"version":"7","dialect":"postgresql","entries":[{"idx":0,"version":"7","when":1771863505231,"tag":"0002_happy_black_panther","breakpoints":true}]}
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1771863505231,
+      "tag": "0002_happy_black_panther",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1771881122924,
+      "tag": "0001_bored_exiles",
+      "breakpoints": true
+    }
+  ]
+}

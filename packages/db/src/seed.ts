@@ -1,6 +1,7 @@
 // Wine knowledge engine v2 seed – ordinal scales, regions, grapes, structure, aroma taxonomy, wine styles.
 // Aroma taxonomy aligned to WSET Level 3 Systematic Approach to Tasting Wine.
 
+import { validateOrdinalRange } from "@wine-app/shared";
 import { db } from "./client";
 import {
   ordinalScale,
@@ -10,6 +11,8 @@ import {
   wineStyleGrape,
   structureDimension,
   wineStyleStructure,
+  appearanceDimension,
+  wineStyleAppearance,
   aromaSource,
   aromaCluster,
   aromaDescriptor,
@@ -25,6 +28,10 @@ const BODY_5 = ["Light", "Medium-", "Medium", "Medium+", "Full"];
 const INTENSITY_5 = ["Light", "Medium-", "Medium", "Medium+", "Pronounced"];
 const FINISH_5 = ["Short", "Medium-", "Medium", "Medium+", "Long"];
 const SWEETNESS_5 = ["Dry", "Off-dry", "Medium-dry", "Medium-sweet", "Sweet"];
+const COLOR_INTENSITY_3 = ["Pale", "Medium", "Deep"];
+const COLOR_HUE_RED_5 = ["Purple", "Ruby", "Garnet", "Tawny", "Brown"];
+const COLOR_HUE_WHITE_5 = ["Lemon-green", "Lemon", "Gold", "Amber", "Brown"];
+const COLOR_HUE_ROSE_3 = ["Pink", "Salmon", "Orange"];
 
 async function seed() {
   console.log("Seeding wine knowledge engine (v2)...");
@@ -38,6 +45,10 @@ async function seed() {
     { id: "intensity_5", displayName: "Intensity Light–Pronounced", labels: INTENSITY_5 },
     { id: "finish_5", displayName: "Finish Short–Long", labels: FINISH_5 },
     { id: "sweetness_5", displayName: "Sweetness Dry–Sweet", labels: SWEETNESS_5 },
+    { id: "color_intensity_3", displayName: "Color Intensity", labels: COLOR_INTENSITY_3 },
+    { id: "color_hue_red_5", displayName: "Red Hue", labels: COLOR_HUE_RED_5 },
+    { id: "color_hue_white_5", displayName: "White Hue", labels: COLOR_HUE_WHITE_5 },
+    { id: "color_hue_rose_3", displayName: "Rosé Hue", labels: COLOR_HUE_ROSE_3 },
   ]).onConflictDoNothing();
 
   // Regions: countries then sub-regions (single table, region_level + parent_id)
@@ -112,6 +123,15 @@ async function seed() {
     { id: "overall_intensity", displayName: "Overall Intensity", ordinalScaleId: "intensity_5" },
     { id: "oak_influence", displayName: "Oak Influence", ordinalScaleId: "default_5" },
     { id: "finish_length", displayName: "Finish Length", ordinalScaleId: "finish_5" },
+  ]).onConflictDoNothing();
+
+  // Appearance dimensions (color intensity + color-dependent hue)
+  console.log("Seeding appearance_dimension...");
+  await db.insert(appearanceDimension).values([
+    { id: "color_intensity", displayName: "Color Intensity", producedColor: null, ordinalScaleId: "color_intensity_3" },
+    { id: "color_hue_red", displayName: "Color Hue", producedColor: "red", ordinalScaleId: "color_hue_red_5" },
+    { id: "color_hue_white", displayName: "Color Hue", producedColor: "white", ordinalScaleId: "color_hue_white_5" },
+    { id: "color_hue_rose", displayName: "Color Hue", producedColor: "rose", ordinalScaleId: "color_hue_rose_3" },
   ]).onConflictDoNothing();
 
   // Aroma sources
@@ -418,6 +438,37 @@ async function seed() {
         wineStyleId: st.id,
         aromaDescriptorId: ad.descriptorId,
         salience: ad.salience,
+      }).onConflictDoNothing();
+    }
+
+    // Appearance: color_intensity for all; color_hue by producedColor (red/white). Values bounded by scale length.
+    const isWhite = st.grapeId === "chardonnay" || st.grapeId === "riesling" || st.grapeId === "sauvignon_blanc";
+    const appearanceRows: { dimensionId: string; scaleLength: number; min: number; max: number }[] = [
+      { dimensionId: "color_intensity", scaleLength: 3, min: 2, max: 3 }, // default Medium–Deep for reds, overwritten for some
+    ];
+    if (isWhite) {
+      appearanceRows.push({ dimensionId: "color_hue_white", scaleLength: 5, min: 1, max: 3 });
+      if (st.grapeId === "riesling") {
+        appearanceRows[0] = { dimensionId: "color_intensity", scaleLength: 3, min: 1, max: 2 };
+      } else if (st.grapeId === "sauvignon_blanc") {
+        appearanceRows[0] = { dimensionId: "color_intensity", scaleLength: 3, min: 1, max: 1 };
+      }
+    } else {
+      appearanceRows.push({ dimensionId: "color_hue_red", scaleLength: 5, min: 2, max: 3 });
+      if (st.grapeId === "pinot_noir") {
+        appearanceRows[0] = { dimensionId: "color_intensity", scaleLength: 3, min: 1, max: 2 };
+      } else if (st.grapeId === "grenache" || st.grapeId === "merlot" || st.grapeId === "sangiovese") {
+        appearanceRows[0] = { dimensionId: "color_intensity", scaleLength: 3, min: 2, max: 2 };
+      }
+    }
+    for (const row of appearanceRows) {
+      const result = validateOrdinalRange(row.scaleLength, row.min, row.max);
+      if (!result.valid) throw new Error(`Appearance range: ${result.message}`);
+      await db.insert(wineStyleAppearance).values({
+        wineStyleId: st.id,
+        appearanceDimensionId: row.dimensionId,
+        minValue: row.min,
+        maxValue: row.max,
       }).onConflictDoNothing();
     }
   }

@@ -7,6 +7,8 @@ import {
   wineStyleGrape,
   wineStyleStructure,
   structureDimension,
+  appearanceDimension,
+  wineStyleAppearance,
   ordinalScale,
   wineStyleAromaCluster,
   wineStyleAromaDescriptor,
@@ -133,6 +135,30 @@ export async function registerReadRoutes(app: FastifyInstance) {
     }
   );
 
+  app.get(
+    "/appearance-dimensions",
+    async (_req: FastifyRequest, reply: FastifyReply) => {
+      const rows = await db
+        .select()
+        .from(appearanceDimension)
+        .orderBy(appearanceDimension.id);
+      const scaleIds = [...new Set(rows.map((r) => r.ordinalScaleId))];
+      const scales =
+        scaleIds.length > 0
+          ? await db
+              .select()
+              .from(ordinalScale)
+              .where(inArray(ordinalScale.id, scaleIds))
+          : [];
+      const scaleMap = new Map(scales.map((s) => [s.id, s]));
+      const result = rows.map((r) => ({
+        ...r,
+        ordinalScale: scaleMap.get(r.ordinalScaleId) ?? null,
+      }));
+      return reply.send(result);
+    }
+  );
+
   app.get("/aroma-taxonomy", async (_req: FastifyRequest, reply: FastifyReply) => {
     const [sources, clusters, descriptors] = await Promise.all([
       db.select().from(aromaSource).orderBy(aromaSource.id),
@@ -163,6 +189,7 @@ export async function registerReadRoutes(app: FastifyInstance) {
     const [
       grapeLinks,
       structureRows,
+      appearanceRows,
       clusterRows,
       descriptorRows,
       regionsRows,
@@ -170,6 +197,7 @@ export async function registerReadRoutes(app: FastifyInstance) {
     ] = await Promise.all([
       db.select().from(wineStyleGrape).where(inArray(wineStyleGrape.wineStyleId, ids)),
       db.select().from(wineStyleStructure).where(inArray(wineStyleStructure.wineStyleId, ids)),
+      db.select().from(wineStyleAppearance).where(inArray(wineStyleAppearance.wineStyleId, ids)),
       db.select().from(wineStyleAromaCluster).where(inArray(wineStyleAromaCluster.wineStyleId, ids)),
       db.select().from(wineStyleAromaDescriptor).where(inArray(wineStyleAromaDescriptor.wineStyleId, ids)),
       db.select().from(region),
@@ -180,16 +208,23 @@ export async function registerReadRoutes(app: FastifyInstance) {
     const scaleMap = new Map(scaleRows.map((s) => [s.id, s]));
 
     const dimIds = [...new Set(structureRows.map((r) => r.structureDimensionId))];
+    const appearanceDimIds = [...new Set(appearanceRows.map((r) => r.appearanceDimensionId))];
     const grapeIds = [...new Set(grapeLinks.map((l) => l.grapeVarietyId))];
     const clusterIds = [...new Set(clusterRows.map((r) => r.aromaClusterId))];
     const descriptorIds = [...new Set(descriptorRows.map((r) => r.aromaDescriptorId))];
 
-    const [dimensions, grapes, clusters, descriptors] = await Promise.all([
+    const [dimensions, appearanceDimensions, grapes, clusters, descriptors] = await Promise.all([
       dimIds.length > 0
         ? db
             .select()
             .from(structureDimension)
             .where(inArray(structureDimension.id, dimIds))
+        : Promise.resolve([]),
+      appearanceDimIds.length > 0
+        ? db
+            .select()
+            .from(appearanceDimension)
+            .where(inArray(appearanceDimension.id, appearanceDimIds))
         : Promise.resolve([]),
       grapeIds.length > 0
         ? db
@@ -212,6 +247,7 @@ export async function registerReadRoutes(app: FastifyInstance) {
     ]);
 
     const dimensionMap = new Map(dimensions.map((d) => [d.id, d]));
+    const appearanceDimensionMap = new Map(appearanceDimensions.map((d) => [d.id, d]));
     const grapeMap = new Map(grapes.map((g) => [g.id, g]));
     const clusterMap = new Map(clusters.map((c) => [c.id, c]));
     const descriptorMap = new Map(descriptors.map((d) => [d.id, d]));
@@ -232,6 +268,18 @@ export async function registerReadRoutes(app: FastifyInstance) {
         .filter((r) => r.wineStyleId === s.id)
         .map((r) => {
           const dim = dimensionMap.get(r.structureDimensionId);
+          const scale = dim ? scaleMap.get(dim.ordinalScaleId) ?? null : null;
+          return {
+            ...r,
+            dimension: dim
+              ? { ...dim, ordinalScale: scale ?? undefined }
+              : undefined,
+          };
+        });
+      const appearanceList = appearanceRows
+        .filter((r) => r.wineStyleId === s.id)
+        .map((r) => {
+          const dim = appearanceDimensionMap.get(r.appearanceDimensionId);
           const scale = dim ? scaleMap.get(dim.ordinalScaleId) ?? null : null;
           return {
             ...r,
@@ -268,6 +316,7 @@ export async function registerReadRoutes(app: FastifyInstance) {
         climateOrdinalScale: climateScale,
         grapes: grapesList,
         structure: structureList,
+        appearance: appearanceList,
         aromaClusters: aromaClustersList,
         aromaDescriptors: aromaDescriptorsList,
       };
