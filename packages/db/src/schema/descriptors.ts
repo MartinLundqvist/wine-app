@@ -1,41 +1,67 @@
 import {
   pgTable,
   varchar,
-  text,
+  integer,
   primaryKey,
-  foreignKey,
 } from "drizzle-orm/pg-core";
-import { aromaSourceEnum, prominenceEnum } from "./enums";
-import { styleTarget } from "./grapes";
+import { sql } from "drizzle-orm";
+import { descriptorSalienceEnum } from "./enums";
+import { wineStyle } from "./grapes";
 
-export const aromaTerm = pgTable(
-  "aroma_term",
+// Aroma taxonomy: source (primary/secondary/tertiary)
+export const aromaSource = pgTable("aroma_source", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  displayName: varchar("display_name", { length: 128 }).notNull(),
+});
+
+// Clusters under each source (e.g. Green Fruit, Oak)
+export const aromaCluster = pgTable("aroma_cluster", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  displayName: varchar("display_name", { length: 128 }).notNull(),
+  aromaSourceId: varchar("aroma_source_id", { length: 64 })
+    .notNull()
+    .references(() => aromaSource.id, { onDelete: "cascade" }),
+});
+
+// Descriptors under each cluster (e.g. Apple, Vanilla)
+export const aromaDescriptor = pgTable("aroma_descriptor", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  displayName: varchar("display_name", { length: 128 }).notNull(),
+  aromaClusterId: varchar("aroma_cluster_id", { length: 64 })
+    .notNull()
+    .references(() => aromaCluster.id, { onDelete: "cascade" }),
+});
+
+// Style -> cluster: intensity range 1-5
+export const wineStyleAromaCluster = pgTable(
+  "wine_style_aroma_cluster",
   {
-    id: varchar("id", { length: 64 }).primaryKey(),
-    displayName: varchar("display_name", { length: 128 }).notNull(),
-    parentId: varchar("parent_id", { length: 64 }),
-    source: aromaSourceEnum("source").notNull(),
-    description: text("description"),
+    wineStyleId: varchar("wine_style_id", { length: 64 })
+      .notNull()
+      .references(() => wineStyle.id, { onDelete: "cascade" }),
+    aromaClusterId: varchar("aroma_cluster_id", { length: 64 })
+      .notNull()
+      .references(() => aromaCluster.id, { onDelete: "cascade" }),
+    intensityMin: integer("intensity_min").notNull(),
+    intensityMax: integer("intensity_max").notNull(),
   },
-  (table) => ({
-    parentFk: foreignKey({
-      columns: [table.parentId],
-      foreignColumns: [table.id],
-      name: "aroma_term_parent_id_fkey",
-    }),
-  })
+  (t) => [
+    primaryKey({ columns: [t.wineStyleId, t.aromaClusterId] }),
+    sql`CHECK (intensity_min >= 1 AND intensity_min <= 5 AND intensity_max >= 1 AND intensity_max <= 5 AND intensity_min <= intensity_max)`,
+  ]
 );
 
-export const styleTargetAromaProfile = pgTable(
-  "style_target_aroma_profile",
+// Style -> descriptor: salience
+export const wineStyleAromaDescriptor = pgTable(
+  "wine_style_aroma_descriptor",
   {
-    styleTargetId: varchar("style_target_id", { length: 64 })
+    wineStyleId: varchar("wine_style_id", { length: 64 })
       .notNull()
-      .references(() => styleTarget.id, { onDelete: "cascade" }),
-    aromaTermId: varchar("aroma_term_id", { length: 64 })
+      .references(() => wineStyle.id, { onDelete: "cascade" }),
+    aromaDescriptorId: varchar("aroma_descriptor_id", { length: 64 })
       .notNull()
-      .references(() => aromaTerm.id, { onDelete: "cascade" }),
-    prominence: prominenceEnum("prominence").notNull(),
+      .references(() => aromaDescriptor.id, { onDelete: "cascade" }),
+    salience: descriptorSalienceEnum("salience").notNull(),
   },
-  (t) => [primaryKey({ columns: [t.styleTargetId, t.aromaTermId] })]
+  (t) => [primaryKey({ columns: [t.wineStyleId, t.aromaDescriptorId] })]
 );

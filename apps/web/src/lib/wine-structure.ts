@@ -1,9 +1,9 @@
-import type { StyleTargetFull } from "@wine-app/shared";
+import type { WineStyleFull } from "@wine-app/shared";
 
-export type StructureRow = NonNullable<StyleTargetFull["structure"]>[number];
+export type StructureRow = NonNullable<WineStyleFull["structure"]>[number];
 
 export function getStructureRow(
-  structure: StyleTargetFull["structure"],
+  structure: WineStyleFull["structure"],
   dimensionId: string,
 ): StructureRow | undefined {
   return structure?.find(
@@ -12,14 +12,14 @@ export function getStructureRow(
   );
 }
 
-/** Returns min, max, and scale max for an ordinal dimension. Used for range display and sort. */
+/** Returns min, max, and scale max for an ordinal dimension (all v2 dimensions are 1-5). */
 export function getStructureRange(
-  structure: StyleTargetFull["structure"],
+  structure: WineStyleFull["structure"],
   dimensionId: string,
 ): { minValue: number; maxValue: number; scaleMax: number } | null {
   const row = getStructureRow(structure, dimensionId);
-  if (!row?.dimension || row.dimension.scaleType !== "ordinal") return null;
-  const scaleMax = row.dimension.scaleMax ?? 5;
+  if (!row) return null;
+  const scaleMax = 5;
   const min = row.minValue ?? row.maxValue ?? 0;
   const max = row.maxValue ?? row.minValue ?? 0;
   return {
@@ -31,7 +31,7 @@ export function getStructureRange(
 
 /** Single numeric value for sorting: midpoint when range, else the value. */
 export function getStructureSortValue(
-  structure: StyleTargetFull["structure"],
+  structure: WineStyleFull["structure"],
   dimensionId: string,
 ): number {
   const range = getStructureRange(structure, dimensionId);

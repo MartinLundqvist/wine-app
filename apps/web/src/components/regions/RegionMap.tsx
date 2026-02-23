@@ -51,7 +51,22 @@ export function RegionMap({
   const useApiConfig = mapConfig != null && mapConfig.countries.length > 0;
 
   const { countryToRegionCount, numericIds } = useMemo(() => {
-    const countries = [...new Set(regions.map((r) => r.country))];
+    const regionToCountry = new Map<string, string>();
+    for (const r of regions) {
+      const country = r.regionLevel === "country" && !r.parentId
+        ? r.displayName
+        : (() => {
+            let cur: Region | undefined = r;
+            const seen = new Set<string>();
+            while (cur?.parentId && !seen.has(cur.parentId)) {
+              seen.add(cur.parentId);
+              cur = regions.find((p) => p.id === cur!.parentId);
+            }
+            return cur?.regionLevel === "country" ? cur.displayName : null;
+          })();
+      if (country) regionToCountry.set(r.id, country);
+    }
+    const countries = [...new Set(regionToCountry.values())];
     const wineCountryNames = useApiConfig
       ? countries.filter((c) =>
           mapConfig!.countries.some((cfg) => cfg.countryName === c)
@@ -62,12 +77,9 @@ export function RegionMap({
       : new Set<number>();
     const countryToRegionCount = new Map<string, number>();
     for (const r of regions) {
-      if (r.parentRegionId == null) continue;
-      const parent = regions.find((p) => p.id === r.parentRegionId);
-      if (parent) {
-        const c = parent.country;
-        countryToRegionCount.set(c, (countryToRegionCount.get(c) ?? 0) + 1);
-      }
+      if (r.parentId == null) continue;
+      const c = regionToCountry.get(r.id);
+      if (c) countryToRegionCount.set(c, (countryToRegionCount.get(c) ?? 0) + 1);
     }
     for (const c of wineCountryNames) {
       if (!countryToRegionCount.has(c)) {
@@ -152,10 +164,16 @@ export function RegionMap({
           );
           const subRegions = regions.filter(
             (r) =>
-              r.parentRegionId &&
-              regions.some(
-                (p) => p.id === r.parentRegionId && p.country === selectedCountry,
-              ),
+              r.parentId &&
+              (() => {
+                const root = regions.find(
+                  (p) =>
+                    p.regionLevel === "country" &&
+                    !p.parentId &&
+                    p.displayName === selectedCountry
+                );
+                return root ? r.parentId === root.id : false;
+              })(),
           );
           const subRegionToAdmin1 = useApiConfig && mapConfig
             ? mapConfig.boundaryMappings

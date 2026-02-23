@@ -7,38 +7,30 @@ import { ExplorePageShell } from "@/components/explore/ExplorePageShell";
 import { RadarChart, type RadarDimension } from "@/components/visualizations/RadarChart";
 import { Chip } from "@/components/ui/Chip";
 import { BarChart3 } from "lucide-react";
-import type { StyleTargetFull } from "@wine-app/shared";
+import type { WineStyleFull } from "@wine-app/shared";
 import type { ConfusionDifficulty, ConfusionDistractor } from "@wine-app/shared";
 
 const RADAR_DIMENSION_IDS = [
   "acidity",
-  "tannin",
+  "tannins",
   "alcohol",
   "body",
-  "oak_intensity",
-  "flavor_intensity",
+  "oak_influence",
+  "overall_intensity",
 ] as const;
-const SCALE_MAX: Record<string, number> = {
-  acidity: 5,
-  tannin: 5,
-  alcohol: 3,
-  body: 5,
-  oak_intensity: 5,
-  flavor_intensity: 5,
-};
+const SCALE_MAX = 5;
 
-function getNormalizedValues(style: StyleTargetFull): number[] {
+function getNormalizedValues(style: WineStyleFull): number[] {
   const structureMap = new Map(
     (style.structure ?? []).map((s) => [s.structureDimensionId, s])
   );
   return RADAR_DIMENSION_IDS.map((id) => {
     const row = structureMap.get(id);
-    const scaleMax = SCALE_MAX[id] ?? 5;
     if (!row || row.minValue == null || row.maxValue == null) return 0;
-    const min = row?.minValue ?? 0;
-    const max = row?.maxValue ?? min;
+    const min = row.minValue ?? 0;
+    const max = row.maxValue ?? min;
     const mid = (min + max) / 2;
-    return Math.min(1, Math.max(0, mid / scaleMax));
+    return Math.min(1, Math.max(0, mid / SCALE_MAX));
   });
 }
 
@@ -74,7 +66,7 @@ export function ConfusionZonePage() {
       id,
       displayName: d?.displayName ?? id.replace(/_/g, " "),
       description: d?.description ?? null,
-      scaleMax: SCALE_MAX[id] ?? 5,
+      scaleMax: SCALE_MAX,
     };
   });
 

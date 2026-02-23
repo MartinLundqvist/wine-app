@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import type { AromaTerm } from "@wine-app/shared";
+import type { AromaTermFlat } from "@wine-app/shared";
 import { Chip } from "../ui/Chip";
 
 type AromaSource = "primary" | "secondary" | "tertiary";
@@ -31,8 +31,8 @@ const SOURCE_COLORS: Record<
 
 const SOURCE_ORDER: AromaSource[] = ["primary", "secondary", "tertiary"];
 
-function buildByParent(terms: AromaTerm[]) {
-  const byParent = new Map<string | null, AromaTerm[]>();
+function buildByParent(terms: AromaTermFlat[]) {
+  const byParent = new Map<string | null, AromaTermFlat[]>();
   for (const t of terms) {
     const key = t.parentId ?? null;
     if (!byParent.has(key)) byParent.set(key, []);
@@ -44,19 +44,20 @@ function buildByParent(terms: AromaTerm[]) {
   return byParent;
 }
 
-export function AromaFlowTree({ terms }: { terms: AromaTerm[] }) {
+export function AromaFlowTree({ terms }: { terms: AromaTermFlat[] }) {
   const reducedMotion = useReducedMotion();
   const byParent = useMemo(() => buildByParent(terms), [terms]);
   const roots = useMemo(
     () =>
       (byParent.get(null) ?? []).filter(
-        (r): r is AromaTerm & { source: AromaSource } => r.source != null
+        (r): r is AromaTermFlat & { source: "primary" | "secondary" | "tertiary" } =>
+          r.source != null
       ),
     [byParent]
   );
 
-  const [selectedSource, setSelectedSource] = useState<AromaTerm | null>(null);
-  const [selectedCluster, setSelectedCluster] = useState<AromaTerm | null>(
+  const [selectedSource, setSelectedSource] = useState<AromaTermFlat | null>(null);
+  const [selectedCluster, setSelectedCluster] = useState<AromaTermFlat | null>(
     null
   );
   const hasPreselected = useRef(false);

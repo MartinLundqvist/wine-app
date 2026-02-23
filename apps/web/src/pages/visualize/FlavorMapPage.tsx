@@ -16,16 +16,19 @@ export function FlavorMapPage() {
     queryFn: () => api.getStyleTargets(),
   });
 
-  const { data: thermalBands = [] } = useQuery({
-    queryKey: queryKeys.thermalBands,
-    queryFn: () => api.getThermalBands(),
+  const { data: ordinalScales = [] } = useQuery({
+    queryKey: queryKeys.ordinalScales,
+    queryFn: () => api.getOrdinalScales(),
   });
+
+  const climateLabels =
+    ordinalScales.find((s) => s.id === "climate_5")?.labels ?? [];
 
   return (
     <ExplorePageShell
       sectionLabel="Visualize"
       title="Flavor Direction Map"
-      subtitle="Plot wine styles by fruit direction and earth/herb character. Red and white wines use different axes; normalize to observed range so small differences are visible."
+      subtitle="Plot wine styles by body and intensity. Filter by color and climate."
       icon={<BarChart3 className="w-6 h-6 text-wine-light" />}
     >
       <div className="max-w-6xl mx-auto px-6 py-12">
@@ -60,14 +63,16 @@ export function FlavorMapPage() {
                 >
                   All
                 </Chip>
-                {thermalBands.map((tb) => (
+                {climateLabels.map((label) => (
                   <Chip
-                    key={tb.id}
-                    variant={climateFilter === tb.id ? "selected" : "base"}
-                    onClick={() => setClimateFilter(climateFilter === tb.id ? null : tb.id)}
+                    key={label}
+                    variant={climateFilter === label ? "selected" : "base"}
+                    onClick={() =>
+                      setClimateFilter(climateFilter === label ? null : label)
+                    }
                     className="cursor-pointer"
                   >
-                    {tb.id.charAt(0).toUpperCase() + tb.id.slice(1)}
+                    {label}
                   </Chip>
                 ))}
               </div>

@@ -2,85 +2,78 @@ import type {
   ConfusionDifficulty,
   ConfusionDistractor,
   ConfusionGroupResponse,
-  StyleTargetFull,
+  WineStyleFull,
 } from "@wine-app/shared";
 
-type AromaTermLike = { id: string; displayName: string; parentId: string | null; source: string };
+type ClusterRow = { id: string; displayName: string; aromaSourceId: string };
+type DescriptorRow = { id: string; displayName: string; aromaClusterId: string };
 
-const STRUCT_DIM_IDS = ["acidity", "tannin", "alcohol", "body", "oak_intensity", "flavor_intensity"] as const;
-const SCALE_MAX: Record<string, number> = {
-  acidity: 5,
-  tannin: 5,
-  alcohol: 3,
-  body: 5,
-  oak_intensity: 5,
-  flavor_intensity: 5,
-};
-
-const FRUIT_PROFILE_NUM: Record<string, number> = {
-  Red: 0,
-  Black: 1,
-  Citrus: 0,
-  Orchard: 0.5,
-  Tropical: 1,
-};
+const STRUCT_DIM_IDS = [
+  "tannins",
+  "sweetness",
+  "body",
+  "acidity",
+  "alcohol",
+  "overall_intensity",
+  "oak_influence",
+  "finish_length",
+] as const;
+const SCALE_MAX = 5;
 
 function getStructValue(
-  style: StyleTargetFull,
+  style: WineStyleFull,
   dimId: string
 ): number | null {
-  const row = (style.structure ?? []).find((s) => s.structureDimensionId === dimId);
+  const row = (style.structure ?? []).find(
+    (s) => s.structureDimensionId === dimId
+  );
   if (!row) return null;
-  if (row.categoricalValue) {
-    const n = FRUIT_PROFILE_NUM[row.categoricalValue];
-    return n !== undefined ? n : null;
-  }
   const min = row.minValue ?? 0;
   const max = row.maxValue ?? min;
   return (min + max) / 2;
 }
 
-function getStructNormalized(style: StyleTargetFull, dimId: string): number {
+function getStructNormalized(style: WineStyleFull, dimId: string): number {
   const v = getStructValue(style, dimId);
   if (v == null) return 0;
-  const max = SCALE_MAX[dimId] ?? 5;
-  return Math.min(1, Math.max(0, v / max));
+  return Math.min(1, Math.max(0, v / SCALE_MAX));
 }
 
-function getStructureVector(style: StyleTargetFull): number[] {
+function getStructureVector(style: WineStyleFull): number[] {
   return STRUCT_DIM_IDS.map((id) => getStructNormalized(style, id));
 }
 
-function getDirectionVector(style: StyleTargetFull): [number, number, number] {
-  const fruit = getStructValue(style, "fruit_profile");
-  const herbalRow = (style.structure ?? []).find((s) => s.structureDimensionId === "herbal_character");
-  const earthRow = (style.structure ?? []).find((s) => s.structureDimensionId === "earth_spice_character");
-  const herbal = herbalRow?.minValue != null ? (herbalRow.minValue + (herbalRow.maxValue ?? herbalRow.minValue)) / 2 / 5 : 0;
-  const earth = earthRow?.minValue != null ? (earthRow.minValue + (earthRow.maxValue ?? earthRow.minValue)) / 2 / 5 : 0;
-  const fp = fruit != null ? fruit : 0;
-  return [fp, Math.min(1, herbal), Math.min(1, earth)];
+function getDirectionVector(style: WineStyleFull): [number, number, number] {
+  const body = getStructValue(style, "body");
+  const oak = getStructValue(style, "oak_influence");
+  const intensity = getStructValue(style, "overall_intensity");
+  return [
+    body != null ? body / SCALE_MAX : 0,
+    oak != null ? oak / SCALE_MAX : 0,
+    intensity != null ? intensity / SCALE_MAX : 0,
+  ];
 }
 
 function getPrimaryDominantDescriptors(
-  style: StyleTargetFull,
-  allowedPrimaryClusterIds: Set<string>
+  style: WineStyleFull,
+  primaryClusterIds: Set<string>
 ): { descIds: Set<string>; clusterIds: Set<string> } {
   const descIds = new Set<string>();
   const clusterIds = new Set<string>();
-  for (const a of style.aromas ?? []) {
-    if (a.prominence !== "dominant" || !a.term) continue;
-    const term = a.term as AromaTermLike;
-    if (term.source !== "primary") continue;
-    if (!allowedPrimaryClusterIds.has(term.parentId ?? "")) continue;
-    descIds.add(a.aromaTermId);
-    clusterIds.add(term.parentId!);
+  for (const a of style.aromaDescriptors ?? []) {
+    if (a.salience !== "dominant" || !a.descriptor) continue;
+    const clusterId = a.cluster?.id;
+    if (!clusterId || !primaryClusterIds.has(clusterId)) continue;
+    descIds.add(a.aromaDescriptorId);
+    clusterIds.add(clusterId);
   }
   return { descIds, clusterIds };
 }
 
 function manhattan(a: number[], b: number[]): number {
   let sum = 0;
-  for (let i = 0; i < a.length; i++) sum += Math.abs((a[i] ?? 0) - (b[i] ?? 0));
+  for (let i = 0; i < a.length; i++)
+    sum += Math.abs((a[i] ?? 0) - (b[i] ?? 0));
   return sum / a.length;
 }
 
@@ -93,8 +86,9 @@ function jaccard(a: Set<string>, b: Set<string>): number {
 }
 
 export function getConfusionGroup(
-  styles: StyleTargetFull[],
-  aromaTerms: AromaTermLike[],
+  styles: WineStyleFull[],
+  clusters: ClusterRow[],
+  descriptors: DescriptorRow[],
   targetId: string,
   difficulty: ConfusionDifficulty
 ): ConfusionGroupResponse {
@@ -109,25 +103,39 @@ export function getConfusionGroup(
     };
   }
 
-  const allowedPrimaryClusterIds = new Set(
-    aromaTerms.filter((t) => t.parentId === "source_primary").map((t) => t.id)
+  const primaryClusterIds = new Set(
+    clusters.filter((c) => c.aromaSourceId === "primary").map((c) => c.id)
   );
 
   const targetStruct = getStructureVector(target);
   const targetDir = getDirectionVector(target);
-  const targetAroma = getPrimaryDominantDescriptors(target, allowedPrimaryClusterIds);
+  const targetAroma = getPrimaryDominantDescriptors(
+    target,
+    primaryClusterIds
+  );
 
   const gateWidth = difficulty === "easy" ? 2 : 1;
-  const dirThreshold = difficulty === "medium" ? 0.65 : difficulty === "hard" ? 0.55 : 1;
-  const aromaMin = difficulty === "medium" ? 0.05 : difficulty === "hard" ? 0.15 : 0;
+  const dirThreshold =
+    difficulty === "medium" ? 0.65 : difficulty === "hard" ? 0.55 : 1;
+  const aromaMin =
+    difficulty === "medium" ? 0.05 : difficulty === "hard" ? 0.15 : 0;
 
   const candidates = styles.filter((s) => {
     if (s.id === targetId) return false;
-    if (s.producedColor !== target.producedColor || s.wineCategory !== target.wineCategory) return false;
+    if (
+      s.producedColor !== target.producedColor ||
+      s.wineCategory !== target.wineCategory
+    )
+      return false;
     for (const id of STRUCT_DIM_IDS) {
       const tv = getStructValue(target, id);
       const sv = getStructValue(s, id);
-      if (tv != null && sv != null && Math.abs(tv - sv) > gateWidth) return false;
+      if (
+        tv != null &&
+        sv != null &&
+        Math.abs(tv - sv) > gateWidth
+      )
+        return false;
     }
     return true;
   });
@@ -135,7 +143,7 @@ export function getConfusionGroup(
   const scored = candidates.map((s) => {
     const sStruct = getStructureVector(s);
     const sDir = getDirectionVector(s);
-    const sAroma = getPrimaryDominantDescriptors(s, allowedPrimaryClusterIds);
+    const sAroma = getPrimaryDominantDescriptors(s, primaryClusterIds);
     const D_struct = manhattan(targetStruct, sStruct);
     const D_dir = manhattan(targetDir, sDir);
     const jDesc = jaccard(targetAroma.descIds, sAroma.descIds);
@@ -166,15 +174,23 @@ export function getConfusionGroup(
 
   filtered.sort((a, b) => b.similarity - a.similarity);
 
-  const termDisplayMap = new Map(aromaTerms.map((t) => [t.id, t.displayName]));
+  const termDisplayMap = new Map(
+    descriptors.map((d) => [d.id, d.displayName] as const)
+  );
 
   const toDistractor = (
     c: (typeof filtered)[0],
     role: ConfusionDistractor["role"]
   ): ConfusionDistractor => {
-    const shared = [...c.sAroma.descIds].filter((id) => targetAroma.descIds.has(id));
-    const targetOnly = [...targetAroma.descIds].filter((id) => !c.sAroma.descIds.has(id));
-    const distractorOnly = [...c.sAroma.descIds].filter((id) => !targetAroma.descIds.has(id));
+    const shared = [...c.sAroma.descIds].filter((id) =>
+      targetAroma.descIds.has(id)
+    );
+    const targetOnly = [...targetAroma.descIds].filter(
+      (id) => !c.sAroma.descIds.has(id)
+    );
+    const distractorOnly = [...c.sAroma.descIds].filter(
+      (id) => !targetAroma.descIds.has(id)
+    );
     const pivotDimensions: string[] = [];
     let maxDiff = 0;
     for (let i = 0; i < STRUCT_DIM_IDS.length; i++) {
@@ -189,7 +205,9 @@ export function getConfusionGroup(
     }
     const sharedNames = shared.map((id) => termDisplayMap.get(id) ?? id);
     const targetNames = targetOnly.map((id) => termDisplayMap.get(id) ?? id);
-    const distractorNames = distractorOnly.map((id) => termDisplayMap.get(id) ?? id);
+    const distractorNames = distractorOnly.map(
+      (id) => termDisplayMap.get(id) ?? id
+    );
     const whyConfusing =
       sharedNames.length > 0
         ? `Both show ${sharedNames.slice(0, 3).join(", ")}. Structure is similar.`

@@ -2,37 +2,34 @@ import {
   pgTable,
   varchar,
   integer,
-  text,
-  jsonb,
   primaryKey,
 } from "drizzle-orm/pg-core";
-import { domainEnum, scaleTypeEnum, confidenceEnum } from "./enums";
-import { styleTarget } from "./grapes";
+import { sql } from "drizzle-orm";
+import { ordinalScale } from "./grapes";
+import { wineStyle } from "./grapes";
 
 export const structureDimension = pgTable("structure_dimension", {
   id: varchar("id", { length: 64 }).primaryKey(),
   displayName: varchar("display_name", { length: 128 }).notNull(),
-  domain: domainEnum("domain").notNull(),
-  scaleType: scaleTypeEnum("scale_type").notNull(),
-  scaleMin: integer("scale_min"),
-  scaleMax: integer("scale_max"),
-  scaleLabels: jsonb("scale_labels"),
-  description: text("description"),
+  ordinalScaleId: varchar("ordinal_scale_id", { length: 64 })
+    .notNull()
+    .references(() => ordinalScale.id, { onDelete: "restrict" }),
 });
 
-export const styleTargetStructure = pgTable(
-  "style_target_structure",
+export const wineStyleStructure = pgTable(
+  "wine_style_structure",
   {
-    styleTargetId: varchar("style_target_id", { length: 64 })
+    wineStyleId: varchar("wine_style_id", { length: 64 })
       .notNull()
-      .references(() => styleTarget.id, { onDelete: "cascade" }),
+      .references(() => wineStyle.id, { onDelete: "cascade" }),
     structureDimensionId: varchar("structure_dimension_id", { length: 64 })
       .notNull()
       .references(() => structureDimension.id, { onDelete: "cascade" }),
-    minValue: integer("min_value"),
-    maxValue: integer("max_value"),
-    categoricalValue: varchar("categorical_value", { length: 64 }),
-    confidence: confidenceEnum("confidence").notNull(),
+    minValue: integer("min_value").notNull(),
+    maxValue: integer("max_value").notNull(),
   },
-  (t) => [primaryKey({ columns: [t.styleTargetId, t.structureDimensionId] })]
+  (t) => [
+    primaryKey({ columns: [t.wineStyleId, t.structureDimensionId] }),
+    sql`CHECK (min_value >= 1 AND min_value <= 5 AND max_value >= 1 AND max_value <= 5 AND min_value <= max_value)`,
+  ]
 );

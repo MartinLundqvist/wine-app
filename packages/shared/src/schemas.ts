@@ -1,38 +1,50 @@
 import { z } from "zod";
 
-// Enums (for API validation / types)
+// Enums (v2 wine knowledge engine)
 export const grapeColorSchema = z.enum(["red", "white"]);
-export const domainSchema = z.enum([
-  "appearance",
-  "nose",
-  "palate",
-  "conclusion",
-]);
-export const scaleTypeSchema = z.enum(["ordinal", "categorical"]);
 export const wineCategorySchema = z.enum(["still", "sparkling", "fortified"]);
 export const producedColorSchema = z.enum(["red", "white", "rose"]);
-export const aromaSourceSchema = z.enum(["primary", "secondary", "tertiary"]);
-export const styleKindSchema = z.enum([
-  "grape_archetype",
-  "regional_benchmark",
-  "method_benchmark",
-  "commercial_modern",
+export const styleTypeSchema = z.enum([
+  "global_archetype",
+  "regional_archetype",
+  "appellation_archetype",
+  "specific_bottle",
 ]);
-export const confidenceSchema = z.enum(["high", "medium", "low"]);
-export const statusSchema = z.enum(["draft", "approved", "deprecated"]);
-export const grapeRoleSchema = z.enum(["primary", "blending"]);
-export const prominenceSchema = z.enum(["dominant", "supporting", "optional"]);
-export const continentalitySchema = z.enum([
-  "maritime",
-  "continental",
-  "mixed",
+export const regionLevelSchema = z.enum([
+  "country",
+  "region",
+  "sub_region",
+  "appellation",
+  "vineyard",
 ]);
-export const malolacticSchema = z.enum(["none", "partial", "full"]);
+export const descriptorSalienceSchema = z.enum([
+  "dominant",
+  "supporting",
+  "occasional",
+]);
 
-// Kept for explore layer
+// Kept for explore / user layer
 export const wineColorSchema = z.enum(["red", "white"]);
 
-// Truth layer
+// Ordinal scale (labels for 1–5 axes)
+export const ordinalScaleSchema = z.object({
+  id: z.string(),
+  displayName: z.string(),
+  labels: z.array(z.string()).length(5),
+});
+export type OrdinalScale = z.infer<typeof ordinalScaleSchema>;
+
+// Region (single table, self-referencing)
+export const regionSchema = z.object({
+  id: z.string(),
+  displayName: z.string(),
+  regionLevel: regionLevelSchema,
+  parentId: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+});
+export type Region = z.infer<typeof regionSchema>;
+
+// Grape variety
 export const grapeSchema = z.object({
   id: z.string(),
   displayName: z.string(),
@@ -42,15 +54,98 @@ export const grapeSchema = z.object({
 });
 export type Grape = z.infer<typeof grapeSchema>;
 
-export const regionSchema = z.object({
+// Wine style (core entity)
+export const wineStyleSchema = z.object({
   id: z.string(),
   displayName: z.string(),
-  country: z.string(),
-  parentRegionId: z.string().nullable().optional(),
+  styleType: styleTypeSchema,
+  producedColor: producedColorSchema,
+  wineCategory: wineCategorySchema,
+  regionId: z.string().nullable().optional(),
+  climateMin: z.number().nullable().optional(),
+  climateMax: z.number().nullable().optional(),
+  climateOrdinalScaleId: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
 });
-export type Region = z.infer<typeof regionSchema>;
+export type WineStyle = z.infer<typeof wineStyleSchema>;
 
+// Structure dimension (references ordinal scale for labels)
+export const structureDimensionSchema = z.object({
+  id: z.string(),
+  displayName: z.string(),
+  ordinalScaleId: z.string(),
+  description: z.string().nullable().optional(),
+});
+export type StructureDimension = z.infer<typeof structureDimensionSchema>;
+
+// Wine style – structure range (min/max 1–5)
+export const wineStyleStructureSchema = z.object({
+  wineStyleId: z.string(),
+  structureDimensionId: z.string(),
+  minValue: z.number(),
+  maxValue: z.number(),
+});
+export type WineStyleStructure = z.infer<typeof wineStyleStructureSchema>;
+
+// Aroma taxonomy
+export const aromaSourceSchema = z.object({
+  id: z.string(),
+  displayName: z.string(),
+});
+export type AromaSource = z.infer<typeof aromaSourceSchema>;
+
+export const aromaClusterSchema = z.object({
+  id: z.string(),
+  displayName: z.string(),
+  aromaSourceId: z.string(),
+});
+export type AromaCluster = z.infer<typeof aromaClusterSchema>;
+
+export const aromaDescriptorSchema = z.object({
+  id: z.string(),
+  displayName: z.string(),
+  aromaClusterId: z.string(),
+});
+export type AromaDescriptor = z.infer<typeof aromaDescriptorSchema>;
+
+// Flat aroma term (legacy /aroma-terms response: source + cluster + descriptor with parentId)
+export const aromaTermFlatSchema = z.object({
+  id: z.string(),
+  displayName: z.string(),
+  parentId: z.string().nullable(),
+  source: z.enum(["primary", "secondary", "tertiary"]),
+  description: z.string().nullable().optional(),
+});
+export type AromaTermFlat = z.infer<typeof aromaTermFlatSchema>;
+
+// Wine style – aroma cluster (intensity range 1–5)
+export const wineStyleAromaClusterSchema = z.object({
+  wineStyleId: z.string(),
+  aromaClusterId: z.string(),
+  intensityMin: z.number(),
+  intensityMax: z.number(),
+});
+export type WineStyleAromaCluster = z.infer<typeof wineStyleAromaClusterSchema>;
+
+// Wine style – aroma descriptor (salience)
+export const wineStyleAromaDescriptorSchema = z.object({
+  wineStyleId: z.string(),
+  aromaDescriptorId: z.string(),
+  salience: descriptorSalienceSchema,
+});
+export type WineStyleAromaDescriptor = z.infer<
+  typeof wineStyleAromaDescriptorSchema
+>;
+
+// Blend row
+export const wineStyleGrapeSchema = z.object({
+  wineStyleId: z.string(),
+  grapeVarietyId: z.string(),
+  percentage: z.number().nullable().optional(),
+});
+export type WineStyleGrape = z.infer<typeof wineStyleGrapeSchema>;
+
+// Map config (unchanged)
 export const countryMapConfigSchema = z.object({
   countryName: z.string(),
   isoNumeric: z.number(),
@@ -77,141 +172,68 @@ export type RegionsMapConfigResponse = z.infer<
   typeof regionsMapConfigResponseSchema
 >;
 
-export const structureDimensionSchema = z.object({
-  id: z.string(),
-  displayName: z.string(),
-  domain: domainSchema,
-  scaleType: scaleTypeSchema,
-  scaleMin: z.number().nullable().optional(),
-  scaleMax: z.number().nullable().optional(),
-  scaleLabels: z.unknown().nullable().optional(),
-  description: z.string().nullable().optional(),
+// Composite: structure dimension with its scale labels (for API)
+export const structureDimensionWithScaleSchema = structureDimensionSchema.extend({
+  ordinalScale: ordinalScaleSchema.optional(),
 });
-export type StructureDimension = z.infer<typeof structureDimensionSchema>;
-
-export const aromaTermSchema = z.object({
-  id: z.string(),
-  displayName: z.string(),
-  parentId: z.string().nullable().optional(),
-  source: aromaSourceSchema,
-  description: z.string().nullable().optional(),
-});
-export type AromaTerm = z.infer<typeof aromaTermSchema>;
-
-export const styleTargetSchema = z.object({
-  id: z.string(),
-  displayName: z.string(),
-  regionId: z.string().nullable().optional(),
-  styleKind: styleKindSchema,
-  wineCategory: wineCategorySchema,
-  producedColor: producedColorSchema,
-  ladderTier: z.number(),
-  confidence: confidenceSchema,
-  status: statusSchema,
-  authoringBasis: z.string().nullable().optional(),
-  notesInternal: z.string().nullable().optional(),
-});
-export type StyleTarget = z.infer<typeof styleTargetSchema>;
-
-export const styleTargetGrapeSchema = z.object({
-  styleTargetId: z.string(),
-  grapeId: z.string(),
-  percentage: z.number().nullable().optional(),
-  role: grapeRoleSchema,
-});
-export type StyleTargetGrape = z.infer<typeof styleTargetGrapeSchema>;
-
-export const styleTargetStructureSchema = z.object({
-  styleTargetId: z.string(),
-  structureDimensionId: z.string(),
-  minValue: z.number().nullable().optional(),
-  maxValue: z.number().nullable().optional(),
-  categoricalValue: z.string().nullable().optional(),
-  confidence: confidenceSchema,
-});
-export type StyleTargetStructure = z.infer<typeof styleTargetStructureSchema>;
-
-export const styleTargetAromaProfileSchema = z.object({
-  styleTargetId: z.string(),
-  aromaTermId: z.string(),
-  prominence: prominenceSchema,
-});
-export type StyleTargetAromaProfile = z.infer<
-  typeof styleTargetAromaProfileSchema
+export type StructureDimensionWithScale = z.infer<
+  typeof structureDimensionWithScaleSchema
 >;
 
-// Metadata layer
-export const thermalBandSchema = z.object({
-  id: z.string(),
-  description: z.string().nullable().optional(),
-});
-export type ThermalBand = z.infer<typeof thermalBandSchema>;
-
-export const styleTargetContextSchema = z.object({
-  styleTargetId: z.string(),
-  thermalBandId: z.string().nullable().optional(),
-  elevationMeters: z.number().nullable().optional(),
-  continentality: continentalitySchema.nullable().optional(),
-  oakNewPercentageRange: z.string().nullable().optional(),
-  oakType: z.string().nullable().optional(),
-  malolacticConversion: malolacticSchema.nullable().optional(),
-  leesAging: z.boolean().nullable().optional(),
-  wholeCluster: z.boolean().nullable().optional(),
-  carbonicMaceration: z.boolean().nullable().optional(),
-  skinContactWhite: z.boolean().nullable().optional(),
-  agingVessel: z.string().nullable().optional(),
-  agingPotentialYearsMin: z.number().nullable().optional(),
-  agingPotentialYearsMax: z.number().nullable().optional(),
-  expectedQualityMin: z.number().nullable().optional(),
-  expectedQualityMax: z.number().nullable().optional(),
-  expectDeposit: z.boolean().nullable().optional(),
-  expectPetillance: z.boolean().nullable().optional(),
-  commonTertiaryAromas: z.string().nullable().optional(),
-  structureEvolutionNotes: z.string().nullable().optional(),
-  notes: z.string().nullable().optional(),
-});
-export type StyleTargetContext = z.infer<typeof styleTargetContextSchema>;
-
-// Composite types for API responses
-export const grapeWithStyleTargetsSchema = grapeSchema.extend({
-  styleTargetIds: z.array(z.string()).optional(),
-});
-export type GrapeWithStyleTargets = z.infer<typeof grapeWithStyleTargetsSchema>;
-
-export const styleTargetStructureWithDimensionSchema =
-  styleTargetStructureSchema.extend({
-    dimension: structureDimensionSchema.optional(),
+export const wineStyleStructureWithDimensionSchema =
+  wineStyleStructureSchema.extend({
+    dimension: structureDimensionWithScaleSchema.optional(),
   });
-export type StyleTargetStructureWithDimension = z.infer<
-  typeof styleTargetStructureWithDimensionSchema
+export type WineStyleStructureWithDimension = z.infer<
+  typeof wineStyleStructureWithDimensionSchema
 >;
 
-export const styleTargetAromaWithTermSchema = styleTargetAromaProfileSchema.extend(
-  {
-    term: aromaTermSchema.optional(),
-  }
-);
-export type StyleTargetAromaWithTerm = z.infer<
-  typeof styleTargetAromaWithTermSchema
+// Composite: aroma cluster with optional source info
+export const wineStyleAromaClusterWithClusterSchema =
+  wineStyleAromaClusterSchema.extend({
+    cluster: aromaClusterSchema.optional(),
+  });
+export type WineStyleAromaClusterWithCluster = z.infer<
+  typeof wineStyleAromaClusterWithClusterSchema
 >;
 
-export const styleTargetFullSchema = styleTargetSchema.extend({
+// Composite: aroma descriptor with optional cluster/source
+export const wineStyleAromaDescriptorWithDescriptorSchema =
+  wineStyleAromaDescriptorSchema.extend({
+    descriptor: aromaDescriptorSchema.optional(),
+    cluster: aromaClusterSchema.optional(),
+  });
+export type WineStyleAromaDescriptorWithDescriptor = z.infer<
+  typeof wineStyleAromaDescriptorWithDescriptorSchema
+>;
+
+// Full wine style (for API detail and list)
+export const wineStyleFullSchema = wineStyleSchema.extend({
   region: regionSchema.nullable().optional(),
+  climateOrdinalScale: ordinalScaleSchema.nullable().optional(),
   grapes: z
     .array(
       z.object({
         grape: grapeSchema,
         percentage: z.number().nullable().optional(),
-        role: grapeRoleSchema,
       })
     )
     .optional(),
-  structure: z.array(styleTargetStructureWithDimensionSchema).optional(),
-  aromas: z.array(styleTargetAromaWithTermSchema).optional(),
-  context: styleTargetContextSchema.nullable().optional(),
+  structure: z.array(wineStyleStructureWithDimensionSchema).optional(),
+  aromaClusters: z.array(wineStyleAromaClusterWithClusterSchema).optional(),
+  aromaDescriptors: z
+    .array(wineStyleAromaDescriptorWithDescriptorSchema)
+    .optional(),
 });
-export type StyleTargetFull = z.infer<typeof styleTargetFullSchema>;
+export type WineStyleFull = z.infer<typeof wineStyleFullSchema>;
 
+// Grape with wine style ids (for explore)
+export const grapeWithWineStyleIdsSchema = grapeSchema.extend({
+  wineStyleIds: z.array(z.string()).optional(),
+});
+export type GrapeWithWineStyleIds = z.infer<typeof grapeWithWineStyleIdsSchema>;
+
+// Region tree (optional children)
 export type RegionWithChildren = z.infer<typeof regionSchema> & {
   children?: RegionWithChildren[];
 };
@@ -220,24 +242,38 @@ export const regionWithChildrenSchema: z.ZodType<RegionWithChildren> =
     children: z.lazy(() => z.array(regionWithChildrenSchema)).optional(),
   });
 
-export type AromaTermWithChildren = z.infer<typeof aromaTermSchema> & {
-  children?: AromaTermWithChildren[];
-};
-export const aromaTermWithChildrenSchema: z.ZodType<AromaTermWithChildren> =
-  aromaTermSchema.extend({
-    children: z.lazy(() => z.array(aromaTermWithChildrenSchema)).optional(),
-  });
+// Aroma tree: source -> clusters -> descriptors (for explore/UI)
+export const aromaDescriptorWithClusterSchema = aromaDescriptorSchema.extend({
+  cluster: aromaClusterSchema.optional(),
+});
+export type AromaDescriptorWithCluster = z.infer<
+  typeof aromaDescriptorWithClusterSchema
+>;
+
+export const aromaClusterWithDescriptorsSchema = aromaClusterSchema.extend({
+  descriptors: z.array(aromaDescriptorSchema).optional(),
+});
+export type AromaClusterWithDescriptors = z.infer<
+  typeof aromaClusterWithDescriptorsSchema
+>;
+
+export const aromaSourceWithClustersSchema = aromaSourceSchema.extend({
+  clusters: z.array(aromaClusterWithDescriptorsSchema).optional(),
+});
+export type AromaSourceWithClusters = z.infer<
+  typeof aromaSourceWithClustersSchema
+>;
 
 // Response schemas
-export const grapesResponseSchema = z.array(grapeSchema);
+export const grapesResponseSchema = z.array(grapeWithWineStyleIdsSchema);
 export const regionsResponseSchema = z.array(regionSchema);
+export const ordinalScalesResponseSchema = z.array(ordinalScaleSchema);
 export const structureDimensionsResponseSchema = z.array(
-  structureDimensionSchema
+  structureDimensionWithScaleSchema
 );
-export const aromaTermsResponseSchema = z.array(aromaTermSchema);
-export const thermalBandsResponseSchema = z.array(thermalBandSchema);
-export const styleTargetsResponseSchema = z.array(styleTargetFullSchema);
-export const styleTargetResponseSchema = styleTargetFullSchema;
+export const aromaTaxonomyResponseSchema = z.array(aromaSourceWithClustersSchema);
+export const wineStylesResponseSchema = z.array(wineStyleFullSchema);
+export const wineStyleResponseSchema = wineStyleFullSchema;
 
 // Confusion group (similar-style distractors)
 export const confusionDifficultySchema = z.enum(["easy", "medium", "hard"]);
@@ -255,7 +291,9 @@ export const confusionDistractorRoleSchema = z.enum([
   "structural_match",
   "directional_match",
 ]);
-export type ConfusionDistractorRole = z.infer<typeof confusionDistractorRoleSchema>;
+export type ConfusionDistractorRole = z.infer<
+  typeof confusionDistractorRoleSchema
+>;
 
 export const confusionDistractorSchema = z.object({
   styleId: z.string(),
@@ -276,4 +314,12 @@ export const confusionGroupResponseSchema = z.object({
   insufficientCandidates: z.boolean(),
   generatedAt: z.string(),
 });
-export type ConfusionGroupResponse = z.infer<typeof confusionGroupResponseSchema>;
+export type ConfusionGroupResponse = z.infer<
+  typeof confusionGroupResponseSchema
+>;
+
+// Legacy aliases for gradual migration (can remove once all consumers use new names)
+/** @deprecated Use WineStyleFull */
+export type StyleTargetFull = WineStyleFull;
+/** @deprecated Use wineStyleFullSchema */
+export const styleTargetFullSchema = wineStyleFullSchema;

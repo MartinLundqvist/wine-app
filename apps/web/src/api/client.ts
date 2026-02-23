@@ -1,11 +1,10 @@
 import type {
-  GrapeWithStyleTargets,
+  AromaTermFlat,
+  GrapeWithWineStyleIds,
   Region,
   RegionsMapConfigResponse,
-  StructureDimension,
-  AromaTerm,
-  ThermalBand,
-  StyleTargetFull,
+  StructureDimensionWithScale,
+  WineStyleFull,
   ConfusionGroupResponse,
   ConfusionDifficulty,
 } from "@wine-app/shared";
@@ -34,7 +33,7 @@ async function fetchJson<T>(
 const base = () => `${getBaseUrl()}${apiPrefix()}`;
 
 export const api = {
-  async getGrapes(): Promise<GrapeWithStyleTargets[]> {
+  async getGrapes(): Promise<GrapeWithWineStyleIds[]> {
     return fetchJson(`${base()}/grapes`);
   },
   async getRegions(): Promise<Region[]> {
@@ -43,19 +42,19 @@ export const api = {
   async getRegionsMapConfig(): Promise<RegionsMapConfigResponse> {
     return fetchJson(`${base()}/regions/map-config`);
   },
-  async getStructureDimensions(): Promise<StructureDimension[]> {
+  async getStructureDimensions(): Promise<StructureDimensionWithScale[]> {
     return fetchJson(`${base()}/structure-dimensions`);
   },
-  async getAromaTerms(): Promise<AromaTerm[]> {
+  async getAromaTerms(): Promise<AromaTermFlat[]> {
     return fetchJson(`${base()}/aroma-terms`);
   },
-  async getThermalBands(): Promise<ThermalBand[]> {
-    return fetchJson(`${base()}/thermal-bands`);
+  async getOrdinalScales(): Promise<{ id: string; displayName: string; labels: string[] }[]> {
+    return fetchJson(`${base()}/ordinal-scales`);
   },
-  async getStyleTargets(): Promise<StyleTargetFull[]> {
+  async getStyleTargets(): Promise<WineStyleFull[]> {
     return fetchJson(`${base()}/style-targets`);
   },
-  async getStyleTarget(id: string): Promise<StyleTargetFull> {
+  async getStyleTarget(id: string): Promise<WineStyleFull> {
     return fetchJson(`${base()}/style-targets/${encodeURIComponent(id)}`, {
       notFoundMessage: "Style target not found",
     });

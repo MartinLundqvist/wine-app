@@ -3,6 +3,5 @@ export * from "./users";
 export * from "./grapes";
 export * from "./attributes";
 export * from "./descriptors";
-export * from "./context";
 export * from "./exercises";
 export * from "./mapConfig";

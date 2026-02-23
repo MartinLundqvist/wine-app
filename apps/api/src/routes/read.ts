@@ -1,16 +1,18 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { db } from "@wine-app/db";
 import {
-  grape,
+  grapeVariety,
   region,
-  styleTarget,
-  styleTargetGrape,
-  styleTargetStructure,
+  wineStyle,
+  wineStyleGrape,
+  wineStyleStructure,
   structureDimension,
-  aromaTerm,
-  styleTargetAromaProfile,
-  thermalBand,
-  styleTargetContext,
+  ordinalScale,
+  wineStyleAromaCluster,
+  wineStyleAromaDescriptor,
+  aromaCluster,
+  aromaDescriptor,
+  aromaSource,
   countryMapConfig,
   regionBoundaryMapping,
 } from "@wine-app/db/schema";
@@ -22,24 +24,27 @@ export async function registerReadRoutes(app: FastifyInstance) {
   app.get("/grapes", async (_req: FastifyRequest, reply: FastifyReply) => {
     const rows = await db
       .select()
-      .from(grape)
-      .orderBy(grape.sortOrder, grape.id);
-    const links = await db.select().from(styleTargetGrape);
-    const stMap = new Map<string, string[]>();
+      .from(grapeVariety)
+      .orderBy(grapeVariety.sortOrder, grapeVariety.id);
+    const links = await db.select().from(wineStyleGrape);
+    const styleMap = new Map<string, string[]>();
     for (const l of links) {
-      const arr = stMap.get(l.grapeId) ?? [];
-      arr.push(l.styleTargetId);
-      stMap.set(l.grapeId, arr);
+      const arr = styleMap.get(l.grapeVarietyId) ?? [];
+      arr.push(l.wineStyleId);
+      styleMap.set(l.grapeVarietyId, arr);
     }
     const result = rows.map((r) => ({
       ...r,
-      styleTargetIds: stMap.get(r.id) ?? [],
+      wineStyleIds: styleMap.get(r.id) ?? [],
     }));
     return reply.send(result);
   });
 
   app.get("/regions", async (_req: FastifyRequest, reply: FastifyReply) => {
-    const rows = await db.select().from(region).orderBy(region.country, region.displayName);
+    const rows = await db
+      .select()
+      .from(region)
+      .orderBy(region.regionLevel, region.displayName);
     return reply.send(rows);
   });
 
@@ -56,27 +61,39 @@ export async function registerReadRoutes(app: FastifyInstance) {
       boundaryMappings[row.regionId] = list;
     }
     const regionIds = new Set(regionsRows.map((r) => r.id));
-    const mappableCountries = new Set(
+    const mappableCountryNames = new Set(
       countries.filter((c) => c.isMappable).map((c) => c.countryName)
     );
     for (const c of countries) {
-      if (c.isMappable && (c.isoNumeric == null || !c.geoSlug || c.zoomLevel == null)) {
-        app.log.warn({ countryName: c.countryName }, "[map-config] Mappable country missing ISO/geoSlug/zoom");
+      if (
+        c.isMappable &&
+        (c.isoNumeric == null || !c.geoSlug || c.zoomLevel == null)
+      ) {
+        app.log.warn(
+          { countryName: c.countryName },
+          "[map-config] Mappable country missing ISO/geoSlug/zoom"
+        );
       }
     }
     for (const r of regionsRows) {
-      if (r.parentRegionId == null) continue;
-      const parent = regionsRows.find((p) => p.id === r.parentRegionId);
-      if (parent && mappableCountries.has(parent.country)) {
+      if (r.parentId == null) continue;
+      const parent = regionsRows.find((p) => p.id === r.parentId);
+      if (parent && mappableCountryNames.has(parent.displayName)) {
         const mappings = boundaryMappings[r.id] ?? [];
         if (mappings.length === 0) {
-          app.log.warn({ regionId: r.id, country: r.country }, "[map-config] Sub-region under mappable country has no boundary mapping");
+          app.log.warn(
+            { regionId: r.id, parentName: parent.displayName },
+            "[map-config] Sub-region under mappable country has no boundary mapping"
+          );
         }
       }
     }
     for (const regionId of Object.keys(boundaryMappings)) {
       if (!regionIds.has(regionId)) {
-        app.log.warn({ regionId }, "[map-config] Boundary mapping references non-existent region");
+        app.log.warn(
+          { regionId },
+          "[map-config] Boundary mapping references non-existent region"
+        );
       }
     }
     const payload = { countries, boundaryMappings };
@@ -84,120 +101,248 @@ export async function registerReadRoutes(app: FastifyInstance) {
     return reply.send(parsed);
   });
 
+  app.get("/ordinal-scales", async (_req: FastifyRequest, reply: FastifyReply) => {
+    const rows = await db
+      .select()
+      .from(ordinalScale)
+      .orderBy(ordinalScale.id);
+    return reply.send(rows);
+  });
+
   app.get(
     "/structure-dimensions",
     async (_req: FastifyRequest, reply: FastifyReply) => {
-      const rows = await db.select().from(structureDimension).orderBy(structureDimension.id);
-      return reply.send(rows);
+      const rows = await db
+        .select()
+        .from(structureDimension)
+        .orderBy(structureDimension.id);
+      const scaleIds = [...new Set(rows.map((r) => r.ordinalScaleId))];
+      const scales =
+        scaleIds.length > 0
+          ? await db
+              .select()
+              .from(ordinalScale)
+              .where(inArray(ordinalScale.id, scaleIds))
+          : [];
+      const scaleMap = new Map(scales.map((s) => [s.id, s]));
+      const result = rows.map((r) => ({
+        ...r,
+        ordinalScale: scaleMap.get(r.ordinalScaleId) ?? null,
+      }));
+      return reply.send(result);
     }
   );
 
+  app.get("/aroma-taxonomy", async (_req: FastifyRequest, reply: FastifyReply) => {
+    const [sources, clusters, descriptors] = await Promise.all([
+      db.select().from(aromaSource).orderBy(aromaSource.id),
+      db.select().from(aromaCluster).orderBy(aromaCluster.aromaSourceId, aromaCluster.displayName),
+      db.select().from(aromaDescriptor).orderBy(aromaDescriptor.aromaClusterId, aromaDescriptor.displayName),
+    ]);
+    const clusterMap = new Map<string, (typeof descriptors)[0][]>();
+    for (const d of descriptors) {
+      const list = clusterMap.get(d.aromaClusterId) ?? [];
+      list.push(d);
+      clusterMap.set(d.aromaClusterId, list);
+    }
+    const result = sources.map((s) => ({
+      ...s,
+      clusters: clusters
+        .filter((c) => c.aromaSourceId === s.id)
+        .map((c) => ({ ...c, descriptors: clusterMap.get(c.id) ?? [] })),
+    }));
+    return reply.send(result);
+  });
+
+  // Legacy: flat aroma terms (source + parentId) for consumers that expect old shape
   app.get("/aroma-terms", async (_req: FastifyRequest, reply: FastifyReply) => {
-    const rows = await db.select().from(aromaTerm).orderBy(aromaTerm.source, aromaTerm.displayName);
-    return reply.send(rows);
+    const [sources, clusters, descriptors] = await Promise.all([
+      db.select().from(aromaSource).orderBy(aromaSource.id),
+      db.select().from(aromaCluster).orderBy(aromaCluster.displayName),
+      db.select().from(aromaDescriptor).orderBy(aromaDescriptor.displayName),
+    ]);
+    type FlatTerm = {
+      id: string;
+      displayName: string;
+      parentId: string | null;
+      source: "primary" | "secondary" | "tertiary";
+      description?: string | null;
+    };
+    const flat: FlatTerm[] = [];
+    for (const s of sources) {
+      flat.push({
+        id: s.id,
+        displayName: s.displayName,
+        parentId: null,
+        source: s.id as "primary" | "secondary" | "tertiary",
+      });
+    }
+    for (const c of clusters) {
+      flat.push({
+        id: c.id,
+        displayName: c.displayName,
+        parentId: c.aromaSourceId,
+        source: (sources.find((x) => x.id === c.aromaSourceId)?.id ??
+          "primary") as "primary" | "secondary" | "tertiary",
+      });
+    }
+    for (const d of descriptors) {
+      const cluster = clusters.find((c) => c.id === d.aromaClusterId);
+      flat.push({
+        id: d.id,
+        displayName: d.displayName,
+        parentId: d.aromaClusterId,
+        source: (cluster
+          ? sources.find((x) => x.id === cluster.aromaSourceId)?.id
+          : "primary") as "primary" | "secondary" | "tertiary",
+      });
+    }
+    return reply.send(flat);
   });
 
-  app.get("/thermal-bands", async (_req: FastifyRequest, reply: FastifyReply) => {
-    const rows = await db.select().from(thermalBand).orderBy(thermalBand.id);
-    return reply.send(rows);
-  });
-
-  async function buildStyleTargetFull(st: (typeof styleTarget.$inferSelect)[]) {
-    const ids = st.map((t) => t.id);
+  async function buildWineStyleFull(
+    styles: (typeof wineStyle.$inferSelect)[]
+  ) {
+    const ids = styles.map((s) => s.id);
     if (ids.length === 0) return [];
 
-    const [grapesLinks, structureRows, aromaRows, contextRows, regionsRows, thermalRows] =
-      await Promise.all([
-        db.select().from(styleTargetGrape).where(inArray(styleTargetGrape.styleTargetId, ids)),
-        db.select().from(styleTargetStructure).where(inArray(styleTargetStructure.styleTargetId, ids)),
-        db.select().from(styleTargetAromaProfile).where(inArray(styleTargetAromaProfile.styleTargetId, ids)),
-        db.select().from(styleTargetContext).where(inArray(styleTargetContext.styleTargetId, ids)),
-        db.select().from(region),
-        db.select().from(thermalBand),
-      ]);
+    const [
+      grapeLinks,
+      structureRows,
+      clusterRows,
+      descriptorRows,
+      regionsRows,
+      scaleRows,
+    ] = await Promise.all([
+      db.select().from(wineStyleGrape).where(inArray(wineStyleGrape.wineStyleId, ids)),
+      db.select().from(wineStyleStructure).where(inArray(wineStyleStructure.wineStyleId, ids)),
+      db.select().from(wineStyleAromaCluster).where(inArray(wineStyleAromaCluster.wineStyleId, ids)),
+      db.select().from(wineStyleAromaDescriptor).where(inArray(wineStyleAromaDescriptor.wineStyleId, ids)),
+      db.select().from(region),
+      db.select().from(ordinalScale),
+    ]);
+
     const regionMap = new Map(regionsRows.map((r) => [r.id, r]));
-    const thermalMap = new Map(thermalRows.map((t) => [t.id, t]));
+    const scaleMap = new Map(scaleRows.map((s) => [s.id, s]));
 
     const dimIds = [...new Set(structureRows.map((r) => r.structureDimensionId))];
-    const aromaIds = [...new Set(aromaRows.map((r) => r.aromaTermId))];
-    const grapeIds = [...new Set(grapesLinks.map((r) => r.grapeId))];
+    const grapeIds = [...new Set(grapeLinks.map((l) => l.grapeVarietyId))];
+    const clusterIds = [...new Set(clusterRows.map((r) => r.aromaClusterId))];
+    const descriptorIds = [...new Set(descriptorRows.map((r) => r.aromaDescriptorId))];
 
-    const [dimensions, aromas, grapes] = await Promise.all([
+    const [dimensions, grapes, clusters, descriptors] = await Promise.all([
       dimIds.length > 0
-        ? db.select().from(structureDimension).where(inArray(structureDimension.id, dimIds))
-        : Promise.resolve([]),
-      aromaIds.length > 0
-        ? db.select().from(aromaTerm).where(inArray(aromaTerm.id, aromaIds))
+        ? db
+            .select()
+            .from(structureDimension)
+            .where(inArray(structureDimension.id, dimIds))
         : Promise.resolve([]),
       grapeIds.length > 0
-        ? db.select().from(grape).where(inArray(grape.id, grapeIds))
+        ? db
+            .select()
+            .from(grapeVariety)
+            .where(inArray(grapeVariety.id, grapeIds))
+        : Promise.resolve([]),
+      clusterIds.length > 0
+        ? db
+            .select()
+            .from(aromaCluster)
+            .where(inArray(aromaCluster.id, clusterIds))
+        : Promise.resolve([]),
+      descriptorIds.length > 0
+        ? db
+            .select()
+            .from(aromaDescriptor)
+            .where(inArray(aromaDescriptor.id, descriptorIds))
         : Promise.resolve([]),
     ]);
-    const dimensionMap = new Map(dimensions.map((d) => [d.id, d]));
-    const aromaMap = new Map(aromas.map((a) => [a.id, a]));
-    const grapeMap = new Map(grapes.map((g) => [g.id, g]));
 
-    return st.map((t) => {
-      const grapes = grapesLinks
-        .filter((l) => l.styleTargetId === t.id)
+    const dimensionMap = new Map(dimensions.map((d) => [d.id, d]));
+    const grapeMap = new Map(grapes.map((g) => [g.id, g]));
+    const clusterMap = new Map(clusters.map((c) => [c.id, c]));
+    const descriptorMap = new Map(descriptors.map((d) => [d.id, d]));
+
+    return styles.map((s) => {
+      const regionRow = s.regionId ? regionMap.get(s.regionId) ?? null : null;
+      const climateScale = s.climateOrdinalScaleId
+        ? scaleMap.get(s.climateOrdinalScaleId) ?? null
+        : null;
+      const grapesList = grapeLinks
+        .filter((l) => l.wineStyleId === s.id)
         .map((l) => ({
-          grape: grapeMap.get(l.grapeId)!,
+          grape: grapeMap.get(l.grapeVarietyId)!,
           percentage: l.percentage,
-          role: l.role,
         }))
         .filter((x) => x.grape);
-      const structure = structureRows
-        .filter((r) => r.styleTargetId === t.id)
+      const structureList = structureRows
+        .filter((r) => r.wineStyleId === s.id)
+        .map((r) => {
+          const dim = dimensionMap.get(r.structureDimensionId);
+          const scale = dim ? scaleMap.get(dim.ordinalScaleId) ?? null : null;
+          return {
+            ...r,
+            dimension: dim
+              ? { ...dim, ordinalScale: scale ?? undefined }
+              : undefined,
+          };
+        });
+      const aromaClustersList = clusterRows
+        .filter((r) => r.wineStyleId === s.id)
         .map((r) => ({
           ...r,
-          dimension: dimensionMap.get(r.structureDimensionId),
-        }));
-      const aromas = aromaRows
-        .filter((r) => r.styleTargetId === t.id)
-        .map((r) => ({
-          ...r,
-          term: aromaMap.get(r.aromaTermId),
+          cluster: clusterMap.get(r.aromaClusterId),
         }))
-        .filter((x) => x.term);
-      const context = contextRows.find((c) => c.styleTargetId === t.id) ?? null;
-      const ctxWithThermal = context
-        ? {
-            ...context,
-            thermalBand: context.thermalBandId
-              ? thermalMap.get(context.thermalBandId) ?? null
-              : null,
-          }
-        : null;
+        .filter((x) => x.cluster);
+      const aromaDescriptorsList = descriptorRows
+        .filter((r) => r.wineStyleId === s.id)
+        .map((r) => {
+          const descriptor = descriptorMap.get(r.aromaDescriptorId);
+          const cluster = descriptor
+            ? clusterMap.get(descriptor.aromaClusterId)
+            : undefined;
+          return {
+            ...r,
+            descriptor,
+            cluster,
+          };
+        })
+        .filter((x) => x.descriptor);
+
       return {
-        ...t,
-        region: t.regionId ? regionMap.get(t.regionId) ?? null : null,
-        grapes,
-        structure,
-        aromas,
-        context: ctxWithThermal,
+        ...s,
+        region: regionRow,
+        climateOrdinalScale: climateScale,
+        grapes: grapesList,
+        structure: structureList,
+        aromaClusters: aromaClustersList,
+        aromaDescriptors: aromaDescriptorsList,
       };
     });
   }
 
   app.get("/style-targets", async (_req: FastifyRequest, reply: FastifyReply) => {
-    const targets = await db
+    const styles = await db
       .select()
-      .from(styleTarget)
-      .orderBy(styleTarget.ladderTier, styleTarget.displayName);
-    const result = await buildStyleTargetFull(targets);
+      .from(wineStyle)
+      .orderBy(wineStyle.displayName);
+    const result = await buildWineStyleFull(styles);
     return reply.send(result);
   });
 
   app.get(
     "/style-targets/:id",
-    async (req: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    async (
+      req: FastifyRequest<{ Params: { id: string } }>,
+      reply: FastifyReply
+    ) => {
       const { id } = req.params;
-      const [target] = await db
+      const [style] = await db
         .select()
-        .from(styleTarget)
-        .where(eq(styleTarget.id, id));
-      if (!target) return reply.status(404).send({ error: "Style target not found" });
-      const [full] = await buildStyleTargetFull([target]);
+        .from(wineStyle)
+        .where(eq(wineStyle.id, id));
+      if (!style)
+        return reply.status(404).send({ error: "Style target not found" });
+      const [full] = await buildWineStyleFull([style]);
       return reply.send(full);
     }
   );
@@ -220,30 +365,28 @@ export async function registerReadRoutes(app: FastifyInstance) {
       if (!difficulty) {
         return reply.status(400).send({
           error: "Invalid difficulty",
-          message: "Query param 'difficulty' must be one of: easy, medium, hard",
+          message:
+            "Query param 'difficulty' must be one of: easy, medium, hard",
         });
       }
-      const [target] = await db
+      const [style] = await db
         .select()
-        .from(styleTarget)
-        .where(eq(styleTarget.id, id));
-      if (!target) {
+        .from(wineStyle)
+        .where(eq(wineStyle.id, id));
+      if (!style) {
         return reply.status(404).send({ error: "Style target not found" });
       }
-      const targets = await db
+      const styles = await db
         .select()
-        .from(styleTarget)
-        .orderBy(styleTarget.ladderTier, styleTarget.displayName);
-      const styles = await buildStyleTargetFull(targets);
-      const aromaTerms = await db.select().from(aromaTerm);
+        .from(wineStyle)
+        .orderBy(wineStyle.displayName);
+      const fullStyles = await buildWineStyleFull(styles);
+      const allClusters = await db.select().from(aromaCluster);
+      const allDescriptors = await db.select().from(aromaDescriptor);
       const result = getConfusionGroup(
-        styles,
-        aromaTerms.map((t) => ({
-          id: t.id,
-          displayName: t.displayName,
-          parentId: t.parentId,
-          source: t.source,
-        })),
+        fullStyles,
+        allClusters,
+        allDescriptors,
         id,
         difficulty
       );

@@ -1,24 +1,17 @@
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { StyleTargetFull } from "@wine-app/shared";
+import type { WineStyleFull } from "@wine-app/shared";
 import { RadarChart, type RadarDimension } from "./RadarChart";
 
 const RADAR_DIMENSION_IDS = [
   "acidity",
-  "tannin",
+  "tannins",
   "alcohol",
   "body",
-  "oak_intensity",
-  "flavor_intensity",
+  "oak_influence",
+  "overall_intensity",
 ] as const;
-const SCALE_MAX: Record<string, number> = {
-  acidity: 5,
-  tannin: 5,
-  alcohol: 3,
-  body: 5,
-  oak_intensity: 5,
-  flavor_intensity: 5,
-};
+const SCALE_MAX = 5;
 
 const AGING_CURVES = {
   young: {
@@ -58,18 +51,17 @@ const STAGE_LABELS: Record<AgingStage, string> = {
   mature: "Mature",
 };
 
-function getBaseValues(style: StyleTargetFull): number[] {
+function getBaseValues(style: WineStyleFull): number[] {
   const structureMap = new Map(
     (style.structure ?? []).map((s) => [s.structureDimensionId, s])
   );
   return RADAR_DIMENSION_IDS.map((id) => {
     const row = structureMap.get(id);
-    const scaleMax = SCALE_MAX[id] ?? 5;
     if (!row || row.minValue == null || row.maxValue == null) return 0;
-    const min = row?.minValue ?? 0;
-    const max = row?.maxValue ?? min;
+    const min = row.minValue ?? 0;
+    const max = row.maxValue ?? min;
     const mid = (min + max) / 2;
-    return Math.min(1, Math.max(0, mid / scaleMax));
+    return Math.min(1, Math.max(0, mid / SCALE_MAX));
   });
 }
 
@@ -80,11 +72,11 @@ function applyAgingCurve(
   const curve = AGING_CURVES[stage];
   const dimMap: Record<string, keyof typeof curve> = {
     acidity: "acidity",
-    tannin: "tannin",
+    tannins: "tannin",
     alcohol: "alcohol",
     body: "body",
-    oak_intensity: "oakIntensity",
-    flavor_intensity: "fruitIntensity",
+    oak_influence: "oakIntensity",
+    overall_intensity: "fruitIntensity",
   };
   return RADAR_DIMENSION_IDS.map((id, i) => {
     const base = baseValues[i] ?? 0;
@@ -94,7 +86,7 @@ function applyAgingCurve(
 }
 
 type AgingTimelineProps = {
-  style: StyleTargetFull | null;
+  style: WineStyleFull | null;
   mode: "structure" | "aroma" | "both";
   structureDimensions: { id: string; displayName: string; description?: string | null; scaleMax?: number | null }[];
 };
@@ -112,7 +104,7 @@ export function AgingTimeline({
       id,
       displayName: d?.displayName ?? id.replace(/_/g, " "),
       description: d?.description ?? null,
-      scaleMax: SCALE_MAX[id] ?? 5,
+      scaleMax: SCALE_MAX,
     };
   });
 
@@ -129,25 +121,21 @@ export function AgingTimeline({
   const showAroma = (mode === "aroma" || mode === "both") && style;
 
   const primaryAromas = useMemo(() => {
-    if (!style?.aromas) return [];
-    return style.aromas
-      .filter((a) => a.term?.source === "primary" || !a.term?.source)
-      .map((a) => a.term?.displayName ?? a.aromaTermId)
+    if (!style?.aromaDescriptors) return [];
+    return style.aromaDescriptors
+      .filter(
+        (a) => a.cluster?.aromaSourceId === "primary" || !a.cluster?.aromaSourceId
+      )
+      .map((a) => a.descriptor?.displayName ?? a.aromaDescriptorId)
       .filter(Boolean) as string[];
   }, [style]);
   const tertiaryAromas = useMemo(() => {
-    const raw = style?.context?.commonTertiaryAromas;
-    if (!raw) return [];
-    return raw.split(",").map((s) => s.trim()).filter(Boolean);
+    if (!style?.aromaDescriptors) return [];
+    return style.aromaDescriptors
+      .filter((a) => a.cluster?.aromaSourceId === "tertiary")
+      .map((a) => a.descriptor?.displayName ?? a.aromaDescriptorId)
+      .filter(Boolean) as string[];
   }, [style]);
-
-  const hueDim = style?.structure?.find(
-    (s) =>
-      s.structureDimensionId === "color_hue_red" ||
-      s.structureDimensionId === "color_hue_white"
-  );
-  const hueValue = hueDim?.minValue ?? hueDim?.maxValue;
-  const showColorIndicator = hueValue != null && (mode === "structure" || mode === "both");
 
   if (!style) {
     return (
@@ -170,16 +158,6 @@ export function AgingTimeline({
             primaryValues={agedValues}
             size={280}
           />
-          {showColorIndicator && (
-            <div
-              className="w-6 h-6 rounded-full border-2 border-border"
-              style={{
-                background: `hsl(${20 + (hueValue - 1) * 15}, 50%, 40%)`,
-              }}
-              title="Color hue shift"
-              aria-hidden
-            />
-          )}
         </motion.div>
       )}
 

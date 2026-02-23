@@ -4,7 +4,7 @@ import { ArrowLeft, Wine } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/client";
 import { queryKeys } from "../../api/queryKeys";
-import type { StyleTargetFull } from "@wine-app/shared";
+import type { WineStyleFull } from "@wine-app/shared";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { Chip } from "../../components/ui/Chip";
 import { WineAttributeBar } from "../../components/ui/WineAttributeBar";
@@ -43,24 +43,27 @@ export function StyleTargetDetailPage() {
     );
   }
 
-  const st = style as StyleTargetFull;
-  const ordinalDims =
-    st.structure?.filter((s) => s.dimension?.scaleType === "ordinal") ?? [];
-  const catDims =
-    st.structure?.filter((s) => s.dimension?.scaleType === "categorical") ?? [];
-  const aromasBySource = (st.aromas ?? []).reduce(
+  const st = style as WineStyleFull;
+  const ordinalDims = st.structure ?? [];
+  const aromasBySource = (st.aromaDescriptors ?? []).reduce(
     (acc, a) => {
-      const src = a.term?.source ?? "primary";
+      const src = a.cluster?.aromaSourceId ?? "primary";
       if (!acc[src]) acc[src] = [];
-      if (a.term) acc[src].push(a);
+      acc[src].push(a);
       return acc;
     },
-    {} as Record<string, typeof st.aromas>
+    {} as Record<string, typeof st.aromaDescriptors>
   );
+
+  const climateLabel =
+    st.climateMin != null &&
+    st.climateMax != null &&
+    st.climateOrdinalScale?.labels
+      ? `${st.climateOrdinalScale.labels[st.climateMin - 1] ?? st.climateMin} – ${st.climateOrdinalScale.labels[st.climateMax - 1] ?? st.climateMax}`
+      : null;
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <div className="bg-gradient-hero">
         <div className="max-w-4xl mx-auto px-6 pt-20 pb-16 md:pt-24 md:pb-20">
           <Link
@@ -92,13 +95,7 @@ export function StyleTargetDetailPage() {
                 variant="ghost"
                 className="border-primary-foreground/30 text-primary-foreground/80 bg-primary-foreground/5 border"
               >
-                Tier {st.ladderTier}
-              </Chip>
-              <Chip
-                variant="ghost"
-                className="border-primary-foreground/30 text-primary-foreground/80 bg-primary-foreground/5 border"
-              >
-                {st.styleKind.replace(/_/g, " ")}
+                {st.styleType.replace(/_/g, " ")}
               </Chip>
             </div>
             {st.grapes && st.grapes.length > 0 && (
@@ -110,10 +107,8 @@ export function StyleTargetDetailPage() {
         </div>
       </div>
 
-      {/* Content */}
       <div className="max-w-4xl mx-auto px-6 -mt-6 pb-24 space-y-6">
-        {/* Description */}
-        {st.context?.notes && (
+        {st.notes && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -121,12 +116,11 @@ export function StyleTargetDetailPage() {
             className="bg-card rounded-xl p-6 shadow-soft border border-border"
           >
             <p className="font-sans text-foreground/80 leading-relaxed text-lg italic">
-              {st.context.notes}
+              {st.notes}
             </p>
           </motion.div>
         )}
 
-        {/* Quick Facts */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -135,12 +129,9 @@ export function StyleTargetDetailPage() {
         >
           {[
             { label: "Color", val: st.producedColor },
-            { label: "Kind", val: st.styleKind.replace(/_/g, " ") },
+            { label: "Type", val: st.styleType.replace(/_/g, " ") },
             { label: "Category", val: st.wineCategory },
-            {
-              label: "Thermal band",
-              val: st.context?.thermalBandId ?? "—",
-            },
+            { label: "Climate", val: climateLabel ?? "—" },
           ].map((item) => (
             <div
               key={item.label}
@@ -156,7 +147,6 @@ export function StyleTargetDetailPage() {
           ))}
         </motion.div>
 
-        {/* Structure */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -174,7 +164,7 @@ export function StyleTargetDetailPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
             {ordinalDims.map((row) => {
               const dim = row.dimension;
-              const scaleMax = dim?.scaleMax ?? 5;
+              const scaleMax = 5;
               const min = row.minValue ?? row.maxValue ?? 0;
               const max = row.maxValue ?? row.minValue ?? 0;
               return (
@@ -188,24 +178,8 @@ export function StyleTargetDetailPage() {
               );
             })}
           </div>
-          {catDims.length > 0 && (
-            <div className="mt-6 pt-4 border-t border-border">
-              <div className="flex flex-wrap gap-2">
-                {catDims.map((row) => (
-                  <Chip
-                    key={row.structureDimensionId}
-                    variant="ghost"
-                    className="bg-secondary border-border text-muted-foreground border"
-                  >
-                    {row.dimension?.displayName}: {row.categoricalValue ?? "—"}
-                  </Chip>
-                ))}
-              </div>
-            </div>
-          )}
         </motion.div>
 
-        {/* Aroma profile */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -237,11 +211,12 @@ export function StyleTargetDetailPage() {
                   <div className="flex flex-wrap gap-2">
                     {list.map((a) => (
                       <Chip
-                        key={a.aromaTermId}
+                        key={a.aromaDescriptorId}
                         variant="ghost"
                         className={badgeStyles}
                       >
-                        {a.term?.displayName} ({a.prominence})
+                        {a.descriptor?.displayName ?? a.aromaDescriptorId} (
+                        {a.salience})
                       </Chip>
                     ))}
                   </div>
@@ -250,84 +225,6 @@ export function StyleTargetDetailPage() {
             })}
           </div>
         </motion.div>
-
-        {/* Context */}
-        {st.context &&
-          (st.context.thermalBandId ||
-            st.context.continentality ||
-            st.context.oakNewPercentageRange ||
-            st.context.malolacticConversion != null ||
-            st.context.agingPotentialYearsMin != null) && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="bg-card rounded-xl p-6 md:p-8 shadow-soft border border-border"
-            >
-              <h2 className="font-serif text-2xl font-bold text-foreground mb-4">
-                Context
-              </h2>
-              <dl className="grid gap-2 sm:grid-cols-2 text-sm">
-                {st.context.thermalBandId && (
-                  <>
-                    <dt className="text-sm font-sans text-muted-foreground">
-                      Thermal band
-                    </dt>
-                    <dd>
-                      <Chip
-                        variant="ghost"
-                        className="bg-oak/10 border border-oak/20 text-oak-light font-sans text-sm px-3 py-1 capitalize"
-                      >
-                        {st.context.thermalBandId}
-                      </Chip>
-                    </dd>
-                  </>
-                )}
-                {st.context.continentality && (
-                  <>
-                    <dt className="text-sm font-sans text-muted-foreground">
-                      Continentality
-                    </dt>
-                    <dd className="font-sans font-medium text-foreground">
-                      {st.context.continentality}
-                    </dd>
-                  </>
-                )}
-                {st.context.oakNewPercentageRange && (
-                  <>
-                    <dt className="text-sm font-sans text-muted-foreground">
-                      Oak (new %)
-                    </dt>
-                    <dd className="font-sans font-medium text-foreground">
-                      {st.context.oakNewPercentageRange}
-                    </dd>
-                  </>
-                )}
-                {st.context.malolacticConversion && (
-                  <>
-                    <dt className="text-sm font-sans text-muted-foreground">
-                      Malolactic
-                    </dt>
-                    <dd className="font-sans font-medium text-foreground">
-                      {st.context.malolacticConversion}
-                    </dd>
-                  </>
-                )}
-                {st.context.agingPotentialYearsMin != null && (
-                  <>
-                    <dt className="text-sm font-sans text-muted-foreground">
-                      Aging potential (years)
-                    </dt>
-                    <dd className="font-sans font-medium text-foreground">
-                      {st.context.agingPotentialYearsMin}
-                      {st.context.agingPotentialYearsMax != null &&
-                        ` – ${st.context.agingPotentialYearsMax}`}
-                    </dd>
-                  </>
-                )}
-              </dl>
-            </motion.div>
-          )}
       </div>
     </div>
   );

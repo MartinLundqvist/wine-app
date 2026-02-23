@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import type { StyleTargetFull } from "@wine-app/shared";
+import type { WineStyleFull } from "@wine-app/shared";
 import { getStructureRange } from "@/lib/wine-structure";
 import { Chip } from "@/components/ui/Chip";
 import { WineAttributeBar } from "@/components/ui/WineAttributeBar";
 
 type StyleCardProps = {
-  style: StyleTargetFull;
+  style: WineStyleFull;
   index?: number;
 };
 
@@ -25,7 +25,7 @@ function colorBadgeClass(color: string) {
 }
 
 export function StyleCard({ style: st, index = 0 }: StyleCardProps) {
-  const tannin = getStructureRange(st.structure, "tannin");
+  const tannin = getStructureRange(st.structure, "tannins");
   const body = getStructureRange(st.structure, "body");
   const acidity = getStructureRange(st.structure, "acidity");
 
@@ -73,7 +73,7 @@ export function StyleCard({ style: st, index = 0 }: StyleCardProps) {
               variant="ghost"
               className="bg-secondary border-border text-muted-foreground text-xs"
             >
-              Tier {st.ladderTier}
+              {st.styleType.replace(/_/g, " ")}
             </Chip>
           </div>
           <div className="space-y-2.5 pt-3 border-t border-border">

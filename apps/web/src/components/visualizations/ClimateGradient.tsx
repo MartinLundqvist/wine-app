@@ -1,19 +1,35 @@
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import type { StyleTargetFull } from "@wine-app/shared";
+import type { WineStyleFull } from "@wine-app/shared";
 
-const BAND_ORDER = ["cool", "moderate", "warm", "hot"] as const;
+const CLIMATE_LABELS = [
+  "Cool",
+  "Moderate-Cool",
+  "Moderate",
+  "Moderate-Warm",
+  "Warm",
+] as const;
 
-function getStructMid(style: StyleTargetFull, dimId: string): number | null {
-  const row = (style.structure ?? []).find((s) => s.structureDimensionId === dimId);
+function getStructMid(style: WineStyleFull, dimId: string): number | null {
+  const row = (style.structure ?? []).find(
+    (s) => s.structureDimensionId === dimId
+  );
   if (!row || row.minValue == null) return null;
   const max = row.maxValue ?? row.minValue;
   return (row.minValue + max) / 2;
 }
 
+function getClimateLabel(style: WineStyleFull): string {
+  const labels = style.climateOrdinalScale?.labels;
+  const min = style.climateMin;
+  if (labels && min != null && min >= 1 && min <= labels.length)
+    return labels[min - 1] ?? "Moderate";
+  return "Moderate";
+}
+
 type ClimateGradientProps = {
-  styles: StyleTargetFull[];
+  styles: WineStyleFull[];
   colorFilter: "red" | "white" | null;
   activeBandIndex: number;
   height?: number;
@@ -27,7 +43,7 @@ export function ClimateGradient({
   height = 480,
   onBandIndexChange,
 }: ClimateGradientProps) {
-  const [selectedStyle, setSelectedStyle] = useState<StyleTargetFull | null>(null);
+  const [selectedStyle, setSelectedStyle] = useState<WineStyleFull | null>(null);
 
   const filtered = useMemo(() => {
     if (!colorFilter) return styles;
@@ -35,16 +51,17 @@ export function ClimateGradient({
   }, [styles, colorFilter]);
 
   const byBand = useMemo(() => {
-    const map: Record<string, StyleTargetFull[]> = { cool: [], moderate: [], warm: [], hot: [] };
+    const map: Record<string, WineStyleFull[]> = {};
+    for (const label of CLIMATE_LABELS) map[label] = [];
     for (const s of filtered) {
-      const band = s.context?.thermalBandId ?? "moderate";
+      const band = getClimateLabel(s);
       if (band in map) map[band].push(s);
+      else map["Moderate"].push(s);
     }
     return map;
   }, [filtered]);
 
-  const bandHeight = height / BAND_ORDER.length;
-  const bandLabels = ["Cool", "Moderate", "Warm", "Hot"];
+  const bandHeight = height / CLIMATE_LABELS.length;
 
   return (
     <div className="flex flex-col md:flex-row gap-8">
@@ -56,7 +73,7 @@ export function ClimateGradient({
           background: "linear-gradient(to bottom, hsl(var(--slate-cool)), hsl(var(--border)), hsl(var(--terracotta-warm)))",
         }}
       >
-        {BAND_ORDER.map((bandId, index) => {
+        {CLIMATE_LABELS.map((bandId, index) => {
           const bandStyles = byBand[bandId] ?? [];
           const isActive = activeBandIndex === index;
           const isEmpty = bandStyles.length === 0;
@@ -72,7 +89,7 @@ export function ClimateGradient({
               }}
             >
               <span className="font-serif text-sm text-foreground/90">
-                {bandLabels[index]}
+                {bandId}
               </span>
               {isEmpty ? (
                 <span className="text-xs text-muted-foreground font-sans">
@@ -126,7 +143,7 @@ export function ClimateGradient({
         <input
           type="range"
           min={0}
-          max={BAND_ORDER.length - 1}
+          max={CLIMATE_LABELS.length - 1}
           value={activeBandIndex}
           onChange={(e) => onBandIndexChange?.(Number(e.target.value))}
           className="w-full accent-primary"
@@ -155,7 +172,7 @@ export function ClimateGradient({
               {selectedStyle.displayName}
             </p>
             <ul className="font-sans text-sm text-muted-foreground space-y-1">
-              {["acidity", "tannin", "alcohol", "body", "oak_intensity", "flavor_intensity"].map(
+              {["acidity", "tannins", "alcohol", "body", "oak_influence", "overall_intensity"].map(
                 (dimId) => {
                   const v = getStructMid(selectedStyle, dimId);
                   if (v == null) return null;
