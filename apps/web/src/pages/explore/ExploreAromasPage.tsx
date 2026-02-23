@@ -40,9 +40,9 @@ function AromaExplorerSkeleton() {
 }
 
 export function ExploreAromasPage() {
-  const { data: aromaTerms, isLoading, isError, refetch } = useQuery({
-    queryKey: queryKeys.aromaTerms,
-    queryFn: () => api.getAromaTerms(),
+  const { data: taxonomy, isLoading, isError, refetch } = useQuery({
+    queryKey: queryKeys.aromaTaxonomy,
+    queryFn: () => api.getAromaTaxonomy(),
   });
 
   return (
@@ -118,8 +118,8 @@ export function ExploreAromasPage() {
                 Retry
               </Button>
             </div>
-          ) : aromaTerms && aromaTerms.length > 0 ? (
-            <AromaFlowTree terms={aromaTerms} />
+          ) : taxonomy && taxonomy.length > 0 ? (
+            <AromaFlowTree taxonomy={taxonomy} />
           ) : (
             <div
               className="flex flex-col items-center justify-center py-16 px-6 text-center"
@@ -127,7 +127,7 @@ export function ExploreAromasPage() {
             >
               <Inbox className="w-12 h-12 text-muted-foreground/60 mb-4" aria-hidden />
               <h2 className="font-serif text-xl font-semibold text-foreground mb-2">
-                No aroma terms yet
+                No aroma taxonomy yet
               </h2>
               <p className="text-muted-foreground font-sans max-w-sm">
                 The aroma taxonomy hasn’t been loaded. Check back later or contact support.

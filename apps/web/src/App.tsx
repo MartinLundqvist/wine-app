@@ -10,7 +10,7 @@ const LandingPage = lazy(() => import("./pages/LandingPage").then((m) => ({ defa
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage").then((m) => ({ default: m.NotFoundPage })));
 const ExploreLandingPage = lazy(() => import("./pages/explore/ExploreLandingPage").then((m) => ({ default: m.ExploreLandingPage })));
 const ExploreStylesPage = lazy(() => import("./pages/explore/ExploreStylesPage").then((m) => ({ default: m.ExploreStylesPage })));
-const StyleTargetDetailPage = lazy(() => import("./pages/explore/StyleTargetDetailPage").then((m) => ({ default: m.StyleTargetDetailPage })));
+const WineStyleDetailPage = lazy(() => import("./pages/explore/WineStyleDetailPage").then((m) => ({ default: m.WineStyleDetailPage })));
 const ExploreGrapesPage = lazy(() => import("./pages/explore/ExploreGrapesPage").then((m) => ({ default: m.ExploreGrapesPage })));
 const GrapeDetailPage = lazy(() => import("./pages/explore/GrapeDetailPage").then((m) => ({ default: m.GrapeDetailPage })));
 const ExploreRegionsPage = lazy(() => import("./pages/explore/ExploreRegionsPage").then((m) => ({ default: m.ExploreRegionsPage })));
@@ -31,7 +31,7 @@ export default function App() {
           <Route index element={<LandingPage />} />
           <Route path="explore" element={<ExploreLandingPage />} />
           <Route path="explore/styles" element={<ExploreStylesPage />} />
-          <Route path="explore/styles/:id" element={<StyleTargetDetailPage />} />
+          <Route path="explore/styles/:id" element={<WineStyleDetailPage />} />
           <Route path="explore/grapes" element={<ExploreGrapesPage />} />
           <Route path="explore/grapes/:id" element={<GrapeDetailPage />} />
           <Route path="visualize" element={<VisualizeLandingPage />} />

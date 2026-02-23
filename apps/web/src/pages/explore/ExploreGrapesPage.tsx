@@ -5,7 +5,7 @@ import { Wine } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/client";
 import { queryKeys } from "../../api/queryKeys";
-import type { GrapeWithStyleTargets } from "@wine-app/shared";
+import type { GrapeWithWineStyleIds } from "@wine-app/shared";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { Chip } from "../../components/ui/Chip";
 import { ExplorePageShell } from "../../components/explore/ExplorePageShell";
@@ -22,8 +22,8 @@ const sortOptions = [
   { value: "styles", label: "Styles" },
 ] as const;
 
-function styleCount(g: GrapeWithStyleTargets): number {
-  return g.styleTargetIds?.length ?? 0;
+function styleCount(g: GrapeWithWineStyleIds): number {
+  return g.wineStyleIds?.length ?? 0;
 }
 
 export function ExploreGrapesPage() {
@@ -38,7 +38,7 @@ export function ExploreGrapesPage() {
 
   const filtered = useMemo(() => {
     if (!grapes) return [];
-    let list: GrapeWithStyleTargets[] = [...grapes];
+    let list: GrapeWithWineStyleIds[] = [...grapes];
     if (colorFilter === "red" || colorFilter === "white") {
       list = list.filter((g) => g.color === colorFilter);
     }

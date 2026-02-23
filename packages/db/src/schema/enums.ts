@@ -1,6 +1,6 @@
 import { pgEnum } from "drizzle-orm/pg-core";
 
-// Kept for user/exercise layer
+// User / exercise layer (unchanged)
 export const wineColorEnum = pgEnum("wine_color", ["red", "white"]);
 export const masteryStateEnum = pgEnum("mastery_state", [
   "locked",
@@ -24,15 +24,8 @@ export const difficultyEnum = pgEnum("difficulty", [
   "expert",
 ]);
 
-// Wine knowledge engine v4 enums
+// Wine knowledge engine (v2)
 export const grapeColorEnum = pgEnum("grape_color", ["red", "white"]);
-export const domainEnum = pgEnum("structure_domain", [
-  "appearance",
-  "nose",
-  "palate",
-  "conclusion",
-]);
-export const scaleTypeEnum = pgEnum("scale_type", ["ordinal", "categorical"]);
 export const wineCategoryEnum = pgEnum("wine_category", [
   "still",
   "sparkling",
@@ -43,36 +36,21 @@ export const producedColorEnum = pgEnum("produced_color", [
   "white",
   "rose",
 ]);
-export const aromaSourceEnum = pgEnum("aroma_source", [
-  "primary",
-  "secondary",
-  "tertiary",
+export const styleTypeEnum = pgEnum("style_type", [
+  "global_archetype",
+  "regional_archetype",
+  "appellation_archetype",
+  "specific_bottle",
 ]);
-export const styleKindEnum = pgEnum("style_kind", [
-  "grape_archetype",
-  "regional_benchmark",
-  "method_benchmark",
-  "commercial_modern",
+export const regionLevelEnum = pgEnum("region_level", [
+  "country",
+  "region",
+  "sub_region",
+  "appellation",
+  "vineyard",
 ]);
-export const confidenceEnum = pgEnum("confidence", ["high", "medium", "low"]);
-export const statusEnum = pgEnum("style_status", [
-  "draft",
-  "approved",
-  "deprecated",
-]);
-export const grapeRoleEnum = pgEnum("grape_role", ["primary", "blending"]);
-export const prominenceEnum = pgEnum("prominence", [
+export const descriptorSalienceEnum = pgEnum("descriptor_salience", [
   "dominant",
   "supporting",
-  "optional",
-]);
-export const continentalityEnum = pgEnum("continentality", [
-  "maritime",
-  "continental",
-  "mixed",
-]);
-export const malolacticEnum = pgEnum("malolactic_conversion", [
-  "none",
-  "partial",
-  "full",
+  "occasional",
 ]);

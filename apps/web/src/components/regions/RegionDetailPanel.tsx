@@ -3,12 +3,12 @@ import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { X } from "lucide-react";
 import type { Region } from "@wine-app/shared";
-import type { StyleTargetFull } from "@wine-app/shared";
+import type { WineStyleFull } from "@wine-app/shared";
 
 type RegionDetailPanelProps = {
   country: string;
   regions: Region[];
-  styleTargets: StyleTargetFull[];
+  styleTargets: WineStyleFull[];
   onClose: () => void;
   onHoverSubRegion?: (regionId: string | null) => void;
 };
@@ -53,19 +53,19 @@ export function RegionDetailPanel({
 
   const { rootRegion, subRegions, stylesByRegionId } = useMemo(() => {
     const rootRegion = regions.find(
-      (r) => (r.parentRegionId ?? null) === null && r.country === country,
+      (r) => r.regionLevel === "country" && (r.parentId ?? null) === null && r.displayName === country,
     );
     if (!rootRegion) {
       return {
         rootRegion: null,
         subRegions: [] as Region[],
-        stylesByRegionId: new Map<string, StyleTargetFull[]>(),
+        stylesByRegionId: new Map<string, WineStyleFull[]>(),
       };
     }
     const subRegions = regions
-      .filter((r) => r.parentRegionId === rootRegion.id)
+      .filter((r) => r.parentId === rootRegion.id)
       .sort((a, b) => a.displayName.localeCompare(b.displayName));
-    const stylesByRegionId = new Map<string, StyleTargetFull[]>();
+    const stylesByRegionId = new Map<string, WineStyleFull[]>();
     for (const st of styleTargets) {
       if (st.regionId) {
         const list = stylesByRegionId.get(st.regionId) ?? [];

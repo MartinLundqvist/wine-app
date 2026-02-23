@@ -18,7 +18,7 @@ const filterOptions = [
 
 const sortOptions = [
   { value: "name", label: "Name" },
-  { value: "tier", label: "Tier" },
+  { value: "type", label: "Type" },
   { value: "tannin", label: "Tannin (high→low)" },
 ] as const;
 
@@ -40,16 +40,16 @@ export function ExploreStylesPage() {
     }
     if (sortBy === "name")
       list.sort((a, b) => a.displayName.localeCompare(b.displayName));
-    else if (sortBy === "tier")
+    else if (sortBy === "type")
       list.sort(
         (a, b) =>
-          a.ladderTier - b.ladderTier ||
+          a.styleType.localeCompare(b.styleType) ||
           a.displayName.localeCompare(b.displayName),
       );
     else if (sortBy === "tannin") {
       list.sort((a, b) => {
-        const tanninA = getStructureSortValue(a.structure, "tannin");
-        const tanninB = getStructureSortValue(b.structure, "tannin");
+        const tanninA = getStructureSortValue(a.structure, "tannins");
+        const tanninB = getStructureSortValue(b.structure, "tannins");
         return tanninB - tanninA;
       });
     }
