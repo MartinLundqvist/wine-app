@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/client";
 import { queryKeys } from "../../api/queryKeys";
 import type { WineStyleFull } from "@wine-app/shared";
+import { getOrdinalLabel } from "@wine-app/shared";
 import { LoadingSpinner } from "../../components/LoadingSpinner";
 import { Chip } from "../../components/ui/Chip";
 import { WineAttributeBar } from "../../components/ui/WineAttributeBar";
@@ -56,12 +57,21 @@ export function WineStyleDetailPage() {
     {} as Record<string, typeof st.aromaDescriptors>
   );
 
-  const climateLabel =
-    st.climateMin != null &&
-    st.climateMax != null &&
-    st.climateOrdinalScale?.labels
-      ? `${st.climateOrdinalScale.labels[st.climateMin - 1] ?? st.climateMin} – ${st.climateOrdinalScale.labels[st.climateMax - 1] ?? st.climateMax}`
+  const labels = st.climateOrdinalScale?.labels;
+  const minLabel =
+    labels && st.climateMin != null
+      ? getOrdinalLabel(labels, st.climateMin)
       : null;
+  const maxLabel =
+    labels && st.climateMax != null
+      ? getOrdinalLabel(labels, st.climateMax)
+      : null;
+  const climateLabel =
+    minLabel != null && maxLabel != null
+      ? `${minLabel} – ${maxLabel}`
+      : st.climateMin != null && st.climateMax != null
+        ? `${st.climateMin}–${st.climateMax}`
+        : null;
 
   return (
     <div className="min-h-screen bg-background">

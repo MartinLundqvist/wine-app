@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import type { WineStyleFull } from "@wine-app/shared";
+import { getOrdinalLabel } from "@wine-app/shared";
 
 const CLIMATE_LABELS = [
   "Cool",
@@ -23,8 +24,10 @@ function getStructMid(style: WineStyleFull, dimId: string): number | null {
 function getClimateLabel(style: WineStyleFull): string {
   const labels = style.climateOrdinalScale?.labels;
   const min = style.climateMin;
-  if (labels && min != null && min >= 1 && min <= labels.length)
-    return labels[min - 1] ?? "Moderate";
+  if (labels && min != null) {
+    const label = getOrdinalLabel(labels, min);
+    if (label) return label;
+  }
   return "Moderate";
 }
 

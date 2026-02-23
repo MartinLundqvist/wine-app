@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback } from "react";
 import { scaleLinear } from "d3-scale";
 import type { WineStyleFull } from "@wine-app/shared";
+import { getOrdinalLabel } from "@wine-app/shared";
 import { StyleMarker } from "./StyleMarker";
 import { Tooltip } from "./Tooltip";
 
@@ -55,9 +56,9 @@ export function FlavorMap({
     );
     if (climateFilter) {
       list = list.filter((s) => {
-        if (s.climateMin == null || !s.climateOrdinalScale?.labels) return false;
-        const label =
-          s.climateOrdinalScale.labels[s.climateMin - 1] ?? null;
+        const labels = s.climateOrdinalScale?.labels;
+        if (s.climateMin == null || !labels?.length) return false;
+        const label = getOrdinalLabel(labels, s.climateMin);
         return label === climateFilter;
       });
     }
