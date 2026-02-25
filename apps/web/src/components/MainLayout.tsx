@@ -16,6 +16,8 @@ const TITLES: Record<string, string> = {
   "/visualize/confusion": "Confusion Zone",
   "/visualize/aging": "Aging Simulator",
   "/me": "My Account",
+  "/admin/wine-styles": "Admin – Wine Styles",
+  "/admin/wine-styles/new": "Admin – New Wine Style",
 };
 
 export function MainLayout() {
@@ -29,7 +31,9 @@ export function MainLayout() {
     ? "Style"
     : location.pathname.startsWith("/explore/grapes/")
       ? "Grape"
-      : TITLES[location.pathname] ?? "Wine App";
+      : location.pathname.startsWith("/admin/wine-styles/") && location.pathname.endsWith("/edit")
+        ? "Edit wine style"
+        : TITLES[location.pathname] ?? "Wine App";
   useDocumentTitle(title);
 
   return (

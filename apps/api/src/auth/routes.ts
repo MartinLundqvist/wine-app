@@ -30,10 +30,10 @@ export async function registerAuthRoutes(app: FastifyInstance) {
       })
       .returning();
     if (!created) return reply.status(500).send({ error: "Failed to create user" });
-    const accessToken = signAccess({ userId: created.userId, email: created.email });
+    const accessToken = signAccess({ userId: created.userId, email: created.email, role: created.role });
     const refreshToken = signRefresh({ userId: created.userId });
     setRefreshCookie(reply, refreshToken);
-    return reply.send({ accessToken, user: { userId: created.userId, email: created.email, displayName: created.displayName ?? undefined } });
+    return reply.send({ accessToken, user: { userId: created.userId, email: created.email, displayName: created.displayName ?? undefined, role: created.role } });
   });
 
   app.post<{
@@ -51,7 +51,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
       .update(user)
       .set({ lastActiveAt: new Date() })
       .where(eq(user.userId, found.userId));
-    const accessToken = signAccess({ userId: found.userId, email: found.email });
+    const accessToken = signAccess({ userId: found.userId, email: found.email, role: found.role });
     const refreshToken = signRefresh({ userId: found.userId });
     setRefreshCookie(reply, refreshToken);
     return reply.send({
@@ -60,6 +60,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
         userId: found.userId,
         email: found.email,
         displayName: found.displayName ?? undefined,
+        role: found.role,
       },
     });
   });
@@ -71,7 +72,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
       const payload = verifyRefresh(token);
       const [found] = await db.select().from(user).where(eq(user.userId, payload.userId)).limit(1);
       if (!found) return reply.status(401).send({ error: "User not found" });
-      const accessToken = signAccess({ userId: found.userId, email: found.email });
+      const accessToken = signAccess({ userId: found.userId, email: found.email, role: found.role });
       const newRefresh = signRefresh({ userId: found.userId });
       setRefreshCookie(reply, newRefresh);
       return reply.send({
@@ -80,6 +81,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
           userId: found.userId,
           email: found.email,
           displayName: found.displayName ?? undefined,
+          role: found.role,
         },
       });
     } catch {

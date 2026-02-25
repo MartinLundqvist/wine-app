@@ -2,14 +2,16 @@ import { pgTable, varchar, integer, real, boolean, primaryKey } from "drizzle-or
 import { region } from "./grapes";
 
 export const countryMapConfig = pgTable("country_map_config", {
-  countryName: varchar("country_name", { length: 64 }).primaryKey(),
+  regionId: varchar("region_id", { length: 64 })
+    .primaryKey()
+    .references(() => region.id, { onDelete: "cascade" }),
   isoNumeric: integer("iso_numeric").notNull(),
   geoSlug: varchar("geo_slug", { length: 64 }).notNull(),
   naturalEarthAdminName: varchar("natural_earth_admin_name", { length: 128 }).notNull(),
   zoomCenterLon: real("zoom_center_lon").notNull(),
   zoomCenterLat: real("zoom_center_lat").notNull(),
   zoomLevel: real("zoom_level").notNull(),
-  isMappable: boolean("is_mappable").notNull().default(true),
+  isMappable: boolean("is_mappable").notNull().default(false),
 });
 
 export const regionBoundaryMapping = pgTable(

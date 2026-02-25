@@ -8,3 +8,6 @@ dist
 coverage
 .turbo
 .pnpm-store
+
+# Natural Earth admin-0 source file — only used to regenerate countries.json, not at runtime
+apps/api/data/ne_10m_admin_0_countries.geojson

@@ -145,6 +145,56 @@ body {
   overflow-x: clip;
 }
 
+/* Dual-thumb range slider (admin wine style forms) */
+/* Inputs are pointer-events:none so clicks pass through to the track/fill;
+   pointer-events are re-enabled only on the thumbs so both handles are always grabbable. */
+.range-slider-input {
+  pointer-events: none;
+}
+.range-slider-input::-webkit-slider-thumb {
+  appearance: none;
+  pointer-events: all;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  border: 2px solid hsl(var(--background));
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  background: hsl(var(--wine-deep));
+  transition: transform 0.15s;
+}
+.range-slider-input::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+.range-slider-input:focus {
+  outline: none;
+}
+.range-slider-input:focus::-webkit-slider-thumb {
+  pointer-events: all;
+  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--accent));
+}
+.range-slider-max::-webkit-slider-thumb {
+  background: hsl(var(--wine-rich));
+}
+.range-slider-input::-moz-range-thumb {
+  appearance: none;
+  pointer-events: all;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  border: 2px solid hsl(var(--background));
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  background: hsl(var(--wine-deep));
+  transition: transform 0.15s;
+}
+.range-slider-input::-moz-range-thumb:hover {
+  transform: scale(1.1);
+}
+.range-slider-max::-moz-range-thumb {
+  background: hsl(var(--wine-rich));
+}
+
 @layer utilities {
   .font-serif {
     font-family: var(--font-serif);

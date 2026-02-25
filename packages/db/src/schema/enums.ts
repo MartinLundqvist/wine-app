@@ -54,3 +54,6 @@ export const descriptorSalienceEnum = pgEnum("descriptor_salience", [
   "supporting",
   "occasional",
 ]);
+
+// Admin / user role for auth
+export const userRoleEnum = pgEnum("user_role", ["user", "admin"]);

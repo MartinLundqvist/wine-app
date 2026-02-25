@@ -5,7 +5,7 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET ?? "dev-refresh-secret
 const ACCESS_TTL = "15m";
 const REFRESH_TTL = "7d";
 
-export type AccessPayload = { userId: string; email: string; type: "access" };
+export type AccessPayload = { userId: string; email: string; role: string; type: "access" };
 export type RefreshPayload = { userId: string; type: "refresh" };
 
 export function signAccess(payload: Omit<AccessPayload, "type">): string {

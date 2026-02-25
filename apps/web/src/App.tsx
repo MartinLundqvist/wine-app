@@ -1,8 +1,8 @@
 import { lazy, Suspense } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Outlet } from "react-router-dom";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { MainLayout } from "./components/MainLayout";
-import { ProtectedRoute } from "./components/ProtectedRoute";
+import { ProtectedRoute, AdminRoute } from "./components/ProtectedRoute";
 import { LoadingSpinner } from "./components/LoadingSpinner";
 
 const LoginPage = lazy(() => import("./pages/LoginPage").then((m) => ({ default: m.LoginPage })));
@@ -21,6 +21,9 @@ const FlavorMapPage = lazy(() => import("./pages/visualize/FlavorMapPage").then(
 const ClimateExplorerPage = lazy(() => import("./pages/visualize/ClimateExplorerPage").then((m) => ({ default: m.ClimateExplorerPage })));
 const ConfusionZonePage = lazy(() => import("./pages/visualize/ConfusionZonePage").then((m) => ({ default: m.ConfusionZonePage })));
 const AgingSimulatorPage = lazy(() => import("./pages/visualize/AgingSimulatorPage").then((m) => ({ default: m.AgingSimulatorPage })));
+const WineStylesListPage = lazy(() => import("./pages/admin/WineStylesListPage").then((m) => ({ default: m.WineStylesListPage })));
+const WineStyleCreatePage = lazy(() => import("./pages/admin/WineStyleCreatePage").then((m) => ({ default: m.WineStyleCreatePage })));
+const WineStyleEditPage = lazy(() => import("./pages/admin/WineStyleEditPage").then((m) => ({ default: m.WineStyleEditPage })));
 
 export default function App() {
   return (
@@ -67,6 +70,14 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="admin"
+          element={<AdminRoute><Outlet /></AdminRoute>}
+        >
+          <Route path="wine-styles" element={<WineStylesListPage />} />
+          <Route path="wine-styles/new" element={<WineStyleCreatePage />} />
+          <Route path="wine-styles/:id/edit" element={<WineStyleEditPage />} />
+        </Route>
       </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
