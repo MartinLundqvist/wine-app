@@ -40,6 +40,7 @@ Use Neon **pooled** connection string for `DATABASE_URL`.
 | `DATABASE_URL` | Neon Postgres pooled URL, e.g. `postgresql://user:pass@ep-xxx.pooler.us-east-1.aws.neon.tech/neondb?sslmode=require` |
 | `JWT_SECRET` | Min 32 chars (access tokens) |
 | `JWT_REFRESH_SECRET` | Min 32 chars (refresh tokens) |
+| `ADMIN_EMAIL` | Email to auto-promote to admin when running seed in production |
 | `NODE_ENV` | `production` |
 
 ```bash
@@ -47,6 +48,7 @@ fly secrets set \
   DATABASE_URL="postgresql://..." \
   JWT_SECRET="your-min-32-char-secret" \
   JWT_REFRESH_SECRET="your-other-min-32-char-secret" \
+  ADMIN_EMAIL="admin@example.com" \
   NODE_ENV="production"
 ```
 

@@ -235,6 +235,24 @@ export function WineStyleDetailPage() {
           <h2 className="font-serif text-2xl font-bold text-foreground mb-6">
             Aroma Profile
           </h2>
+          {st.aromaClusters && st.aromaClusters.length > 0 && (
+            <div className="mb-6 space-y-3">
+              <h3 className="text-xs font-sans tracking-widest uppercase text-muted-foreground font-semibold">
+                Cluster intensity
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                {st.aromaClusters.map((ac) => (
+                  <WineAttributeBar
+                    key={ac.aromaClusterId}
+                    label={ac.cluster?.displayName ?? ac.aromaClusterId}
+                    minValue={ac.intensityMin}
+                    maxValue={ac.intensityMax}
+                    max={5}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
           <div className="space-y-5">
             {["primary", "secondary", "tertiary"].map((source) => {
               const list = aromasBySource[source];

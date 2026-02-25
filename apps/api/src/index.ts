@@ -6,6 +6,7 @@ import cookie from "@fastify/cookie";
 import fastifyStatic from "@fastify/static";
 import { APP_NAME } from "@wine-app/shared";
 import { registerReadRoutes } from "./routes/read.js";
+import { registerWineStylesRoutes } from "./routes/wineStyles.js";
 import { registerAuthRoutes } from "./auth/routes.js";
 import { requireAuth } from "./auth/preHandler.js";
 
@@ -35,6 +36,7 @@ if (!isProduction) {
 }
 
 await registerReadRoutes(app);
+await registerWineStylesRoutes(app);
 
 app.get("/me", { preHandler: [requireAuth] }, async (req, reply) => {
   return reply.send({ user: req.user });

@@ -6,6 +6,7 @@ import {
   ZoomableGroup,
 } from "react-simple-maps";
 import type { Region, RegionsMapConfigResponse } from "@wine-app/shared";
+import { api, type RegionTopoJson } from "../../api/client";
 
 const GEO_URL =
   "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
@@ -43,10 +44,10 @@ export function RegionMap({
   const [tooltip, setTooltip] = useState<{ name: string; count: number } | null>(
     null,
   );
-  const [admin1Geo, setAdmin1Geo] = useState<object | null>(null);
+  const [admin1Geo, setAdmin1Geo] = useState<RegionTopoJson | null>(null);
   const [admin1LoadError, setAdmin1LoadError] = useState(false);
   const [hoveredAdmin1Name, setHoveredAdmin1Name] = useState<string | null>(null);
-  const geoCacheRef = useRef<Record<string, object>>({});
+  const geoCacheRef = useRef<Record<string, RegionTopoJson>>({});
 
   const useApiConfig = mapConfig != null && mapConfig.countries.length > 0;
 
@@ -147,11 +148,7 @@ export function RegionMap({
       return;
     }
     setAdmin1LoadError(false);
-    fetch(`/geo/${slug}-admin1.json`)
-      .then((res) => {
-        if (!res.ok) throw new Error(res.statusText);
-        return res.json();
-      })
+    api.getRegionGeo(slug)
       .then((topo) => {
         geoCacheRef.current[slug] = topo;
         setAdmin1Geo(topo);

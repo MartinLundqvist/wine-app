@@ -29,21 +29,31 @@ const LandingNavbar = () => {
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
-          {appNavLinks.map(({ to, label }) => {
-            const active =
-              location.pathname === to || location.pathname.startsWith(to + "/");
-            return (
-              <Link
-                key={to}
-                to={to}
-                className={`text-sm font-medium transition-colors no-underline ${
-                  active ? "text-primary" : "text-muted-foreground hover:text-primary"
-                }`}
-              >
-                {label}
-              </Link>
-            );
-          })}
+          {appNavLinks.map(({ to, label }) => (
+            <Link
+              key={to}
+              to={to}
+              className={`text-sm font-medium transition-colors no-underline ${
+                location.pathname === to || location.pathname.startsWith(to + "/")
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-primary"
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
+          {state.user?.role === "admin" && (
+            <Link
+              to="/admin/wine-styles"
+              className={`text-sm font-medium transition-colors no-underline ${
+                location.pathname.startsWith("/admin")
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-primary"
+              }`}
+            >
+              Admin
+            </Link>
+          )}
           {state.user ? (
             <>
               <span className="text-sm text-muted-foreground truncate max-w-32">
@@ -96,6 +106,15 @@ const LandingNavbar = () => {
                   </Link>
                 );
               })}
+              {state.user?.role === "admin" && (
+                <Link
+                  to="/admin/wine-styles"
+                  className="text-sm font-medium text-muted-foreground hover:text-primary no-underline"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Admin
+                </Link>
+              )}
               {state.user ? (
                 <>
                   <span className="text-sm text-muted-foreground">{state.user.email}</span>

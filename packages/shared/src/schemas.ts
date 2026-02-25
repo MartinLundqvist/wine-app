@@ -44,6 +44,21 @@ export const regionSchema = z.object({
 });
 export type Region = z.infer<typeof regionSchema>;
 
+const regionIdSlugSchema = z
+  .string()
+  .min(1)
+  .max(64)
+  .regex(/^[a-z0-9_]+$/);
+
+export const regionCreateSchema = z.object({
+  id: regionIdSlugSchema,
+  displayName: z.string().min(1),
+  regionLevel: regionLevelSchema,
+  parentId: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+});
+export type RegionCreate = z.infer<typeof regionCreateSchema>;
+
 // Grape variety
 export const grapeSchema = z.object({
   id: z.string(),
@@ -68,6 +83,79 @@ export const wineStyleSchema = z.object({
   notes: z.string().nullable().optional(),
 });
 export type WineStyle = z.infer<typeof wineStyleSchema>;
+
+// Wine style ID (slug format for create/params)
+export const wineStyleIdSchema = z
+  .string()
+  .min(1)
+  .max(64)
+  .regex(/^[a-z0-9_]+$/);
+export const wineStyleIdParamSchema = z.object({ id: wineStyleIdSchema });
+export type WineStyleIdParam = z.infer<typeof wineStyleIdParamSchema>;
+
+// Relation array shapes for create/patch (no wineStyleId)
+const wineStyleGrapeInputSchema = z.object({
+  grapeVarietyId: z.string(),
+  percentage: z.number().min(0).max(100).nullable().optional(),
+});
+const wineStyleStructureInputSchema = z.object({
+  structureDimensionId: z.string(),
+  minValue: z.number(),
+  maxValue: z.number(),
+});
+const wineStyleAppearanceInputSchema = z.object({
+  appearanceDimensionId: z.string(),
+  minValue: z.number(),
+  maxValue: z.number(),
+});
+const wineStyleAromaClusterInputSchema = z.object({
+  aromaClusterId: z.string(),
+  intensityMin: z.number(),
+  intensityMax: z.number(),
+});
+const wineStyleAromaDescriptorInputSchema = z.object({
+  aromaDescriptorId: z.string(),
+  salience: descriptorSalienceSchema,
+});
+
+export const wineStyleCreateSchema = z.object({
+  id: wineStyleIdSchema,
+  displayName: z.string().min(1),
+  styleType: styleTypeSchema,
+  producedColor: producedColorSchema,
+  wineCategory: wineCategorySchema.optional(),
+  regionId: z.string().nullable().optional(),
+  climateMin: z.number().nullable().optional(),
+  climateMax: z.number().nullable().optional(),
+  climateOrdinalScaleId: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+  grapes: z.array(wineStyleGrapeInputSchema).optional(),
+  structure: z.array(wineStyleStructureInputSchema).optional(),
+  appearance: z.array(wineStyleAppearanceInputSchema).optional(),
+  aromaClusters: z.array(wineStyleAromaClusterInputSchema).optional(),
+  aromaDescriptors: z.array(wineStyleAromaDescriptorInputSchema).optional(),
+});
+export type WineStyleCreate = z.infer<typeof wineStyleCreateSchema>;
+
+export const wineStylePatchSchema = z
+  .object({
+    displayName: z.string().min(1).optional(),
+    styleType: styleTypeSchema.optional(),
+    producedColor: producedColorSchema.optional(),
+    wineCategory: wineCategorySchema.optional(),
+    regionId: z.string().nullable().optional(),
+    climateMin: z.number().nullable().optional(),
+    climateMax: z.number().nullable().optional(),
+    climateOrdinalScaleId: z.string().nullable().optional(),
+    notes: z.string().nullable().optional(),
+    grapes: z.array(wineStyleGrapeInputSchema).optional(),
+    structure: z.array(wineStyleStructureInputSchema).optional(),
+    appearance: z.array(wineStyleAppearanceInputSchema).optional(),
+    aromaClusters: z.array(wineStyleAromaClusterInputSchema).optional(),
+    aromaDescriptors: z.array(wineStyleAromaDescriptorInputSchema).optional(),
+  })
+  .strict();
+export type WineStylePatch = z.infer<typeof wineStylePatchSchema>;
 
 // Structure dimension (references ordinal scale for labels)
 export const structureDimensionSchema = z.object({
@@ -162,8 +250,9 @@ export const wineStyleGrapeSchema = z.object({
 });
 export type WineStyleGrape = z.infer<typeof wineStyleGrapeSchema>;
 
-// Map config (unchanged)
+// Map config (regionId FK replaces countryName PK; countryName now computed via JOIN)
 export const countryMapConfigSchema = z.object({
+  regionId: z.string(),
   countryName: z.string(),
   isoNumeric: z.number(),
   geoSlug: z.string(),
@@ -174,6 +263,38 @@ export const countryMapConfigSchema = z.object({
   isMappable: z.boolean().optional(),
 });
 export type CountryMapConfig = z.infer<typeof countryMapConfigSchema>;
+
+// Admin upsert: regionId comes from the URL param, not the body
+export const countryMapConfigUpsertSchema = z.object({
+  isoNumeric: z.number().int(),
+  geoSlug: z.string().min(1).max(64),
+  naturalEarthAdminName: z.string().min(1).max(128),
+  zoomCenterLon: z.number(),
+  zoomCenterLat: z.number(),
+  zoomLevel: z.number().positive(),
+  isMappable: z.boolean().optional(),
+});
+export type CountryMapConfigUpsert = z.infer<typeof countryMapConfigUpsertSchema>;
+
+export const boundaryMappingsUpsertSchema = z.object({
+  featureNames: z.array(z.string().min(1)),
+});
+export type BoundaryMappingsUpsert = z.infer<typeof boundaryMappingsUpsertSchema>;
+
+export const geoSuggestionsSchema = z.object({
+  centerLon: z.number(),
+  centerLat: z.number(),
+  suggestedZoom: z.number(),
+  isoNumeric: z.number().nullable(),
+  geoSlug: z.string(),
+});
+export type GeoSuggestions = z.infer<typeof geoSuggestionsSchema>;
+
+export const geoFeaturesResponseSchema = z.object({
+  featureNames: z.array(z.string()),
+  suggestions: geoSuggestionsSchema.nullable(),
+});
+export type GeoFeaturesResponse = z.infer<typeof geoFeaturesResponseSchema>;
 
 export const regionBoundaryMappingSchema = z.object({
   regionId: z.string(),

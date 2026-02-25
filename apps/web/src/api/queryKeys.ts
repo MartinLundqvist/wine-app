@@ -10,4 +10,9 @@ export const queryKeys = {
   ordinalScales: ["ordinal-scales"] as const,
   confusionGroup: (id: string, difficulty: string) =>
     ["confusion-group", id, difficulty] as const,
+  wineStyles: ["wine-styles"] as const,
+  wineStyle: (id: string) => ["wine-style", id] as const,
+  geoFeatures: (geoSlug: string) => ["geo-features", geoSlug] as const,
+  boundaryMappings: (regionId: string) => ["boundary-mappings", regionId] as const,
+  mapConfig: (regionId: string) => ["map-config", regionId] as const,
 } as const;

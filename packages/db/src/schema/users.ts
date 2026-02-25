@@ -7,13 +7,14 @@ import {
   real,
   primaryKey,
 } from "drizzle-orm/pg-core";
-import { masteryStateEnum } from "./enums";
+import { masteryStateEnum, userRoleEnum } from "./enums";
 
 export const user = pgTable("user", {
   userId: uuid("user_id").primaryKey().defaultRandom(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   passwordHash: varchar("password_hash", { length: 255 }).notNull(),
   displayName: varchar("display_name", { length: 255 }),
+  role: userRoleEnum("role").notNull().default("user"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   lastActiveAt: timestamp("last_active_at", { withTimezone: true }),
 });
